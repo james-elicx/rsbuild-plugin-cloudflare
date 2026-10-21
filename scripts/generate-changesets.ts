@@ -2,8 +2,8 @@
  * Generates a patch changeset for each change since the last release, so that
  * the release notes are written from commit messages:
  *
- * - each commit in this repository that changes the plugin (or the patches
- *   that it's built with) gets a changeset with its subject;
+ * - each commit in this repository that changes the plugin (other than its
+ *   tests) gets a changeset with its subject;
  * - each commit that moves the workers-sdk submodule gets a changeset for each
  *   upstream commit in between that changes the Vite plugin, with its subject.
  *
@@ -22,10 +22,9 @@ const pluginDir = "packages/rsbuild-plugin";
 const upstreamDir = "workers-sdk";
 const upstreamRepo = "cloudflare/workers-sdk";
 
-/** The paths whose changes are released. Tests aren't. */
+/** The paths whose changes are released: the plugin, not its tests. */
 const RELEASED_PATHS = [
 	pluginDir,
-	"patches",
 	`:(glob,exclude)${pluginDir}/**/__tests__/**`,
 ];
 
