@@ -7,6 +7,7 @@ import { rspack } from "@rsbuild/core";
 import {
 	hasNodeJsAls,
 	isNodeAlsModule,
+	nodeBuiltinsRE,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
 import {
 	matchAdditionalModule,
@@ -20,7 +21,10 @@ import {
 	resolveExtensions,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/worker-environment-options";
 import { getWasmInitModule } from "./upstream/copied";
-import type { NodeJsCompat } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
+import type {
+	NodeJsCompat,
+	NodeJsCompatWarnings,
+} from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
 import type { Worker } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
 import type { ModuleType } from "@cloudflare/config";
 import type { EnvironmentConfig, Rspack } from "@rsbuild/core";
@@ -49,12 +53,15 @@ export const WORKER_ENTRY_NAME = "index";
  * @param worker The resolved Worker.
  * @param root The project root.
  * @param mode The mode, which `process.env.NODE_ENV` falls back to.
+ * @param nodeJsCompatWarnings Collects the Worker's Node.js imports when it
+ * doesn't have Node.js compat.
  * @returns An Rsbuild environment config.
  */
 export function getWorkerEnvironmentConfig(
 	worker: Worker,
 	root: string,
-	mode: string
+	mode: string,
+	nodeJsCompatWarnings?: NodeJsCompatWarnings
 ): EnvironmentConfig {
 	const { config, directoryName, nodeJsCompat } = worker;
 	const conditionNames = getConditionNames();
@@ -99,16 +106,32 @@ export function getWorkerEnvironmentConfig(
 			// client does, so that both emit the same stylesheets.
 			minify: { js: false, css: true },
 			externals: [
-				async ({ request = "", context = "", dependencyType, getResolve }) => {
+				async ({
+					request = "",
+					context = "",
+					contextInfo,
+					dependencyType,
+					getResolve,
+				}) => {
 					const nodeRequest = request.startsWith("node:")
 						? request
 						: `node:${request}`;
 					if (request.startsWith("cloudflare:")) {
 						return `module ${request}`;
 					}
+					const isNodeAls = hasNodeJsAls(config) && isNodeAlsModule(request);
+					// As in the Vite plugin, Node.js imports without Node.js compat are
+					// externalized, so that they fail at runtime rather than with resolve
+					// errors, and a warning lists them.
+					const isUnexpectedNodeImport =
+						!nodeJsCompat && !isNodeAls && nodeBuiltinsRE.test(request);
+					if (isUnexpectedNodeImport) {
+						nodeJsCompatWarnings?.registerImport(request, contextInfo?.issuer);
+					}
 					if (
-						nodeJsCompat?.externals.has(nodeRequest) ||
-						(hasNodeJsAls(config) && isNodeAlsModule(request))
+						isUnexpectedNodeImport ||
+						isNodeAls ||
+						nodeJsCompat?.externals.has(nodeRequest)
 					) {
 						// `require()` returns a built-in module's default export, as in
 						// Node.js, rather than its namespace.
