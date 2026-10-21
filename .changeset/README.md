@@ -12,7 +12,8 @@ which writes a patch changeset for each change since the last release:
   subject.
 
 The workflow then opens (or updates) a "Version Packages" pull request with
-the new version and changelog. Merging it publishes the release to npm.
+the new version and changelog. `scripts/format-changelog.ts` lists the upstream
+changes under their own heading. Merging it publishes the release to npm.
 
 So write commit subjects as release notes: each is a changelog entry.
 Changesets written by hand (`pnpm changeset`) are released too, e.g. for a

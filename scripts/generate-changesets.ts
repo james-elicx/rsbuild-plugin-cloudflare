@@ -38,6 +38,12 @@ const UPSTREAM_RELEASED_PATHS = [
 	":(glob,exclude)packages/vite-plugin-cloudflare/**/__tests__/**",
 ];
 
+/**
+ * Marks the upstream changes, which `scripts/format-changelog.ts` moves under a
+ * heading of their own.
+ */
+const upstreamPrefix = "From `@cloudflare/vite-plugin`: ";
+
 /** Matches the commits that changesets/action makes to release. */
 const versionCommitRE = /^Version Packages\b/;
 
@@ -133,7 +139,7 @@ function getUpstreamSummaries(from: string, to: string): string[] {
 			const linked = /\(#\d+\)/.test(text)
 				? text.replace(/\(#(\d+)\)/g, `(${upstreamRepo}#$1)`)
 				: `${text} (${upstreamRepo}@${sha.slice(0, 9)})`;
-			return `From \`@cloudflare/vite-plugin\`: ${linked}`;
+			return `${upstreamPrefix}${linked}`;
 		});
 }
 
