@@ -46,8 +46,13 @@ const upstreamPrefix = "From `@cloudflare/vite-plugin`: ";
 /** Matches the commits that changesets/action makes to release. */
 const versionCommitRE = /^Version Packages\b/;
 
-/** Matches the commits that `.github/workflows/sync-upstream.yml` makes. */
-const syncCommitRE = /^Bump workers-sdk to /;
+/**
+ * Matches the commits that `.github/workflows/sync-upstream.yml` makes. Bumps
+ * are released as the upstream commits that they bring in, and dependency
+ * updates only change development dependencies, as the plugin's dependencies
+ * follow the Vite plugin's.
+ */
+const syncCommitRE = /^(?:Bump workers-sdk to |Update dependencies$)/;
 
 /** Matches the scopes that commit subjects start with, e.g. `[vite-plugin] `. */
 const scopeRE = /^(?:\[[^\]]+\]\s*)+/;
@@ -190,7 +195,6 @@ for (const commit of commits) {
 			summaries.push({ id: `${shortSha}-upstream-${index}`, summary });
 		}
 	}
-	// The sync's commit message is only a log of the upstream commits.
 	if (syncCommitRE.test(message)) {
 		continue;
 	}

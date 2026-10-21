@@ -36,8 +36,11 @@ change that exposes what the plugin needs.
   `packages/test-harness/vitest.playground.config.ts` or
   `vitest.e2e.config.ts`.
 - **Dependencies follow upstream.** The plugin's runtime dependencies are the
-  Vite plugin's, and the tooling versions are workers-sdk's;
-  `scripts/sync-upstream-deps.ts` updates them.
+  Vite plugin's, and the tooling versions (and CI's Node.js version) are
+  workers-sdk's; `scripts/sync-upstream-deps.ts` updates them. Pin those
+  exactly. Give other dependencies `^` ranges: the daily sync updates them
+  within their ranges (`pnpm update:deps`), and lists newer major versions in
+  its pull request.
 
 ## Start here
 

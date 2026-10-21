@@ -58,9 +58,10 @@ The playground suite needs Chromium:
 
 ## Staying in sync with workers-sdk
 
-A daily workflow moves the submodule to workers-sdk's `main` in a pull request,
-runs CI, and rebase-merges the pull request when it passes. See [UPSTREAM.md](UPSTREAM.md) for how it
-works and what to do when it fails.
+A daily workflow moves the submodule to workers-sdk's `main` and updates the
+other dependencies in a pull request, runs CI, and rebase-merges the pull
+request when it passes. See [UPSTREAM.md](UPSTREAM.md) for how it works and
+what to do when it fails.
 
 ## Releases
 
