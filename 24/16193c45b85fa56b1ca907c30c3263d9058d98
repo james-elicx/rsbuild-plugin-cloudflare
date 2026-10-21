@@ -1,0 +1,27 @@
+.claude/skills/check-upstream-alignment/SKILL.md
+  s_3ce1770c226aa0::t_a39813a717cc30 11-18,89-91
+AGENTS.md
+  s_3ce1770c226aa0::t_0c61aa305ca4fc 32-35,39-43
+UPSTREAM.md
+  s_3ce1770c226aa0::t_a79343230562e0 38-55,114-115,133-135
+scripts/check-copied-code.ts
+  s_3ce1770c226aa0::t_32b00f3a03c67a 8-11,23-37,102-107,109-120,122-127,129-140,144,146-147
+scripts/upstream-mirrors.json
+  s_3ce1770c226aa0::t_06171de298b376 1-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2416193c45b85fa56b1ca907c30c3263d9058d98",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}

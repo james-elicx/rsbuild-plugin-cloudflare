@@ -1,0 +1,31 @@
+packages/rsbuild-plugin/src/index.ts
+  s_afccd370344ebe::t_3e356e3f4b6c00 21-24,42,369-372,374-376,563-564,566-568
+packages/rsbuild-plugin/src/upstream/copied.ts
+  s_afccd370344ebe::t_fb877590352dfb 20-23,140-156,162-163,168-177
+turbo.json
+  s_3ce1770c226aa0::t_4fba736d4d1681 8-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "cfc2348b286fe4d1ba0d4a25997c69a8f3894f52",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    },
+    "s_afccd370344ebe": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "64a94656-71ad-4854-be91-e552f505f0f8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
