@@ -1,0 +1,135 @@
+diff --git a/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts b/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts
+index e99e5f58e..51b4ecc31 100644
+--- a/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts
++++ b/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts
+@@ -15,6 +15,11 @@ import {
+ 	WORKER_ENTRY_PATH_HEADER,
+ } from "./shared";
+ import { debuglog, getOutputDirectory, isRolldown } from "./utils";
++import {
++	defaultConditions,
++	getProcessEnvReplacements,
++	resolveExtensions,
++} from "./worker-environment-options";
+ import type { ExportTypes } from "./export-types";
+ import type {
+ 	ResolvedWorkerConfig,
+@@ -195,8 +200,6 @@ export const cloudflareBuiltInModules = [
+ 	"cloudflare:workflows",
+ ];
+ 
+-const defaultConditions = ["workerd", "worker", "module", "browser"];
+-
+ // workerd runs every es2026 feature natively, including `using` and `await using`.
+ // Oxc (Vite 8) accepts an es2026 target, so it leaves them as written instead of
+ // lowering them to `_usingCtx` helpers. esbuild (Vite 6 and 7) has no es2026
+@@ -213,20 +216,6 @@ const cssTarget = "es2024";
+ // it as written. Kept in step with Wrangler's COMMON_ESBUILD_OPTIONS.
+ const esbuildSupported = { using: true };
+ 
+-// TODO: consider removing in next major to use default extensions
+-const resolveExtensions = [
+-	".mjs",
+-	".js",
+-	".mts",
+-	".ts",
+-	".jsx",
+-	".tsx",
+-	".json",
+-	".cjs",
+-	".cts",
+-	".ctx",
+-];
+-
+ /**
+  * Worker source maps are written to the Worker's build output rather than its
+  * public assets, so emit them by default for readable stack traces. Users can
+@@ -376,35 +365,6 @@ export function createCloudflareEnvironmentOptions({
+ 	};
+ }
+ 
+-/**
+- * Gets `process.env` replacement values.
+- * `process.env.NODE_ENV` is always replaced.
+- * `process.env` is replaced with an empty object if `nodejs_compat` is not enabled
+- * @param hasNodeJsCompat - whether `nodejs_compat` is enabled
+- * @param mode - the Vite mode
+- * @returns replacement values
+- */
+-function getProcessEnvReplacements(
+-	hasNodeJsCompat: boolean,
+-	mode: vite.ConfigEnv["mode"]
+-): Record<string, string> {
+-	const nodeEnv = process.env.NODE_ENV || mode;
+-	const nodeEnvReplacements = {
+-		"process.env.NODE_ENV": JSON.stringify(nodeEnv),
+-		"global.process.env.NODE_ENV": JSON.stringify(nodeEnv),
+-		"globalThis.process.env.NODE_ENV": JSON.stringify(nodeEnv),
+-	};
+-
+-	return hasNodeJsCompat
+-		? nodeEnvReplacements
+-		: {
+-				...nodeEnvReplacements,
+-				"process.env": "{}",
+-				"global.process.env": "{}",
+-				"globalThis.process.env": "{}",
+-			};
+-}
+-
+ /**
+  * On Vite 6 and 7, Vite's `vite:esbuild-transpile` build plugin lowers each
+  * chunk to `build.target` with the top-level `esbuild` options. Those options
+diff --git a/packages/vite-plugin-cloudflare/src/worker-environment-options.ts b/packages/vite-plugin-cloudflare/src/worker-environment-options.ts
+new file mode 100644
+index 000000000..dd6a92e84
+--- /dev/null
++++ b/packages/vite-plugin-cloudflare/src/worker-environment-options.ts
+@@ -0,0 +1,47 @@
++// The Worker environments' resolve and `define` options, which don't depend on
++// Vite so that other bundler integrations can share them.
++
++export const defaultConditions = ["workerd", "worker", "module", "browser"];
++
++// TODO: consider removing in next major to use default extensions
++export const resolveExtensions = [
++	".mjs",
++	".js",
++	".mts",
++	".ts",
++	".jsx",
++	".tsx",
++	".json",
++	".cjs",
++	".cts",
++	".ctx",
++];
++
++/**
++ * Gets `process.env` replacement values.
++ * `process.env.NODE_ENV` is always replaced.
++ * `process.env` is replaced with an empty object if `nodejs_compat` is not enabled
++ * @param hasNodeJsCompat - whether `nodejs_compat` is enabled
++ * @param mode - the Vite mode
++ * @returns replacement values
++ */
++export function getProcessEnvReplacements(
++	hasNodeJsCompat: boolean,
++	mode: string
++): Record<string, string> {
++	const nodeEnv = process.env.NODE_ENV || mode;
++	const nodeEnvReplacements = {
++		"process.env.NODE_ENV": JSON.stringify(nodeEnv),
++		"global.process.env.NODE_ENV": JSON.stringify(nodeEnv),
++		"globalThis.process.env.NODE_ENV": JSON.stringify(nodeEnv),
++	};
++
++	return hasNodeJsCompat
++		? nodeEnvReplacements
++		: {
++				...nodeEnvReplacements,
++				"process.env": "{}",
++				"global.process.env": "{}",
++				"globalThis.process.env": "{}",
++			};
++}
