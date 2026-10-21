@@ -56,6 +56,9 @@ export default mergeConfig(
 				"errors/**",
 				"prerendering/**",
 				// Vite plugins and options without Rsbuild equivalents in the harness.
+				// `module-resolution` loads its routes with Vite's `import.meta.glob`,
+				// which Rspack doesn't support, and serves a virtual module with a Vite
+				// plugin (`testDepPlugin`).
 				"module-resolution/**",
 				// Relies on Rollup's `preserveModules` to emit the module that the
 				// Worker imports with a runtime path.
