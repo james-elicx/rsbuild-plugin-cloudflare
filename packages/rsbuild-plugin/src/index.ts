@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import * as fs from "node:fs";
 import * as fsp from "node:fs/promises";
+import { isBuiltin } from "node:module";
 import * as path from "node:path";
 import {
 	BUILD_OUTPUT_ROOT,
@@ -232,6 +233,24 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					// As the Vite plugin reserves Vite's client environment name.
 					if (name === "web") {
 						throw new Error(`"web" is a reserved Rsbuild environment name`);
+					}
+					const externals = [
+						userConfig.output?.externals,
+						userConfig.environments?.[name]?.output?.externals,
+					]
+						.flat()
+						.filter((external) => external !== undefined);
+					// The Vite plugin rejects `resolve.external` for Workers. Rsbuild also
+					// applies top-level externals, often meant for the client, to every
+					// environment, so only warn.
+					if (
+						!externals.every(
+							(external) => typeof external === "string" && isBuiltin(external)
+						)
+					) {
+						logger.warn(
+							`The "${name}" environment's \`output.externals\` option is incompatible with the Cloudflare plugin, as workerd can't import external modules. To resolve this issue, avoid setting \`output.externals\` in your Cloudflare Worker environments.`
+						);
 					}
 					if (action !== "build" || !resolveDevOnly(worker.devOnly)) {
 						workerEnvironments.set(name, worker);
