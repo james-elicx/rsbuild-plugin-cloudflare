@@ -1,0 +1,70 @@
+AGENTS.md
+  s_3ce1770c226aa0::t_64606a0a07b2b7 20-21,23-31,84
+  s_3ce1770c226aa0::t_9a69dc3459e9fb 9,63
+README.md
+  s_3ce1770c226aa0::t_0e57b207120a89 19-22,24-26
+  s_3ce1770c226aa0::t_1b5ca1c8a040f9 23,55,57
+  s_3ce1770c226aa0::t_2b8be8467e39f7 61-62
+UPSTREAM.md
+  s_3ce1770c226aa0::t_09bf04f2bae795 11-13,22-23,28-33,84-86
+  s_3ce1770c226aa0::t_1f3197c3ddf69b 51-58,60-63,69,93-96
+packages/rsbuild-plugin/src/index.ts
+  s_3ce1770c226aa0::t_ae7f5da10acfab 13-16,18-28,35-40,42,55-56,58-61
+  s_3ce1770c226aa0::t_cc95fce971dd10 57,73,94
+packages/rsbuild-plugin/src/miniflare-options.ts
+  s_3ce1770c226aa0::t_f415afe54289cb 2-3
+packages/rsbuild-plugin/src/upstream/copied.ts
+  s_3ce1770c226aa0::t_04b749eda9af1d 2-6
+packages/rsbuild-plugin/src/vite-server.ts
+  s_3ce1770c226aa0::t_e99c7b990ff381 2-4
+packages/rsbuild-plugin/src/worker-environment.ts
+  s_3ce1770c226aa0::t_c84eb250a2958a 10-11,15-19
+packages/rsbuild-plugin/tsdown.config.ts
+  s_3ce1770c226aa0::t_60ee7c60666dc4 5,25-30
+patches/0004-vite-plugin-export-internals.patch
+  s_3ce1770c226aa0::t_334f3961c064c9 1-40
+.github/workflows/ci.yml
+  s_3ce1770c226aa0::t_6576df8ab9b82b 70,76,100
+package.json
+  s_3ce1770c226aa0::t_5c4a64ef9212b0 2,21-22
+packages/rsbuild-plugin/README.md
+  s_3ce1770c226aa0::t_bae1faeeff118a 1,15,19
+packages/rsbuild-plugin/package.json
+  s_3ce1770c226aa0::t_d3f7ae01330681 2
+packages/rsbuild-plugin/src/__tests__/fixtures/spa-with-api/rsbuild.config.ts
+  s_3ce1770c226aa0::t_c0eae99f73e20d 2,6
+packages/rsbuild-plugin/src/__tests__/fixtures/worker/rsbuild.config.ts
+  s_3ce1770c226aa0::t_d4ef882adfd580 2,5
+packages/rsbuild-plugin/src/__tests__/helpers.ts
+  s_3ce1770c226aa0::t_cc87c14373576c 6-7,36
+packages/test-harness/package.json
+  s_3ce1770c226aa0::t_fbb63763513866 2,22
+packages/test-harness/src/e2e-global-setup.ts
+  s_3ce1770c226aa0::t_b6385a276f1073 8
+packages/test-harness/src/e2e-seed.ts
+  s_3ce1770c226aa0::t_4cf9429b548cd1 7,29,59
+packages/test-harness/src/playground-serve.ts
+  s_3ce1770c226aa0::t_68958e2c8e65d8 6,12,105,110,133
+packages/test-harness/vitest.e2e.config.ts
+  s_3ce1770c226aa0::t_9d0ee52c13e05f 6
+packages/test-harness/vitest.playground.config.ts
+  s_3ce1770c226aa0::t_4808f414b14928 6
+pnpm-lock.yaml
+  s_3ce1770c226aa0::t_dae762af143b40 118-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0260cd4f8b5e1b96a69bfcf2a11eb02a11bf8dca",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
