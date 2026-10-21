@@ -1,0 +1,21 @@
+scripts/sync-upstream-deps.ts
+  s_3ce1770c226aa0::t_3d231db786686f 10,233-260
+scripts/update-deps.ts
+  s_3ce1770c226aa0::t_8dfa7d1548654b 1-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f43826779868ea1a3a13cf351bb5d9317d67858b",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
