@@ -14,7 +14,10 @@ import {
 	toModuleType,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugins/additional-modules";
 import { wasmInitRE } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugins/wasm";
-import { getProcessEnvReplacements } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/worker-environment-options";
+import {
+	defaultConditions,
+	getProcessEnvReplacements,
+} from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/worker-environment-options";
 import { getWasmInitModule } from "./upstream/copied";
 import type { NodeJsCompat } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
 import type { Worker } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
@@ -22,8 +25,18 @@ import type { ModuleType } from "@cloudflare/config";
 import type { EnvironmentConfig, Rspack } from "@rsbuild/core";
 import type { WorkerOptions } from "miniflare";
 
-/** The package export conditions that the Vite plugin uses for Workers. */
-const conditionNames = ["workerd", "worker", "module", "browser"];
+/**
+ * Gets the package export conditions that the Vite plugin uses for Workers.
+ * Vite resolves its `development|production` condition from `NODE_ENV`, which
+ * Rsbuild sets before it resolves its config.
+ */
+function getConditionNames(): string[] {
+	return [
+		...defaultConditions,
+		// oxlint-disable-next-line turbo/no-undeclared-env-vars -- Rsbuild sets it at runtime, so Turbo tasks don't depend on it.
+		process.env.NODE_ENV === "production" ? "production" : "development",
+	];
+}
 
 /** The Worker's entry chunk name, so its main module is `index.js`. */
 export const WORKER_ENTRY_NAME = "index";
@@ -43,6 +56,7 @@ export function getWorkerEnvironmentConfig(
 	mode: string
 ): EnvironmentConfig {
 	const { config, directoryName, nodeJsCompat } = worker;
+	const conditionNames = getConditionNames();
 	/** The additional modules to emit, keyed by output file name. */
 	const additionalModules = new Map<
 		string,
@@ -180,7 +194,7 @@ export function getWorkerEntry(
 	if (
 		entrypoint === config.entrypoint &&
 		new rspack.experiments.resolver.ResolverFactory({
-			conditionNames: [...conditionNames, "import"],
+			conditionNames: [...getConditionNames(), "import"],
 		}).sync(root, entrypoint).error
 	) {
 		throw new Error(

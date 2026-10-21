@@ -1,0 +1,11 @@
+{
+	"private": true,
+	"type": "module",
+	"imports": {
+		"#mode": {
+			"development": "./src/mode/development.ts",
+			"production": "./src/mode/production.ts",
+			"default": "./src/mode/default.ts"
+		}
+	}
+}
