@@ -7,6 +7,7 @@ import getPort from "get-port";
 import { cloudflare } from "rsbuild-plugin-cloudflare";
 import { onTestFinished } from "vitest";
 import type { RsbuildConfig } from "@rsbuild/core";
+import type { PluginConfig } from "rsbuild-plugin-cloudflare";
 
 /**
  * Copies a fixture so that tests can modify its files. The copy stays inside
@@ -27,7 +28,11 @@ export function copyFixture(name: string): string {
 	return root;
 }
 
-function createFixtureRsbuild(root: string, config: RsbuildConfig) {
+function createFixtureRsbuild(
+	root: string,
+	config: RsbuildConfig,
+	pluginConfig: PluginConfig = {}
+) {
 	return createRsbuild({
 		cwd: root,
 		config: {
@@ -37,6 +42,7 @@ function createFixtureRsbuild(root: string, config: RsbuildConfig) {
 					persistState: false,
 					inspectorPort: false,
 					types: { generate: false },
+					...pluginConfig,
 				}),
 				...(config.plugins ?? []),
 			],
@@ -50,16 +56,22 @@ function createFixtureRsbuild(root: string, config: RsbuildConfig) {
  *
  * @param root The fixture root.
  * @param config Additional Rsbuild config from the fixture's `rsbuild.config.ts`.
+ * @param pluginConfig Additional options for the Cloudflare plugin.
  * @returns The dev server's URL, closed when the test finishes.
  */
 export async function startDevServer(
 	root: string,
-	config: RsbuildConfig = {}
+	config: RsbuildConfig = {},
+	pluginConfig: PluginConfig = {}
 ): Promise<string> {
-	const rsbuild = await createFixtureRsbuild(root, {
-		...config,
-		server: { port: await getPort(), strictPort: true },
-	});
+	const rsbuild = await createFixtureRsbuild(
+		root,
+		{
+			...config,
+			server: { port: await getPort(), strictPort: true, ...config.server },
+		},
+		pluginConfig
+	);
 	const { server, urls } = await rsbuild.startDevServer();
 	onTestFinished(() => server.close());
 	const [url] = urls;
@@ -74,12 +86,14 @@ export async function startDevServer(
  *
  * @param root The fixture root.
  * @param config Additional Rsbuild config from the fixture's `rsbuild.config.ts`.
+ * @param pluginConfig Additional options for the Cloudflare plugin.
  */
 export async function build(
 	root: string,
-	config: RsbuildConfig = {}
+	config: RsbuildConfig = {},
+	pluginConfig: PluginConfig = {}
 ): Promise<void> {
-	const rsbuild = await createFixtureRsbuild(root, config);
+	const rsbuild = await createFixtureRsbuild(root, config, pluginConfig);
 	const { close } = await rsbuild.build();
 	await close();
 }

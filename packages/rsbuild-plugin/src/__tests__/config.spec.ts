@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { createLogger } from "@rsbuild/core";
 import { describe, test, vi } from "vitest";
-import { build, copyFixture } from "./helpers";
+import { build, copyFixture, startDevServer } from "./helpers";
 import type { Logger } from "@rsbuild/core";
 
 /**
@@ -63,5 +63,32 @@ describe("config", () => {
 		expect(warn).toHaveBeenCalledWith(
 			expect.stringContaining("Containers aren't supported")
 		);
+	});
+
+	test("reads `_headers` from the public directory, unless it's disabled", async ({
+		expect,
+	}) => {
+		const root = copyFixture("spa-with-api");
+		fs.mkdirSync(path.join(root, "public"));
+		fs.writeFileSync(
+			path.join(root, "public", "_headers"),
+			"/*\n  X-Custom: from-headers\n"
+		);
+		const config = { source: { entry: { index: "./src/index.ts" } } };
+		const pluginConfig = {
+			experimental: { headersAndRedirectsDevModeSupport: true },
+		};
+
+		const url = await startDevServer(root, config, pluginConfig);
+		expect((await fetch(url)).headers.get("x-custom")).toBe("from-headers");
+
+		const urlWithoutPublicDir = await startDevServer(
+			root,
+			{ ...config, server: { publicDir: false } },
+			pluginConfig
+		);
+		expect(
+			(await fetch(urlWithoutPublicDir)).headers.get("x-custom")
+		).toBeNull();
 	});
 });
