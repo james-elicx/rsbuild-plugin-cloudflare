@@ -7,6 +7,7 @@ import {
 	cleanBuildOutputDir,
 	DEFAULT_WORKER_DIRECTORY_NAME,
 	getWorkerAssetsDir,
+	getWorkerBundleDir,
 	writeRootConfig,
 	writeWorkerConfig,
 } from "@cloudflare/build-output-utils";
@@ -306,6 +307,12 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			api.modifyEnvironmentConfig((config, { name }) => {
 				const worker = workerEnvironments.get(name);
 				if (worker) {
+					// As in the Vite plugin, the Worker is always written to its Build
+					// Output location, whatever output directory is configured.
+					config.output.distPath.root = getWorkerBundleDir(
+						root,
+						worker.directoryName
+					);
 					// Top-level entries are merged into every environment, so replace
 					// them to keep client entries out of the Worker.
 					config.source.entry = getWorkerEntry(worker, root);
