@@ -227,11 +227,26 @@ export function getWorkerEntry(
 		);
 	}
 
+	// As in the Vite plugin, the Worker has a default export even when the
+	// entrypoint doesn't. `Object(mod)` stops Rspack from warning that the
+	// entrypoint has no default export. Data URI modules resolve imports from
+	// the root, and a relative path keeps absolute paths out of the bundle.
+	const specifier = JSON.stringify(
+		entrypoint === entrypointPath
+			? `./${path.relative(root, entrypointPath).replaceAll("\\", "/")}`
+			: entrypoint
+	);
+	const entry = toDataUri(
+		`import * as mod from ${specifier};\n` +
+			`export * from ${specifier};\n` +
+			`export default Object(mod).default ?? {};\n`
+	);
+
 	return {
 		[WORKER_ENTRY_NAME]: {
 			import: nodeJsCompat
-				? [toDataUri(nodeJsCompat.injectGlobalCode()), entrypoint]
-				: entrypoint,
+				? [toDataUri(nodeJsCompat.injectGlobalCode()), entry]
+				: entry,
 			html: false,
 		},
 	};
