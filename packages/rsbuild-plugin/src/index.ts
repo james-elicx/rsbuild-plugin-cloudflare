@@ -108,6 +108,9 @@ export function pluginCloudflare(
 			let environmentContexts: Record<string, EnvironmentContext> = {};
 			let serverConfig: ServerConfig | undefined;
 			let miniflareCreated = false;
+			/** Whether the plugin prints the dev server's URLs, once it listens. */
+			let printUrls = false;
+			let devServerListening = false;
 			/** Why Miniflare last failed to start or update, which requests report. */
 			let miniflareError: unknown;
 			let settleFirstStart: () => void = () => {};
@@ -184,6 +187,10 @@ export function pluginCloudflare(
 							: {};
 				const resolvedEnvDir =
 					envDir === false ? false : path.resolve(root, envDir ?? ".");
+				// Rsbuild only prints the server's URLs for client environments.
+				printUrls =
+					Object.keys(environments).length === 0 &&
+					userConfig.server?.printUrls === true;
 
 				return mergeRsbuildConfig(userConfig, {
 					environments: {
@@ -221,11 +228,13 @@ export function pluginCloudflare(
 					server: {
 						// The asset Worker handles HTML requests, as when deployed.
 						htmlFallback: false,
-						// Rsbuild only prints the server's URLs for client environments.
-						...(Object.keys(environments).length === 0 &&
-							userConfig.server?.printUrls === true && {
-								printUrls: ({ urls }: { urls: string[] }) => urls,
-							}),
+						// Rsbuild prints the dev server's URLs before it listens, so they're
+						// printed again once it does (see `onAfterStartDevServer`), as in
+						// Vite.
+						...(printUrls && {
+							printUrls: ({ urls }: { urls: string[] }) =>
+								action !== "dev" || devServerListening ? urls : undefined,
+						}),
 					},
 				});
 			});
@@ -307,6 +316,10 @@ export function pluginCloudflare(
 			});
 
 			api.onAfterStartDevServer(({ port }) => {
+				devServerListening = true;
+				if (printUrls) {
+					devServer?.printUrls();
+				}
 				if (serverConfig) {
 					// Rsbuild may have chosen another port.
 					serverConfig.port = port;
