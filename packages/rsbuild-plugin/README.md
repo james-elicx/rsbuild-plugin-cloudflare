@@ -37,6 +37,29 @@ The entry Worker is built by an Rsbuild environment named `cloudflare`, unless
 `viteEnvironment.name` is set. Auxiliary Workers' environments are named as in
 the Vite plugin.
 
+### Frameworks
+
+As with the Vite plugin, put `cloudflare()` before the framework's plugins, and
+set `viteEnvironment.name` to the framework's server environment. The plugin
+builds that environment for workerd, whatever target the framework sets.
+
+For [TanStack Start](https://tanstack.com/start), also turn off its dev server
+middleware, which would otherwise run the server bundle in Node.js. (With Vite,
+TanStack Start detects that the Worker's environment doesn't run in Node.js.)
+
+```ts
+export default defineConfig({
+	plugins: [
+		pluginReact(),
+		cloudflare({ viteEnvironment: { name: "ssr" } }),
+		tanstackStart({ rsbuild: { installDevServerMiddleware: false } }),
+	],
+});
+```
+
+See [`packages/e2e/fixtures/tanstack-start`](https://github.com/james-elicx/rsbuild-plugin-cloudflare/tree/main/packages/e2e/fixtures/tanstack-start) for
+a complete app.
+
 ## Differences from the Vite plugin
 
 The plugin replaces Vite's module runner with Rsbuild's bundles, so behaviour
