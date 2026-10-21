@@ -31,6 +31,10 @@ describe("spa-with-api", () => {
 		const api = await fetch(new URL("/api/hello", url));
 		expect(await api.json()).toEqual({ name: "Cloudflare" });
 
+		// Without `nodejs_compat`, `process.env` is an empty object.
+		const env = await fetch(new URL("/api/env", url));
+		expect(await env.text()).toBe("undefined");
+
 		// Unmatched routes reach the Worker, which serves `index.html` through
 		// its assets binding.
 		const fallback = await fetch(new URL("/some/route", url));

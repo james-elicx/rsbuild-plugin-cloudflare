@@ -1,3 +1,7 @@
+// Workers without `nodejs_compat` have no `process`, but the plugin replaces
+// `process.env` with an empty object, as the Vite plugin does.
+declare const process: { env: Record<string, string | undefined> };
+
 interface Env {
 	ASSETS: Fetcher;
 }
@@ -5,6 +9,10 @@ interface Env {
 export default {
 	async fetch(request, env) {
 		const { pathname } = new URL(request.url);
+
+		if (pathname === "/api/env") {
+			return new Response(String(process.env.UNDEFINED_VARIABLE));
+		}
 
 		if (pathname === "/api/hello") {
 			return Response.json({ name: "Cloudflare" });

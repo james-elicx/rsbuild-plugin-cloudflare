@@ -14,6 +14,7 @@ import {
 	toModuleType,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugins/additional-modules";
 import { wasmInitRE } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugins/wasm";
+import { getProcessEnvReplacements } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/worker-environment-options";
 import { getWasmInitModule } from "./upstream/copied";
 import type { NodeJsCompat } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
 import type { Worker } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
@@ -33,11 +34,13 @@ export const WORKER_ENTRY_NAME = "index";
  *
  * @param worker The resolved Worker.
  * @param root The project root.
+ * @param mode The mode, which `process.env.NODE_ENV` falls back to.
  * @returns An Rsbuild environment config.
  */
 export function getWorkerEnvironmentConfig(
 	worker: Worker,
-	root: string
+	root: string,
+	mode: string
 ): EnvironmentConfig {
 	const { config, directoryName, nodeJsCompat } = worker;
 	/** The additional modules to emit, keyed by output file name. */
@@ -47,7 +50,10 @@ export function getWorkerEnvironmentConfig(
 	>();
 
 	return {
-		source: { entry: getWorkerEntry(worker, root) },
+		source: {
+			entry: getWorkerEntry(worker, root),
+			define: getProcessEnvReplacements(nodeJsCompat !== undefined, mode),
+		},
 		resolve: {
 			conditionNames,
 			// As in the Vite plugin, don't prefer packages' browser builds.
@@ -122,6 +128,9 @@ export function getWorkerEnvironmentConfig(
 			rspack: {
 				// Keep the entry's exports, which are the Worker's handlers.
 				output: { library: { type: "module" } },
+				// `process.env.NODE_ENV` is replaced with `source.define`, as in the
+				// Vite plugin.
+				optimization: { nodeEnv: false },
 				resolve: {
 					aliasFields: [],
 					// As in the Vite plugin, `import` or `require` depends on how the
