@@ -1,0 +1,149 @@
+.github/actions/setup/action.yml
+  s_3ce1770c226aa0::t_5dafcbfb6e48cc 1-46
+.github/workflows/ci.yml
+  s_3ce1770c226aa0::t_60c7a5f5dbb802 1-102
+.github/workflows/sync-upstream.yml
+  s_8a36679ffbcf1c::t_a6fd0a393833cb 1-140
+.gitignore
+  s_3ce1770c226aa0::t_57d850c6bd985d 1-13
+.gitmodules
+  s_3ce1770c226aa0::t_ae1a5a94970584 1-4
+.oxfmtrc.jsonc
+  s_3ce1770c226aa0::t_af46c501f424c7 1-15
+.oxlintrc.jsonc
+  s_3ce1770c226aa0::t_8c4fbd13c06270 1-153
+.prettierignore
+  s_3ce1770c226aa0::t_d9955014da762f 1-2
+AGENTS.md
+  s_3ce1770c226aa0::t_a8218efa8e27b4 1-101
+CLAUDE.md
+  s_3ce1770c226aa0::t_8b181baad8479c 1-3
+LICENSE
+  s_3ce1770c226aa0::t_8553b2ba2b619b 1-25
+README.md
+  s_3ce1770c226aa0::t_d86d3bb94fa063 1-63
+UPSTREAM.md
+  s_3ce1770c226aa0::t_a4fc8668eca7f3 1-88
+package.json
+  s_3ce1770c226aa0::t_9d7230a7e68d2b 1-43
+packages/rsbuild-plugin/README.md
+  s_3ce1770c226aa0::t_3e8869f2d2e91e 1-65
+packages/rsbuild-plugin/package.json
+  s_3ce1770c226aa0::t_fd3645a8aa51c2 1-69
+packages/rsbuild-plugin/src/__tests__/fixtures/spa-with-api/.gitignore
+  s_3ce1770c226aa0::t_923a69633c035f 1-3
+packages/rsbuild-plugin/src/__tests__/fixtures/spa-with-api/api/index.ts
+  s_3ce1770c226aa0::t_64ab73e5ee2120 1-20
+packages/rsbuild-plugin/src/__tests__/fixtures/spa-with-api/cloudflare.config.ts
+  s_3ce1770c226aa0::t_cbeec505937dc3 1-12
+packages/rsbuild-plugin/src/__tests__/fixtures/spa-with-api/rsbuild.config.ts
+  s_3ce1770c226aa0::t_5c093067b597f0 1-7
+packages/rsbuild-plugin/src/__tests__/fixtures/spa-with-api/src/index.ts
+  s_3ce1770c226aa0::t_4e99b9e12eaa76 1-5
+packages/rsbuild-plugin/src/__tests__/fixtures/spa-with-api/tsconfig.json
+  s_3ce1770c226aa0::t_b324b9b3f6249b 1-7
+packages/rsbuild-plugin/src/__tests__/fixtures/worker/.dev.vars
+  s_3ce1770c226aa0::t_f21bca7d62b8bb 1
+packages/rsbuild-plugin/src/__tests__/fixtures/worker/.gitignore
+  s_3ce1770c226aa0::t_3d3262cd0fae6e 1-3
+packages/rsbuild-plugin/src/__tests__/fixtures/worker/cloudflare.config.ts
+  s_3ce1770c226aa0::t_d129655cccec5b 1-16
+packages/rsbuild-plugin/src/__tests__/fixtures/worker/rsbuild.config.ts
+  s_3ce1770c226aa0::t_432818973b736e 1-6
+packages/rsbuild-plugin/src/__tests__/fixtures/worker/src/index.ts
+  s_3ce1770c226aa0::t_d7867725fe6696 1-36
+packages/rsbuild-plugin/src/__tests__/fixtures/worker/src/lazy.ts
+  s_3ce1770c226aa0::t_a1a96021370a6a 1
+packages/rsbuild-plugin/src/__tests__/fixtures/worker/tsconfig.json
+  s_3ce1770c226aa0::t_a1d82c91ef741c 1-7
+packages/rsbuild-plugin/src/__tests__/helpers.ts
+  s_3ce1770c226aa0::t_2ee78dd8ec76a3 1-103
+packages/rsbuild-plugin/src/__tests__/spa-with-api.spec.ts
+  s_3ce1770c226aa0::t_8776047227b64d 1-97
+packages/rsbuild-plugin/src/__tests__/worker.spec.ts
+  s_3ce1770c226aa0::t_1bdba185d277fd 1-104
+packages/rsbuild-plugin/src/index.ts
+  s_3ce1770c226aa0::t_4ef5e436a6e3cf 1-609
+packages/rsbuild-plugin/src/upstream/copied.ts
+  s_3ce1770c226aa0::t_8dc1a0390a78ff 1-241
+packages/rsbuild-plugin/src/upstream/index.ts
+  s_3ce1770c226aa0::t_0e4e03e4033789 1-57
+packages/rsbuild-plugin/src/upstream/upstream-copies.json
+  s_3ce1770c226aa0::t_176bc12a0d184e 1-28
+packages/rsbuild-plugin/src/upstream/vite-server.ts
+  s_3ce1770c226aa0::t_74ee3ea0a41cc4 1-154
+packages/rsbuild-plugin/src/upstream/vite-shim.ts
+  s_3ce1770c226aa0::t_a6f222ef813236 1-25
+packages/rsbuild-plugin/src/worker-environment.ts
+  s_3ce1770c226aa0::t_ef51ff41d26846 1-408
+packages/rsbuild-plugin/tsconfig.json
+  s_3ce1770c226aa0::t_a21910108de70f 1-10
+packages/rsbuild-plugin/tsdown.config.ts
+  s_8a36679ffbcf1c::t_d303f7499d9ae7 1-39
+packages/rsbuild-plugin/vitest.config.ts
+  s_3ce1770c226aa0::t_ce878e52d06419 1-19
+packages/test-harness/package.json
+  s_3ce1770c226aa0::t_3ee5f8e78145c1 1-27
+packages/test-harness/src/e2e-global-setup.ts
+  s_3ce1770c226aa0::t_1d904d0c55cec7 1-34
+packages/test-harness/src/e2e-seed.ts
+  s_3ce1770c226aa0::t_3c2afe8d9e5017 1-104
+packages/test-harness/src/playground-serve.ts
+  s_3ce1770c226aa0::t_440ea1b06b119f 1-278
+packages/test-harness/tsconfig.json
+  s_3ce1770c226aa0::t_9acf2b50bcfa37 1-12
+packages/test-harness/vitest.e2e.config.ts
+  s_3ce1770c226aa0::t_3805adb55b0d35 1-45
+packages/test-harness/vitest.playground.config.ts
+  s_3ce1770c226aa0::t_96152e5d618d16 1-85
+patches/0001-vite-plugin-expose-plugin-config.patch
+  s_3ce1770c226aa0::t_682e836ed1f81a 1-13
+patches/0002-playground-pluggable-serve.patch
+  s_3ce1770c226aa0::t_f0c0607bd7e243 1-30
+patches/0003-e2e-seed-hook.patch
+  s_3ce1770c226aa0::t_2595a948ed4cdb 1-19
+pnpm-lock.yaml
+  s_3ce1770c226aa0::t_08067d8630b3d4 1-3203
+pnpm-workspace.yaml
+  s_3ce1770c226aa0::t_aa79a6b8add04d 1-30
+scripts/apply-patches.sh
+  s_3ce1770c226aa0::t_f74a517ba87731 1-31
+scripts/bump-upstream.sh
+  s_3ce1770c226aa0::t_e3393331639541 1-24
+scripts/check-copied-code.ts
+  s_3ce1770c226aa0::t_8bf841ce6a930f 1-124
+scripts/setup-upstream.sh
+  s_3ce1770c226aa0::t_cfe98e7e02bfef 1-14
+scripts/sync-upstream-deps.ts
+  s_8a36679ffbcf1c::t_743c307c9ee6ca 1-249
+turbo.json
+  s_3ce1770c226aa0::t_f98b45b35ab228 1-28
+vitest.shared.ts
+  s_3ce1770c226aa0::t_a4b5ce0538b563 1-23
+workers-sdk
+  s_8a36679ffbcf1c::t_7dc6b2a6f86da4 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "4a1b1348134d1df81303b7211a17e7723663294e",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    },
+    "s_8a36679ffbcf1c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2a67e91a-41da-4c5d-be22-8a335d331dc5",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
