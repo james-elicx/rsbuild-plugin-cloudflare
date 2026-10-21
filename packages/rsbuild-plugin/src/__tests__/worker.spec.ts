@@ -108,7 +108,9 @@ describe("worker", () => {
 	}) => {
 		const root = copyFixture("worker");
 		// Like TanStack Start, which builds its server environment for Node.js and
-		// serves the server bundle with `server.setup`.
+		// serves the server bundle with `server.setup`: in dev, it handles some
+		// requests before the Cloudflare plugin, with the bundle that
+		// `loadBundle()` returns.
 		const nodeServerPlugin: RsbuildPlugin = {
 			name: "node-server",
 			setup(api) {
@@ -118,12 +120,28 @@ describe("worker", () => {
 							cloudflare: { output: { target: "node", module: false } },
 						},
 						server: {
-							setup: ({ action, server }) => {
-								if (action === "preview") {
-									server.middlewares.use((_req, res) => {
+							setup: (context) => {
+								if (context.action === "preview") {
+									context.server.middlewares.use((_req, res) => {
 										res.end("Hello from Node.js");
 									});
+									return;
 								}
+								const { environments } = context.server;
+								context.server.middlewares.use(async (req, res, next) => {
+									if (req.method !== "POST") {
+										return next();
+									}
+									const bundle = await environments.cloudflare?.loadBundle<{
+										default: { fetch: (request: Request) => Promise<Response> };
+									}>("index");
+									const response = await bundle?.default.fetch(
+										new Request(new URL(req.url ?? "/", "http://localhost"), {
+											method: "POST",
+										})
+									);
+									res.end(`Framework: ${await response?.text()}`);
+								});
 							},
 						},
 					})
@@ -134,6 +152,9 @@ describe("worker", () => {
 		expect(await (await fetch(devUrl)).text()).toBe(
 			"Hello from rsbuild + workerd"
 		);
+		expect(
+			await (await fetch(new URL("/kv", devUrl), { method: "POST" })).text()
+		).toBe("Framework: value");
 
 		await build(root, { plugins: [nodeServerPlugin] });
 		const previewUrl = await startPreviewServer(root, {

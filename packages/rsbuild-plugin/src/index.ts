@@ -14,7 +14,7 @@ import {
 	getDevVarsCandidatePaths,
 	getEnvPaths,
 } from "@cloudflare/workers-utils/local-env";
-import { buildPublicUrl } from "miniflare";
+import { buildPublicUrl, CoreHeaders } from "miniflare";
 import { isPreviewBuild } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/build-output-env";
 import { PluginContext } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
 import { DEBUG_PATH } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/debug";
@@ -23,7 +23,10 @@ import {
 	resolveDevOnly,
 	resolvePluginConfig,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
-import { createRequestHandler } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/utils";
+import {
+	createRequestHandler,
+	toMiniflareRequest,
+} from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/utils";
 import { handleWebSocket } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/websockets";
 import { getDevMiniflareOptions } from "./miniflare-options";
 import {
@@ -291,6 +294,21 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 						ctx.getResolvedInspectorPort()
 					)
 				);
+				// Frameworks (e.g. TanStack Start) serve their server bundle with
+				// `loadBundle()`, which would run the Worker in Node.js, so return a
+				// module whose `fetch` sends requests to the Worker in workerd.
+				for (const [name, { config }] of workerEnvironments) {
+					const environment = server.environments[name];
+					if (environment) {
+						environment.loadBundle = async <T>() =>
+							({
+								default: {
+									fetch: (request: Request) =>
+										fetchWorker(request, config.name),
+								},
+							}) as T;
+					}
+				}
 				const { entryWorkerConfig } = ctx;
 				if (entryWorkerConfig) {
 					const { httpServer } = server;
@@ -555,6 +573,22 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					throw miniflareError;
 				}
 				return ctx.miniflare;
+			}
+
+			/**
+			 * Sends a request to a Worker, bypassing the router Worker, as the
+			 * middleware from `createUserWorkerHandler` does.
+			 */
+			async function fetchWorker(
+				request: Request,
+				workerName: string
+			): Promise<Response> {
+				const miniflareRequest = toMiniflareRequest(request);
+				miniflareRequest.headers.set(CoreHeaders.ROUTE_OVERRIDE, workerName);
+				const response = await (
+					await getMiniflare()
+				).dispatchFetch(miniflareRequest, { redirect: "manual" });
+				return response as unknown as Response;
 			}
 
 			/** Forwards a request to the router Worker, or to the asset Worker for asset requests. */
