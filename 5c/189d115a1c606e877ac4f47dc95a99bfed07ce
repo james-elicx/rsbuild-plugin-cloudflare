@@ -1,0 +1,37 @@
+packages/rsbuild-plugin/src/__tests__/fixtures/spa-with-api/api/index.ts
+  s_58b15b244bf99b::t_40c1fcd060bc4d 1-4,13-16
+packages/rsbuild-plugin/src/__tests__/fixtures/worker/src/index.ts
+  s_3ce1770c226aa0::t_d32e941e60fbda 25-27
+packages/rsbuild-plugin/src/__tests__/spa-with-api.spec.ts
+  s_58b15b244bf99b::t_6c93f0d0627932 34-37
+packages/rsbuild-plugin/src/__tests__/worker.spec.ts
+  s_3ce1770c226aa0::t_2e73db7a7d1cd7 4,12-19,22,33,100,112
+packages/rsbuild-plugin/src/index.ts
+  s_58b15b244bf99b::t_b0c859dc1bcfa5 209
+packages/rsbuild-plugin/src/worker-environment.ts
+  s_3ce1770c226aa0::t_bdba817a95e514 17,37,42-43,53-56,128-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "5c189d115a1c606e877ac4f47dc95a99bfed07ce",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    },
+    "s_58b15b244bf99b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ab75af1c-7ca7-49da-850f-718547f25774",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
