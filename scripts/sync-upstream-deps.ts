@@ -30,6 +30,7 @@ interface PackageJson {
 
 /** The tooling that is pinned to the versions installed in the submodule. */
 const TOOLING = [
+	"@changesets/cli",
 	"@cloudflare/workers-types",
 	"@types/node",
 	"cf",

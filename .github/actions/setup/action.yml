@@ -4,6 +4,9 @@ inputs:
   setup-upstream:
     description: when "false", skip preparing the workers-sdk submodule (e.g. because a script prepares it)
     default: "true"
+  registry-url:
+    description: the npm registry to authenticate with (e.g. to publish)
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -15,6 +18,7 @@ runs:
       uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
       with:
         node-version: 22.23.1
+        registry-url: ${{ inputs.registry-url }}
         cache: "pnpm"
         cache-dependency-path: |
           pnpm-lock.yaml

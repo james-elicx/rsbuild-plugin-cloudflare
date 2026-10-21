@@ -100,3 +100,7 @@ Do not reproduce those rules manually; run `pnpm prettify`.
 - Use the `[package] description` title style, e.g.
   `[rsbuild-plugin] Support X`.
 - Run the relevant tests and checks locally before pushing.
+- Write commit subjects as release notes. Changesets are generated from them
+  (see [.changeset/README.md](.changeset/README.md)): the subject, without its
+  `[package]` scope, is the changelog entry. Write
+  a changeset by hand (`pnpm changeset`) only for a minor or major bump.

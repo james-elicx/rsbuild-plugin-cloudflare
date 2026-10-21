@@ -11,3 +11,6 @@ dist
 .env
 .dev.vars
 !packages/rsbuild-plugin/src/__tests__/fixtures/**/.dev.vars
+
+# Written by `scripts/generate-changesets.ts` in CI.
+.changeset/generated-*.md

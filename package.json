@@ -19,9 +19,12 @@
 		"test": "turbo test",
 		"test:ci": "turbo test:ci",
 		"test:e2e": "turbo build && pnpm -F rsbuild-plugin-cloudflare-test-harness test:e2e",
-		"test:playground": "turbo build && pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground"
+		"test:playground": "turbo build && pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground",
+		"changeset:generate": "node --experimental-strip-types scripts/generate-changesets.ts",
+		"release": "turbo build && changeset publish"
 	},
 	"devDependencies": {
+		"@changesets/cli": "2.29.7",
 		"@types/node": "22.15.17",
 		"eslint-plugin-turbo": "2.8.20",
 		"oxfmt": "0.68.0",

@@ -61,3 +61,11 @@ The playground suite needs Chromium:
 A daily workflow moves the submodule to workers-sdk's `main` in a pull request,
 runs CI, and rebase-merges the pull request when it passes. See [UPSTREAM.md](UPSTREAM.md) for how it
 works and what to do when it fails.
+
+## Releases
+
+Each push to `main` updates a "Version Packages" pull request with a patch
+release whose notes are generated from the commit subjects since the last
+release, plus the subjects of the workers-sdk commits that changed the Vite
+plugin. Merging it publishes the release to npm. See
+[.changeset/README.md](.changeset/README.md).
