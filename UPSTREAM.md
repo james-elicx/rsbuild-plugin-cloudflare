@@ -35,6 +35,25 @@ repository stays in sync, and what to do when a sync fails.
   upstream, where it's inlined in Vite hooks rather than exported.
   `upstream-copies.json` records a hash of each upstream declaration that a
   copy came from, and `pnpm check:copied-code` fails when one changes.
+- **Mirrored declarations:** the plugin's own code reproduces some upstream
+  declarations for Rsbuild instead of copying them.
+  `scripts/upstream-mirrors.json` records their hashes in the same way, so
+  `pnpm check:copied-code` also fails when one of them changes:
+
+  | Upstream declaration                                                            | The plugin's counterpart                                                     |
+  | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+  | `configPlugin` (`plugins/config.ts`)                                            | `modifyRsbuildConfig` and `modifyEnvironmentConfig` (`index.ts`)             |
+  | `createCloudflareEnvironmentOptions` (`cloudflare-environment.ts`)              | `getWorkerEnvironmentConfig` (`worker-environment.ts`)                       |
+  | `virtualModulesPlugin` (`plugins/virtual-modules.ts`)                           | `getWorkerEntry` (`worker-environment.ts`)                                   |
+  | `additionalModulesPlugin` (`plugins/additional-modules.ts`)                     | The externals and `additionalModulesPlugin` (`worker-environment.ts`)        |
+  | `nodeJsCompatPlugin`, `nodeJsCompatWarningsPlugin` (`plugins/nodejs-compat.ts`) | The externals and `nodeJsCompatPlugin` (`worker-environment.ts`)             |
+  | `previewPlugin` (`plugins/preview.ts`)                                          | `onBeforeStartPreviewServer` (`index.ts`)                                    |
+  | `buildOutputPlugin` (`plugins/build-output.ts`)                                 | `onBeforeBuild`, `onAfterEnvironmentCompile` and `onAfterBuild` (`index.ts`) |
+
+  `devPlugin`, which also holds the static routing selection that
+  `onBeforeStartDevServer` reproduces, is already tracked as a copy's source.
+  The hashes are of the patched submodule, as `pnpm setup:upstream` leaves it.
+
 - **Dependencies:** `pnpm check:upstream-deps` checks that the plugin's runtime
   dependencies are the Vite plugin's, that the `overrides` in
   `pnpm-workspace.yaml` link them to the submodule, and that the tooling,
@@ -93,7 +112,8 @@ Then, depending on what failed:
   then revert the submodule's working tree with
   `./scripts/apply-patches.sh --reverse`.
 - **`check:copied-code`:** review the upstream change to each listed
-  declaration, update `src/upstream/copied.ts` to match, then run
+  declaration, update `src/upstream/copied.ts` to match (or, for a mirrored
+  declaration, the plugin's counterpart in the table above), then run
   `pnpm check:copied-code --update`. Better still, if upstream now exports it,
   import it instead and drop the copy.
 - **Type errors:** an internal API changed. Adapt the adapters
@@ -111,8 +131,9 @@ passes. If the branch no longer rebases cleanly, rebase it onto `main` yourself
 and force-push it.
 
 Passing CI doesn't mean the plugin still behaves like the Vite plugin: only
-copied code is checked mechanically. To review the rest against an upstream
-change, follow the `check-upstream-alignment` skill
+the copied and mirrored declarations are checked mechanically, and only for
+changes. To review the rest against an upstream change, follow the
+`check-upstream-alignment` skill
 (`.claude/skills/check-upstream-alignment/SKILL.md`).
 
 If a fix would make the Rsbuild glue grow substantially, stop and reassess: the
