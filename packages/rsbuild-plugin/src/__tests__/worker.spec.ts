@@ -26,6 +26,26 @@ describe("worker", () => {
 		expect(await get("/secret")).toBe("from-dev-vars");
 	});
 
+	test("applies the Worker's environment config once", async ({ expect }) => {
+		const rspackConfig = vi.fn();
+		await startDevServer(copyFixture("worker"), {
+			environments: {
+				cloudflare: {
+					output: { externals: ["external-module"] },
+					tools: { rspack: rspackConfig },
+				},
+			},
+		});
+
+		expect(rspackConfig).toHaveBeenCalledOnce();
+		const [config] = rspackConfig.mock.calls[0] ?? [];
+		expect(
+			config.externals.filter(
+				(external: unknown) => external === "external-module"
+			)
+		).toHaveLength(1);
+	});
+
 	test("reloads the Worker when its source changes", async ({ expect }) => {
 		const root = copyFixture("worker");
 		const url = await startDevServer(root);

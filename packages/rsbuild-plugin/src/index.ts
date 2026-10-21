@@ -248,51 +248,57 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					Object.keys(environments).length === 0 &&
 					userConfig.server?.printUrls === true;
 
-				return mergeRsbuildConfig(userConfig, {
-					environments: {
-						...environments,
-						...Object.fromEntries(
-							[...workerEnvironments].map(([name, worker]) => [
-								name,
-								// The user's environment config overrides the defaults.
-								mergeRsbuildConfig(
-									getWorkerEnvironmentConfig(worker, root),
-									userConfig.environments?.[name] ?? {}
-								),
-							])
-						),
-					},
-					dev: {
-						watchFiles: {
-							paths: [
-								...resolvedPluginConfig.configPaths,
-								...getEnvPaths(resolvedEnvDir, mode),
-								...getDevVarsCandidatePaths(resolvedEnvDir, mode),
-								...(resolvedPluginConfig.experimental
-									.headersAndRedirectsDevModeSupport
-									? getPublicDirs(userConfig.server?.publicDir, root).flatMap(
-											(dir) => [
-												path.join(dir, "_headers"),
-												path.join(dir, "_redirects"),
-											]
-										)
-									: []),
-							],
-							type: "reload-server",
+				// The environments below already include the user's, so replace them
+				// rather than merging them in again, which would apply their
+				// functions (e.g. `tools.rspack`) and arrays twice.
+				return mergeRsbuildConfig(
+					{ ...userConfig, environments: {} },
+					{
+						environments: {
+							...environments,
+							...Object.fromEntries(
+								[...workerEnvironments].map(([name, worker]) => [
+									name,
+									// The user's environment config overrides the defaults.
+									mergeRsbuildConfig(
+										getWorkerEnvironmentConfig(worker, root),
+										userConfig.environments?.[name] ?? {}
+									),
+								])
+							),
 						},
-					},
-					server: {
-						// The asset Worker handles HTML requests, as when deployed.
-						htmlFallback: false,
-						// Rsbuild prints the dev server's URLs before it listens, so they're
-						// printed again once it does (see `onAfterStartDevServer`), as in
-						// Vite.
-						...(printUrls && {
-							printUrls: ({ urls }: { urls: string[] }) =>
-								action !== "dev" || devServerListening ? urls : undefined,
-						}),
-					},
-				});
+						dev: {
+							watchFiles: {
+								paths: [
+									...resolvedPluginConfig.configPaths,
+									...getEnvPaths(resolvedEnvDir, mode),
+									...getDevVarsCandidatePaths(resolvedEnvDir, mode),
+									...(resolvedPluginConfig.experimental
+										.headersAndRedirectsDevModeSupport
+										? getPublicDirs(userConfig.server?.publicDir, root).flatMap(
+												(dir) => [
+													path.join(dir, "_headers"),
+													path.join(dir, "_redirects"),
+												]
+											)
+										: []),
+								],
+								type: "reload-server",
+							},
+						},
+						server: {
+							// The asset Worker handles HTML requests, as when deployed.
+							htmlFallback: false,
+							// Rsbuild prints the dev server's URLs before it listens, so they're
+							// printed again once it does (see `onAfterStartDevServer`), as in
+							// Vite.
+							...(printUrls && {
+								printUrls: ({ urls }: { urls: string[] }) =>
+									action !== "dev" || devServerListening ? urls : undefined,
+							}),
+						},
+					}
+				);
 			});
 
 			api.modifyEnvironmentConfig((config, { name }) => {
