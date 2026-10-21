@@ -8,6 +8,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { CoreHeaders } from "miniflare";
+import colors from "picocolors";
 import {
 	ASSET_WORKER_NAME,
 	kRequestType,
@@ -191,20 +192,35 @@ export function createDebugMiddleware(
 // From `build.ts`.
 
 /**
- * Moves assets imported in the entry Worker to the client build.
+ * Moves assets imported in the entry Worker to the client build, and logs how
+ * many were moved.
  *
- * @param importedAssetPaths The assets' paths relative to both directories.
- * @param entryWorkerBuildDirectory The entry Worker's build directory.
- * @param clientBuildDirectory The client build directory.
- * @returns The moved assets' paths.
+ * @param options The assets and build directories.
+ * @param options.importedAssetPaths The assets' paths relative to both directories.
+ * @param options.entryWorkerBuildDirectory The entry Worker's build directory.
+ * @param options.clientBuildDirectory The client build directory.
+ * @param options.entryWorkerEnvironmentName The entry Worker's environment name.
+ * @param options.root The project root.
+ * @param options.logger Logs the moved assets.
  */
-export function moveImportedAssets(
-	importedAssetPaths: Iterable<string>,
-	entryWorkerBuildDirectory: string,
-	clientBuildDirectory: string
-): string[] {
+export function moveImportedAssets({
+	importedAssetPaths,
+	entryWorkerBuildDirectory,
+	clientBuildDirectory,
+	entryWorkerEnvironmentName,
+	root,
+	logger,
+}: {
+	importedAssetPaths: Iterable<string>;
+	entryWorkerBuildDirectory: string;
+	clientBuildDirectory: string;
+	entryWorkerEnvironmentName: string;
+	root: string;
+	logger: { info: (message: string) => void };
+}): void {
 	const movedAssetPaths: string[] = [];
 
+	// Move assets imported in the entry Worker to the client build
 	for (const assetPath of importedAssetPaths) {
 		const src = path.join(entryWorkerBuildDirectory, assetPath);
 		const dest = path.join(clientBuildDirectory, assetPath);
@@ -223,5 +239,16 @@ export function moveImportedAssets(
 		}
 	}
 
-	return movedAssetPaths;
+	if (movedAssetPaths.length) {
+		logger.info(
+			[
+				`${colors.green("✓")} ${movedAssetPaths.length} asset${
+					movedAssetPaths.length > 1 ? "s" : ""
+				} moved from "${entryWorkerEnvironmentName}" to "client" build output.`,
+				...movedAssetPaths.map((assetPath) =>
+					colors.dim(path.relative(root, assetPath))
+				),
+			].join("\n")
+		);
+	}
 }
