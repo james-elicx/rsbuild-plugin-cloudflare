@@ -1,0 +1,21 @@
+packages/rsbuild-plugin/src/__tests__/config.spec.ts
+  s_3ce1770c226aa0::t_9678cf318f2c97 24-29
+packages/rsbuild-plugin/src/index.ts
+  s_3ce1770c226aa0::t_15387a89e22a7b 182-185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9e899b6ebbc25298e66f56ed2ccdc32da9957776",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}

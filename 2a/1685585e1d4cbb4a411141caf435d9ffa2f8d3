@@ -1,0 +1,27 @@
+packages/rsbuild-plugin/src/index.ts
+  s_3ce1770c226aa0::t_66249ab71924e2 123-124,290-295,424-425
+  s_3ce1770c226aa0::t_40727c9da9886a 10,254-259
+packages/rsbuild-plugin/src/__tests__/worker.spec.ts
+  s_3ce1770c226aa0::t_f9a481bdd3f70c 4,51-70,72-84
+  s_3ce1770c226aa0::t_8f8c9919efc030 123-141
+packages/rsbuild-plugin/src/__tests__/fixtures/worker/src/index.ts
+  s_3ce1770c226aa0::t_d10e93453a7ea0 33-38
+packages/test-harness/src/playground-serve.ts
+  s_3ce1770c226aa0::t_d0693cbac97a52 178-212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2a1685585e1d4cbb4a411141caf435d9ffa2f8d3",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
