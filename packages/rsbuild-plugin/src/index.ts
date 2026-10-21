@@ -21,6 +21,7 @@ import { isPreviewBuild } from "../../../workers-sdk/packages/vite-plugin-cloudf
 import { PluginContext } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
 import { DEBUG_PATH } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/debug";
 import { getPreviewMiniflareOptions } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/miniflare-options";
+import { NodeJsCompatWarnings } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
 import {
 	resolveDevOnly,
 	resolvePluginConfig,
@@ -118,6 +119,11 @@ const CONTAINERS_WARNING =
 	"Containers aren't supported by the Rsbuild plugin yet, so Container-backed Durable Objects will fail.";
 
 type MiniflareManifest = NonNullable<WorkerOptions["config"]["manifest"]>;
+
+// As in the Vite plugin, the warnings that are still pending when the process
+// exits (e.g. because the Worker failed to start) are rendered then.
+let renderNodeJsCompatWarnings = () => {};
+process.on("exit", () => renderNodeJsCompatWarnings());
 
 /**
  * Rsbuild plugin that builds the Workers defined in `cloudflare.config.ts` and
@@ -277,6 +283,19 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				printUrls =
 					Object.keys(environments).length === 0 &&
 					userConfig.server?.printUrls === true;
+				const nodeJsCompatWarnings = new Map(
+					[...workerEnvironments]
+						.filter(([, worker]) => !worker.nodeJsCompat)
+						.map(([name]) => [
+							name,
+							new NodeJsCompatWarnings(name, ctx.resolvedViteConfig),
+						])
+				);
+				renderNodeJsCompatWarnings = () => {
+					for (const warnings of nodeJsCompatWarnings.values()) {
+						warnings.renderWarnings();
+					}
+				};
 
 				// The environments below already include the user's, so replace them
 				// rather than merging them in again, which would apply their
@@ -291,7 +310,12 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 									name,
 									// The user's environment config overrides the defaults.
 									mergeRsbuildConfig(
-										getWorkerEnvironmentConfig(worker, root, mode),
+										getWorkerEnvironmentConfig(
+											worker,
+											root,
+											mode,
+											nodeJsCompatWarnings.get(name)
+										),
 										userConfig.environments?.[name] ?? {}
 									),
 								])
