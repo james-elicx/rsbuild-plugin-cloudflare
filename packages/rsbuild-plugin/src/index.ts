@@ -10,30 +10,36 @@ import {
 	writeRootConfig,
 	writeWorkerConfig,
 } from "@cloudflare/build-output-utils";
-import { buildPublicUrl } from "miniflare";
 import {
-	createDebugMiddleware,
-	createDevServer,
-	createDispatchMiddleware,
-	createLogger,
-	createPreviewServer,
-	createRequestHandler,
-	createResolvedConfig,
-	createStaticRoutingMiddleware,
-	createUserWorkerHandler,
-	DEBUG_PATH,
-	getDevMiniflareOptions,
 	getDevVarsCandidatePaths,
 	getEnvPaths,
-	getPreviewMiniflareOptions,
-	handleWebSocket,
-	isPreviewBuild,
-	moveImportedAssets,
-	PluginContext,
+} from "@cloudflare/workers-utils/local-env";
+import { buildPublicUrl } from "miniflare";
+import { isPreviewBuild } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/build-output-env";
+import { PluginContext } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
+import { DEBUG_PATH } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/debug";
+import { getPreviewMiniflareOptions } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/miniflare-options";
+import {
 	resolveDevOnly,
 	resolvePluginConfig,
+} from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
+import { createRequestHandler } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/utils";
+import { handleWebSocket } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/websockets";
+import { getDevMiniflareOptions } from "./miniflare-options";
+import {
+	createDebugMiddleware,
+	createDispatchMiddleware,
+	createStaticRoutingMiddleware,
+	createUserWorkerHandler,
+	moveImportedAssets,
+} from "./upstream/copied";
+import {
+	createDevServer,
+	createLogger,
+	createPreviewServer,
+	createResolvedConfig,
 	toViteHttpServer,
-} from "./upstream";
+} from "./vite-server";
 import {
 	getAdditionalModuleTypes,
 	getImportedAssetPaths,
@@ -44,13 +50,15 @@ import {
 } from "./worker-environment";
 import type {
 	AssetsOnlyPluginContext,
-	DevHtmlHandlers,
-	PluginConfig,
 	PreviewPluginContext,
-	ServerConfig,
-	Worker,
 	WorkersPluginContext,
-} from "./upstream";
+} from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
+import type {
+	PluginConfig,
+	Worker,
+} from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
+import type { DevHtmlHandlers } from "./miniflare-options";
+import type { ServerConfig } from "./vite-server";
 import type {
 	EnvironmentContext,
 	NormalizedConfig,

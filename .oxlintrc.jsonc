@@ -117,30 +117,6 @@
 				"workers-sdk/no-unsafe-command-execution": "off",
 			},
 		},
-		// Only `src/upstream` imports workers-sdk code, so that upstream changes
-		// surface there when the submodule is bumped. See AGENTS.md.
-		{
-			"files": ["packages/rsbuild-plugin/src/*.ts"],
-			"rules": {
-				"no-restricted-imports": [
-					"error",
-					{
-						"paths": [
-							{
-								"name": "@cloudflare/workers-utils",
-								"message": "Import workers-sdk code through `./upstream`.",
-							},
-						],
-						"patterns": [
-							{
-								"group": ["**/workers-sdk/**", "@cloudflare/workers-utils/*"],
-								"message": "Import workers-sdk code through `./upstream`.",
-							},
-						],
-					},
-				],
-			},
-		},
 		// Make sure Wrangler's version checking logic in the reused Vite plugin code
 		// can run properly.
 		{

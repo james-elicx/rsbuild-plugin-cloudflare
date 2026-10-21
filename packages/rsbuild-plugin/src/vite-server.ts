@@ -1,7 +1,7 @@
 import { EventEmitter } from "node:events";
-import type { PluginContext } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
-import type { getPreviewMiniflareOptions } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/miniflare-options";
-import type { handleWebSocket } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/websockets";
+import type { PluginContext } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
+import type { getPreviewMiniflareOptions } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/miniflare-options";
+import type { handleWebSocket } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/websockets";
 import type { getDevMiniflareOptions } from "./miniflare-options";
 import type { Logger as RsbuildLogger } from "@rsbuild/core";
 import type { Server } from "node:http";

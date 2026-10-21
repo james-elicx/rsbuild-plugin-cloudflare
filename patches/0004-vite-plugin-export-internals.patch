@@ -1,0 +1,40 @@
+diff --git a/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts b/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts
+index 77bc42d55..4fd4cbd1e 100644
+--- a/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts
++++ b/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts
+@@ -138,7 +138,7 @@ function isAdditionalModuleType(
+ 	return ADDITIONAL_MODULE_TYPES.some((moduleType) => moduleType === type);
+ }
+ 
+-function toModuleType(type: AdditionalModuleType): ModuleType {
++export function toModuleType(type: AdditionalModuleType): ModuleType {
+ 	switch (type) {
+ 		case "CompiledWasm":
+ 			return "wasm";
+@@ -165,12 +165,12 @@ const moduleRules: ModuleRules = [
+ ];
+ 
+ const subpathImportRE = /^#/;
+-const moduleRuleFilters = [
++export const moduleRuleFilters = [
+ 	...moduleRules.map((rule) => rule.pattern),
+ 	subpathImportRE,
+ ];
+ 
+-function matchAdditionalModule(source: string) {
++export function matchAdditionalModule(source: string) {
+ 	for (const rule of moduleRules) {
+ 		if (rule.pattern.test(source)) {
+ 			return rule.type;
+diff --git a/packages/vite-plugin-cloudflare/src/plugins/wasm.ts b/packages/vite-plugin-cloudflare/src/plugins/wasm.ts
+index df2d8485a..343d8dfd2 100644
+--- a/packages/vite-plugin-cloudflare/src/plugins/wasm.ts
++++ b/packages/vite-plugin-cloudflare/src/plugins/wasm.ts
+@@ -1,6 +1,6 @@
+ import { cleanUrl, createPlugin } from "../utils";
+ 
+-const wasmInitRE = /\.wasm\?init$/;
++export const wasmInitRE = /\.wasm\?init$/;
+ 
+ /**
+  * Plugin to support the `.wasm?init` extension

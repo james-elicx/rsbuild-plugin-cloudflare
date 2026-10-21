@@ -2,7 +2,7 @@ import * as path from "node:path";
 import { defineConfig } from "tsdown";
 
 const upstreamPlugin = "../../workers-sdk/packages/vite-plugin-cloudflare";
-const viteShim = path.resolve("src/upstream/vite-shim.ts");
+const viteShim = path.resolve("src/vite-shim.ts");
 
 export default defineConfig({
 	entry: { index: "src/index.ts" },
@@ -22,6 +22,12 @@ export default defineConfig({
 		},
 	],
 	inputOptions: {
+		treeshake: {
+			// The Vite plugin's modules define its Vite plugins at the top level with
+			// `createPlugin()`, which only wraps a factory. Marking it pure leaves
+			// them (and their dependencies) out when we import a module's helpers.
+			manualPureFunctions: ["createPlugin"],
+		},
 		onLog(level, log, handler) {
 			// Fail rather than bundle `undefined` when the internals import a value
 			// from `vite` that the shim doesn't provide.
