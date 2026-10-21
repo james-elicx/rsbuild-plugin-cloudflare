@@ -17,6 +17,7 @@ import { wasmInitRE } from "../../../workers-sdk/packages/vite-plugin-cloudflare
 import {
 	defaultConditions,
 	getProcessEnvReplacements,
+	resolveExtensions,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/worker-environment-options";
 import { getWasmInitModule } from "./upstream/copied";
 import type { NodeJsCompat } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
@@ -74,6 +75,7 @@ export function getWorkerEnvironmentConfig(
 		},
 		resolve: {
 			conditionNames,
+			extensions: resolveExtensions,
 			// As in the Vite plugin, don't prefer packages' browser builds.
 			mainFields: ["module", "jsnext:main", "jsnext", "main"],
 		},

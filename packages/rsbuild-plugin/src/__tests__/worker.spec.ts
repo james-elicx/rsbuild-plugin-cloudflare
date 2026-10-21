@@ -34,6 +34,7 @@ describe("worker", () => {
 		expect(await get("/node-env")).toBe("development");
 		expect(await get("/ssr")).toBe("true");
 		expect(await get("/mode-condition")).toBe("development");
+		expect(await get("/extensions")).toBe(".mts .cjs");
 		expect(await get("/dynamic-import")).toBe("lazy chunk");
 		expect(await get("/secret")).toBe("from-dev-vars");
 	});
@@ -188,6 +189,7 @@ describe("worker", () => {
 		expect(await get("/node-env")).toBe("production");
 		expect(await get("/ssr")).toBe("true");
 		expect(await get("/mode-condition")).toBe("production");
+		expect(await get("/extensions")).toBe(".mts .cjs");
 		expect(await get("/dynamic-import")).toBe("lazy chunk");
 		expect(await get("/secret")).toBe("from-dev-vars");
 	});
