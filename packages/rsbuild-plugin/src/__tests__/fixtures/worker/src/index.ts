@@ -25,6 +25,9 @@ export default {
 			case "/node-env": {
 				return new Response(process.env.NODE_ENV);
 			}
+			case "/ssr": {
+				return new Response(String(import.meta.env.SSR));
+			}
 			case "/dynamic-import": {
 				const { message } = await import("./lazy");
 				return new Response(message);
