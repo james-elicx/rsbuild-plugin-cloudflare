@@ -52,7 +52,11 @@ export function getWorkerEnvironmentConfig(
 	return {
 		source: {
 			entry: getWorkerEntry(worker, root),
-			define: getProcessEnvReplacements(nodeJsCompat !== undefined, mode),
+			define: {
+				...getProcessEnvReplacements(nodeJsCompat !== undefined, mode),
+				// The Vite plugin builds Workers with `build.ssr`.
+				"import.meta.env.SSR": "true",
+			},
 		},
 		resolve: {
 			conditionNames,
