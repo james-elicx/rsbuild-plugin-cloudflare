@@ -1,15 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
-import { pluginCloudflare } from "@cloudflare/rsbuild-plugin";
 import { createLogger, createRsbuild, mergeRsbuildConfig } from "@rsbuild/core";
 import { pluginBasicSsl } from "@rsbuild/plugin-basic-ssl";
 import { pluginReact } from "@rsbuild/plugin-react";
-import type { PluginCloudflareOptions } from "@cloudflare/rsbuild-plugin";
+import { cloudflare } from "rsbuild-plugin-cloudflare";
 import type {
 	EnvironmentConfig,
 	RsbuildConfig,
 	RsbuildPlugin,
 } from "@rsbuild/core";
+import type { PluginConfig } from "rsbuild-plugin-cloudflare";
 import type {
 	InlineConfig,
 	Logger as ViteLogger,
@@ -102,12 +102,12 @@ async function translateViteConfig(
 	viteConfig: InlineConfig,
 	root: string
 ): Promise<RsbuildConfig> {
-	let pluginConfig: PluginCloudflareOptions | undefined;
+	let pluginConfig: PluginConfig | undefined;
 	const plugins: RsbuildPlugin[] = [];
 
 	for (const plugin of await flattenPlugins(viteConfig.plugins)) {
 		if (plugin.name === "vite-plugin-cloudflare") {
-			pluginConfig = (plugin.api as { pluginConfig: PluginCloudflareOptions })
+			pluginConfig = (plugin.api as { pluginConfig: PluginConfig })
 				.pluginConfig;
 		}
 		const portable = portablePlugins.find(({ test }) => test(plugin.name));
@@ -130,7 +130,7 @@ async function translateViteConfig(
 		root,
 		mode: "development",
 		plugins: [
-			pluginCloudflare({
+			cloudflare({
 				...pluginConfig,
 				envDir: viteConfig.envDir,
 				envMode: viteConfig.mode,

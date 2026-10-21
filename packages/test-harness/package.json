@@ -1,5 +1,5 @@
 {
-	"name": "@cloudflare/rsbuild-plugin-test-harness",
+	"name": "rsbuild-plugin-cloudflare-test-harness",
 	"version": "0.0.0",
 	"private": true,
 	"description": "Runs the Vite plugin's playground and e2e suites against the Rsbuild plugin",
@@ -13,13 +13,13 @@
 		"test:playground:serve": "vitest run -c vitest.playground.config.ts"
 	},
 	"devDependencies": {
-		"@cloudflare/rsbuild-plugin": "workspace:*",
 		"@cloudflare/workers-utils": "link:../../workers-sdk/packages/workers-utils",
 		"@rsbuild/core": "^2.2.13",
 		"@rsbuild/plugin-basic-ssl": "^2.0.0",
 		"@rsbuild/plugin-react": "^2.1.1",
 		"@types/node": "22.15.17",
 		"cross-env": "7.0.3",
+		"rsbuild-plugin-cloudflare": "workspace:*",
 		"typescript": "5.8.3",
 		"vite": "link:../../workers-sdk/packages/vite-plugin-cloudflare/node_modules/vite",
 		"vitest": "link:../../workers-sdk/node_modules/vitest"

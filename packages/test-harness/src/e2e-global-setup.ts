@@ -5,7 +5,7 @@ import * as path from "node:path";
 import { removeDir } from "@cloudflare/workers-utils";
 
 /**
- * Packs `@cloudflare/rsbuild-plugin` for the seeded projects to install. It's
+ * Packs `rsbuild-plugin-cloudflare` for the seeded projects to install. It's
  * private, so it can't be published to the mock npm registry. Its dependencies
  * are the Vite plugin's, which the registry does publish.
  *

@@ -1,4 +1,4 @@
-# `@cloudflare/rsbuild-plugin`
+# `rsbuild-plugin-cloudflare`
 
 An experimental [Rsbuild](https://rsbuild.rs) plugin for Cloudflare Workers. It
 runs your Workers in workerd during `rsbuild dev` and `rsbuild preview`, and
@@ -12,11 +12,11 @@ and accepts the same options.
 
 ```ts
 // rsbuild.config.ts
-import { pluginCloudflare } from "@cloudflare/rsbuild-plugin";
+import { cloudflare } from "rsbuild-plugin-cloudflare";
 import { defineConfig } from "@rsbuild/core";
 
 export default defineConfig({
-	plugins: [pluginCloudflare()],
+	plugins: [cloudflare()],
 });
 ```
 

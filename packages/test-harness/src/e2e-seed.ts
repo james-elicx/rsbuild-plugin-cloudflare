@@ -4,7 +4,7 @@ import harnessPackage from "../package.json" with { type: "json" };
 
 /**
  * Turns a seeded Vite fixture into the equivalent Rsbuild project: the
- * `cloudflare()` options are passed unchanged to `pluginCloudflare()`, and the
+ * `cloudflare()` options are passed unchanged to the Rsbuild plugin's `cloudflare()`, and the
  * `vite` scripts become `rsbuild` ones. The e2e helpers (`seed()`) call this
  * when `CLOUDFLARE_VITE_E2E_SEED_MODULE` points at this module.
  *
@@ -26,7 +26,7 @@ export async function afterSeed(projectPath: string): Promise<void> {
 		if (deps?.["@cloudflare/vite-plugin"]) {
 			delete deps["@cloudflare/vite-plugin"];
 			delete deps.vite;
-			deps["@cloudflare/rsbuild-plugin"] = `file:${tarball}`;
+			deps["rsbuild-plugin-cloudflare"] = `file:${tarball}`;
 			deps["@rsbuild/core"] = versions["@rsbuild/core"];
 		}
 		if (deps?.["@vitejs/plugin-react"]) {
@@ -56,7 +56,7 @@ export async function afterSeed(projectPath: string): Promise<void> {
 	for (const [from, to] of [
 		[
 			`import { cloudflare } from "@cloudflare/vite-plugin";`,
-			`import { pluginCloudflare as cloudflare } from "@cloudflare/rsbuild-plugin";`,
+			`import { cloudflare } from "rsbuild-plugin-cloudflare";`,
 		],
 		[
 			`import react from "@vitejs/plugin-react";`,

@@ -54,7 +54,7 @@ import type {
 	WorkersPluginContext,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
 import type {
-	PluginConfig,
+	PluginConfig as VitePluginConfig,
 	Worker,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
 import type { DevHtmlHandlers } from "./miniflare-options";
@@ -70,7 +70,7 @@ import type { Miniflare, WorkerOptions } from "miniflare";
 import type { IncomingMessage } from "node:http";
 
 /** The same options as the Vite plugin's `cloudflare()`, apart from the tunnel. */
-export interface PluginCloudflareOptions extends Omit<PluginConfig, "tunnel"> {
+export interface PluginConfig extends Omit<VitePluginConfig, "tunnel"> {
 	/** The directory to load `.env` and `.dev.vars` files from, or `false` to skip them. Defaults to the project root. */
 	envDir?: string | false;
 	/** The mode used to load `cloudflare.config.ts`, `.env.[mode]` and `.dev.vars.[mode]`. Defaults to Rsbuild's mode. */
@@ -91,9 +91,7 @@ type MiniflareManifest = NonNullable<WorkerOptions["config"]["manifest"]>;
  * @param options Plugin options.
  * @returns An Rsbuild plugin.
  */
-export function pluginCloudflare(
-	options: PluginCloudflareOptions = {}
-): RsbuildPlugin {
+export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 	return {
 		name: "rsbuild:cloudflare",
 		setup(api) {

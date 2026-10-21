@@ -1,5 +1,5 @@
 {
-	"name": "@cloudflare/rsbuild-plugin",
+	"name": "rsbuild-plugin-cloudflare",
 	"version": "0.0.0",
 	"private": true,
 	"description": "Cloudflare plugin for Rsbuild (experimental)",

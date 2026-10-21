@@ -6,7 +6,7 @@ be able to move back into.
 
 ## The goal: a thin wrapper over upstream
 
-`@cloudflare/rsbuild-plugin` is a minimal wrapper over the internals of
+`rsbuild-plugin-cloudflare` is a minimal wrapper over the internals of
 workers-sdk's Vite plugin. Behaviour belongs upstream; this repository holds
 only the Rsbuild glue (hooks, environment config, rspack rules) and the
 adapters that let the Vite plugin's internals run under Rsbuild.
@@ -60,7 +60,7 @@ The root `package.json` is authoritative for available scripts.
   e2e suites against Rsbuild.
 
 Prefer the narrowest relevant test while developing (e.g.
-`pnpm -F @cloudflare/rsbuild-plugin-test-harness test:playground:serve assets`),
+`pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground:serve assets`),
 then run the broader checks. Don't run tests that need Cloudflare credentials
 unless the task and environment support them.
 

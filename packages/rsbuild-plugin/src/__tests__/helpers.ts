@@ -1,10 +1,10 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-// The built plugin, which reads the internal Workers bundled alongside it.
-import { pluginCloudflare } from "@cloudflare/rsbuild-plugin";
 import { removeDirSync } from "@cloudflare/workers-utils";
 import { createRsbuild } from "@rsbuild/core";
 import getPort from "get-port";
+// The built plugin, which reads the internal Workers bundled alongside it.
+import { cloudflare } from "rsbuild-plugin-cloudflare";
 import { onTestFinished } from "vitest";
 import type { RsbuildConfig } from "@rsbuild/core";
 
@@ -33,7 +33,7 @@ function createFixtureRsbuild(root: string, config: RsbuildConfig) {
 		config: {
 			...config,
 			plugins: [
-				pluginCloudflare({
+				cloudflare({
 					persistState: false,
 					inspectorPort: false,
 					types: { generate: false },

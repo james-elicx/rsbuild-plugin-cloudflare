@@ -1,5 +1,5 @@
 {
-	"name": "rsbuild-plugin-cloudflare",
+	"name": "rsbuild-plugin-cloudflare-monorepo",
 	"version": "0.0.0",
 	"private": true,
 	"description": "Experimental Rsbuild plugin for Cloudflare Workers, built on workers-sdk's Vite plugin internals",
@@ -18,8 +18,8 @@
 		"setup:upstream": "./scripts/setup-upstream.sh",
 		"test": "turbo test",
 		"test:ci": "turbo test:ci",
-		"test:e2e": "turbo build && pnpm -F @cloudflare/rsbuild-plugin-test-harness test:e2e",
-		"test:playground": "turbo build && pnpm -F @cloudflare/rsbuild-plugin-test-harness test:playground"
+		"test:e2e": "turbo build && pnpm -F rsbuild-plugin-cloudflare-test-harness test:e2e",
+		"test:playground": "turbo build && pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground"
 	},
 	"devDependencies": {
 		"@types/node": "22.15.17",
