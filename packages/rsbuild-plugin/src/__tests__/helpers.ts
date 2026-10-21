@@ -97,7 +97,7 @@ export async function startPreviewServer(
 ): Promise<string> {
 	const rsbuild = await createFixtureRsbuild(root, {
 		...config,
-		server: { port: await getPort(), strictPort: true },
+		server: { port: await getPort(), strictPort: true, ...config.server },
 	});
 	const { server, urls } = await rsbuild.preview();
 	onTestFinished(() => server.close());
