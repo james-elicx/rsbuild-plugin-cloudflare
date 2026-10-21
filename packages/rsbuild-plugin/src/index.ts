@@ -18,7 +18,10 @@ import {
 } from "@cloudflare/workers-utils/local-env";
 import { buildPublicUrl, CoreHeaders } from "miniflare";
 import { isPreviewBuild } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/build-output-env";
-import { PluginContext } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
+import {
+	assertIsNotPreview,
+	PluginContext,
+} from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
 import { DEBUG_PATH } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/debug";
 import { getPreviewMiniflareOptions } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/miniflare-options";
 import {
@@ -36,6 +39,7 @@ import {
 	createDispatchMiddleware,
 	createStaticRoutingMiddleware,
 	createUserWorkerHandler,
+	getDevDebugWorkerNames,
 	moveImportedAssets,
 } from "./upstream/copied";
 import {
@@ -362,15 +366,14 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				environmentContexts = environments;
 				serverConfig = getServerConfig(api.getNormalizedConfig());
 				const hmrPath = api.getNormalizedConfig().dev.client.path;
-				const workerNames = [...workerEnvironments.values()].map(
-					({ config }) => config.name
+				assertIsNotPreview(ctx);
+				const debugMiddleware = createDebugMiddleware(
+					getDevDebugWorkerNames(ctx.resolvedPluginConfig),
+					() => ctx.getResolvedInspectorPort()
 				);
-				server.middlewares.use(
-					DEBUG_PATH,
-					createDebugMiddleware(workerNames, () =>
-						ctx.getResolvedInspectorPort()
-					)
-				);
+				if (debugMiddleware) {
+					server.middlewares.use(DEBUG_PATH, debugMiddleware);
+				}
 				// Frameworks (e.g. TanStack Start) serve their server bundle with
 				// `loadBundle()`, which would run the Worker in Node.js, so return a
 				// module whose `fetch` sends requests to the Worker in workerd.
@@ -557,12 +560,12 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				const workerNames = miniflareOptions.workers.flatMap(
 					({ config: { name } }) => name ?? []
 				);
-				server.middlewares.use(
-					DEBUG_PATH,
-					createDebugMiddleware(workerNames, () =>
-						ctx.getResolvedInspectorPort()
-					)
+				const debugMiddleware = createDebugMiddleware(workerNames, () =>
+					ctx.getResolvedInspectorPort()
 				);
+				if (debugMiddleware) {
+					server.middlewares.use(DEBUG_PATH, debugMiddleware);
+				}
 				const { httpServer } = server;
 				if (httpServer) {
 					// As in the Vite plugin, Rsbuild may listen on another port than the

@@ -17,6 +17,10 @@ import { getDebugPathHtml } from "../../../../workers-sdk/packages/vite-plugin-c
 import { UNKNOWN_HOST } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/shared";
 import { createRequestHandler } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/utils";
 import { generateStaticRoutingRuleMatcher } from "../../../../workers-sdk/packages/workers-shared/asset-worker/src/utils/rules-engine";
+import type {
+	AssetsOnlyResolvedConfig,
+	WorkersResolvedConfig,
+} from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
 import type { StaticRouting } from "../../../../workers-sdk/packages/workers-shared/utils/types";
 import type { Miniflare } from "miniflare";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -134,16 +138,43 @@ export function createDispatchMiddleware(
 // From `plugins/debug.ts`.
 
 /**
+ * Gets the Workers that the dev server's `/__debug` page lists (none for an
+ * assets-only config).
+ *
+ * @param resolvedPluginConfig The resolved plugin config.
+ * @returns The Workers' names.
+ */
+export function getDevDebugWorkerNames(
+	resolvedPluginConfig: AssetsOnlyResolvedConfig | WorkersResolvedConfig
+): string[] {
+	return resolvedPluginConfig.type === "workers"
+		? [...resolvedPluginConfig.environmentNameToWorkerMap.values()].map(
+				(worker) => worker.config.name
+			)
+		: [];
+}
+
+/**
  * Creates the `/__debug` middleware, which opens DevTools for the Workers.
  *
  * @param workerNames The Workers to debug.
  * @param getResolvedInspectorPort Gets Miniflare's inspector port, if any.
- * @returns The middleware.
+ * @returns The middleware, or `undefined` in a VS Code JavaScript Debug
+ * terminal, where it isn't added.
  */
 export function createDebugMiddleware(
 	workerNames: string[],
 	getResolvedInspectorPort: () => Promise<number | null>
-): Middleware {
+): Middleware | undefined {
+	// If we're in a JavaScript Debug terminal, Miniflare will send the inspector ports directly to VSCode for registration.
+	// As such, we don't need our inspector proxy and in fact including it causes issues with multiple clients connected to the
+	// inspector endpoint.
+	const isInVscodeJsDebugTerminal = !!process.env.VSCODE_INSPECTOR_OPTIONS;
+
+	if (isInVscodeJsDebugTerminal) {
+		return;
+	}
+
 	return async (_, res, next) => {
 		const resolvedInspectorPort = await getResolvedInspectorPort();
 

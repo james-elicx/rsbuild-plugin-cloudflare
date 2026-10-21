@@ -5,7 +5,9 @@
 		"PWD",
 		"CLOUDFLARE_PREVIEW_BUILD",
 		"CLOUDFLARE_RSBUILD_PLUGIN_TARBALL",
-		"GITHUB_OUTPUT"
+		"GITHUB_OUTPUT",
+		// Read by the `/__debug` middleware, as in workers-sdk.
+		"VSCODE_INSPECTOR_OPTIONS"
 	],
 	"tasks": {
 		"build": {
