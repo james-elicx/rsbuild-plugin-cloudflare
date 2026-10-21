@@ -176,7 +176,41 @@ async function translateViteConfig(
 		},
 		customLogger: createForwardingLogger(viteConfig.customLogger),
 	};
-	return mergeRsbuildConfig(config, getHtmlEntries(viteConfig, root));
+	return mergeRsbuildConfig(
+		config,
+		getHtmlEntries(viteConfig, root),
+		getOutputDirectories(
+			viteConfig,
+			pluginConfig.viteEnvironment?.name ?? "ssr",
+			pluginConfig.viteEnvironment?.name ?? "cloudflare"
+		)
+	);
+}
+
+/**
+ * Maps the environments' output directories, which the Cloudflare plugin
+ * replaces with the Build Output locations. Vite's `client` environment is
+ * Rsbuild's top-level one, and its entry Worker environment is renamed.
+ */
+function getOutputDirectories(
+	viteConfig: InlineConfig,
+	viteEntryName: string,
+	entryName: string
+): RsbuildConfig {
+	const config: RsbuildConfig = {};
+	const environments: Record<string, EnvironmentConfig> = {};
+	for (const [name, options] of Object.entries(viteConfig.environments ?? {})) {
+		const outDir = options?.build?.outDir;
+		if (outDir !== undefined) {
+			const output = { distPath: { root: outDir } };
+			if (name === "client") {
+				config.output = output;
+			} else {
+				environments[name === viteEntryName ? entryName : name] = { output };
+			}
+		}
+	}
+	return { ...config, environments };
 }
 
 /**

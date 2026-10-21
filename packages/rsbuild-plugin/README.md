@@ -46,7 +46,9 @@ plugin's `viteEnvironment`, without `childEnvironments`.
 To change how a Worker is built, configure its environment in Rsbuild's
 `environments` config. The plugin merges its settings in, and yours take
 precedence, apart from `source.entry`, `output.target` and `output.module`,
-which the plugin always sets so that the Worker runs in workerd.
+which the plugin always sets so that the Worker runs in workerd, and
+`output.distPath.root`, which it sets to the Worker's Build Output location, as
+the Vite plugin does.
 
 ```ts
 export default defineConfig({

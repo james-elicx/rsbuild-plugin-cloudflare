@@ -62,8 +62,6 @@ export default mergeConfig(
 				"dynamic-import-paths/**",
 				"node-compat/__tests__/worker-resolve-externals/**",
 				"partyserver/**",
-				"multi-worker/__tests__/custom-output-directories/**",
-				"spa-with-api/__tests__/custom-output-directories/**",
 				// Asserts Vite's `server.fs.deny` 403s. Rsbuild doesn't serve files
 				// from the project root, so these requests reach the Worker instead.
 				"sensitive-files/**",

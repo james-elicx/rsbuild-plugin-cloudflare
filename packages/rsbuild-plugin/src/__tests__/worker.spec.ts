@@ -141,6 +141,25 @@ describe("worker", () => {
 		).toContain("from rsbuild + workerd");
 	});
 
+	test("writes the Worker to the Build Output whatever its output directory", async ({
+		expect,
+	}) => {
+		const root = copyFixture("worker");
+
+		await build(root, {
+			environments: {
+				cloudflare: { output: { distPath: { root: "custom-worker-output" } } },
+			},
+		});
+
+		expect(
+			fs.existsSync(
+				path.join(root, ".cloudflare/output/v0/workers/default/bundle/index.js")
+			)
+		).toBe(true);
+		expect(fs.existsSync(path.join(root, "custom-worker-output"))).toBe(false);
+	});
+
 	test("previews the Build Output in workerd", async ({ expect }) => {
 		const root = copyFixture("worker");
 		await build(root);
