@@ -1,0 +1,129 @@
+.github/workflows/ci.yml
+  s_3ce1770c226aa0::t_394e036f693408 103-138
+.gitignore
+  s_3ce1770c226aa0::t_98128382205730 12-13
+.oxfmtrc.jsonc
+  s_3ce1770c226aa0::t_869e1a873e8976 14-16
+.oxlintrc.jsonc
+  s_3ce1770c226aa0::t_8e113835604f8d 102-103
+AGENTS.md
+  s_3ce1770c226aa0::t_777f86ea5fd77d 61-62,98-99
+README.md
+  s_3ce1770c226aa0::t_e37a2b75f7dd7e 26,54,59-61
+package.json
+  s_3ce1770c226aa0::t_9a0837a05da489 20
+packages/e2e/README.md
+  s_3ce1770c226aa0::t_bc682a349c24de 1-58
+packages/e2e/fixtures/tanstack-start/.gitignore
+  s_3ce1770c226aa0::t_5833346160d930 1-20
+packages/e2e/fixtures/tanstack-start/.prettierignore
+  s_3ce1770c226aa0::t_261b6e1fed6ae9 1-4
+packages/e2e/fixtures/tanstack-start/README.md
+  s_3ce1770c226aa0::t_89e81bd96a73be 1-49
+packages/e2e/fixtures/tanstack-start/cloudflare.config.ts
+  s_3ce1770c226aa0::t_2e052cdcabbe7f 1-13
+packages/e2e/fixtures/tanstack-start/package.json
+  s_3ce1770c226aa0::t_55ce2f55f6fc25 1-32
+packages/e2e/fixtures/tanstack-start/public/site.webmanifest
+  s_3ce1770c226aa0::t_09854413e00736 1-19
+packages/e2e/fixtures/tanstack-start/rsbuild.config.ts
+  s_3ce1770c226aa0::t_6fa016dc81b708 1-22
+packages/e2e/fixtures/tanstack-start/src/components/DefaultCatchBoundary.tsx
+  s_3ce1770c226aa0::t_68a5a781652c13 1-51
+packages/e2e/fixtures/tanstack-start/src/components/NotFound.tsx
+  s_3ce1770c226aa0::t_0f6318b34ce69e 1-25
+packages/e2e/fixtures/tanstack-start/src/components/PostError.tsx
+  s_3ce1770c226aa0::t_aeef2c7d6b7309 1-6
+packages/e2e/fixtures/tanstack-start/src/components/UserError.tsx
+  s_3ce1770c226aa0::t_c847ce06e9e507 1-6
+packages/e2e/fixtures/tanstack-start/src/env.d.ts
+  s_3ce1770c226aa0::t_84114aace81c69 1
+packages/e2e/fixtures/tanstack-start/src/routeTree.gen.ts
+  s_3ce1770c226aa0::t_ad8db042eebbe7 1-447
+packages/e2e/fixtures/tanstack-start/src/router.tsx
+  s_3ce1770c226aa0::t_d74352317b5758 1-15
+packages/e2e/fixtures/tanstack-start/src/routes/__root.tsx
+  s_3ce1770c226aa0::t_a18f7afefff24f 1-130
+packages/e2e/fixtures/tanstack-start/src/routes/_pathlessLayout.tsx
+  s_3ce1770c226aa0::t_54aea948f4225e 1-16
+packages/e2e/fixtures/tanstack-start/src/routes/_pathlessLayout/_nested-layout.tsx
+  s_3ce1770c226aa0::t_abcfb219dd9bd0 1-34
+packages/e2e/fixtures/tanstack-start/src/routes/_pathlessLayout/_nested-layout/route-a.tsx
+  s_3ce1770c226aa0::t_618d9996feae5d 1-11
+packages/e2e/fixtures/tanstack-start/src/routes/_pathlessLayout/_nested-layout/route-b.tsx
+  s_3ce1770c226aa0::t_5d89256df249a2 1-11
+packages/e2e/fixtures/tanstack-start/src/routes/api/users.$userId.ts
+  s_3ce1770c226aa0::t_88d870265681ef 1-31
+packages/e2e/fixtures/tanstack-start/src/routes/api/users.ts
+  s_3ce1770c226aa0::t_cd2128b55f0e54 1-63
+packages/e2e/fixtures/tanstack-start/src/routes/customScript[.]js.ts
+  s_3ce1770c226aa0::t_0e83e8f52f85fe 1-15
+packages/e2e/fixtures/tanstack-start/src/routes/deferred.tsx
+  s_3ce1770c226aa0::t_90a76d3511ab23 1-62
+packages/e2e/fixtures/tanstack-start/src/routes/index.tsx
+  s_3ce1770c226aa0::t_7a3b8015d3ff25 1-27
+packages/e2e/fixtures/tanstack-start/src/routes/posts.$postId.tsx
+  s_3ce1770c226aa0::t_1af8053eea7ad7 1-34
+packages/e2e/fixtures/tanstack-start/src/routes/posts.index.tsx
+  s_3ce1770c226aa0::t_855f5b76b5b616 1-9
+packages/e2e/fixtures/tanstack-start/src/routes/posts.tsx
+  s_3ce1770c226aa0::t_c73a0d0a0e8a33 1-38
+packages/e2e/fixtures/tanstack-start/src/routes/posts_.$postId.deep.tsx
+  s_3ce1770c226aa0::t_eff737b00ce83a 1-29
+packages/e2e/fixtures/tanstack-start/src/routes/redirect.tsx
+  s_3ce1770c226aa0::t_90df6e75ed3ba1 1-9
+packages/e2e/fixtures/tanstack-start/src/routes/users.$userId.tsx
+  s_3ce1770c226aa0::t_3f33acf4b90edb 1-45
+packages/e2e/fixtures/tanstack-start/src/routes/users.index.tsx
+  s_3ce1770c226aa0::t_72e2103cb0d1f7 1-19
+packages/e2e/fixtures/tanstack-start/src/routes/users.tsx
+  s_3ce1770c226aa0::t_51804784237ee9 1-49
+packages/e2e/fixtures/tanstack-start/src/styles/app.css
+  s_3ce1770c226aa0::t_8a83a39bb2f264 1-30
+packages/e2e/fixtures/tanstack-start/src/utils/loggingMiddleware.tsx
+  s_3ce1770c226aa0::t_1963175eb1c7bb 1-41
+packages/e2e/fixtures/tanstack-start/src/utils/posts.tsx
+  s_3ce1770c226aa0::t_f9888f08307cad 1-40
+packages/e2e/fixtures/tanstack-start/src/utils/seo.ts
+  s_3ce1770c226aa0::t_b005eb097491b5 1-33
+packages/e2e/fixtures/tanstack-start/src/utils/users.tsx
+  s_3ce1770c226aa0::t_652b7f56da3b3d 1-5
+packages/e2e/fixtures/tanstack-start/tsconfig.json
+  s_3ce1770c226aa0::t_a0e3f6dd04bbb6 1-21
+packages/e2e/package.json
+  s_3ce1770c226aa0::t_453a8c390b6fed 1-19
+packages/e2e/playwright.dev.config.ts
+  s_3ce1770c226aa0::t_24344d02974b7b 1-3
+packages/e2e/playwright.preview.config.ts
+  s_3ce1770c226aa0::t_6ed3a303759abd 1-3
+packages/e2e/playwright.shared.ts
+  s_3ce1770c226aa0::t_fef7d0ace516dd 1-51
+packages/e2e/tests/tanstack-start.spec.ts
+  s_3ce1770c226aa0::t_4308edc13ca52a 1-181
+packages/e2e/tsconfig.json
+  s_3ce1770c226aa0::t_3a4c78aa06f1fa 1-10
+packages/rsbuild-plugin/README.md
+  s_3ce1770c226aa0::t_1df908e4a075c2 40-62
+pnpm-lock.yaml
+  s_3ce1770c226aa0::t_7ad60d09aa366d 23,41-111,166,203-218,223-240,249-256,262-269,354-356,393-408,739-743,1060-1067,1172-1426,1448-1455,1487-1489,1502-1504,1509-1513,1524-1528,1540-1542,1556-1569,1579-1581,1602-1605,1619-1621,1626-1629,1633-1636,1696-1698,1717-1719,1733-1737,1743-1746,1758-1765,1795-1798,1802-1812,1824-1828,1836-1841,1848-1853,1860-1865,1872-1877,1884-1889,1896-1902,1910-1916,1924-1930,1938-1944,1952-1957,1964-1969,1976-1979,1988-1990,2012-2015,2093-2102,2111-2115,2134-2138,2143-2146,2151-2154,2195-2197,2202-2205,2211-2220,2233-2241,2245-2254,2353-2355,2365-2400,2411-2416,2420-2424,2468-2475,2517-2519,2546-2552,2557-2559,2562-2591,2600-2625,2630-2636,2641-2658,2710,2712,2761-2765,2806-2822,3055-3058,3232-3240,3320-3622,3645-3653,3660,3679-3680,3694-3702,3705-3706,3715-3722,3735-3736,3751-3760,3771-3772,3783-3784,3789-3790,3793-3797,3800-3801,3804,3807,3821,3823,3853-3854,3882-3883,3894-3895,3913-3915,3919-3920,3931-3936,3957-3958,3961-3968,3975-3976,3986-3988,3992-3994,3998-4000,4004-4006,4010-4012,4016-4018,4022-4024,4028-4030,4034-4036,4040-4042,4046-4048,4052-4067,4088-4091,4110-4111,4212-4219,4228-4229,4244-4248,4251-4252,4255-4256,4343-4344,4350-4351,4354-4359,4368-4371,4374-4379,4463-4464,4476-4486,4491-4496,4501-4505,4515-4519,4521,4524,4535,4542-4543,4554-4562,4564-4565
+pnpm-workspace.yaml
+  s_3ce1770c226aa0::t_db8834df2ee960 5-6
+scripts/sync-upstream-deps.ts
+  s_3ce1770c226aa0::t_7f726a5f8c3306 156-159,206-209,211-212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "210b2a4db6e17ac81a460364edfbf984ea46b8ba",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
