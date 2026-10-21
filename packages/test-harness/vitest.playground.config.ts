@@ -66,10 +66,16 @@ export default mergeConfig(
 				"node-compat/__tests__/worker-resolve-externals/**",
 				"partyserver/**",
 				// Asserts Vite's `server.fs.deny` 403s. Rsbuild doesn't serve files
-				// from the project root, so these requests reach the Worker instead.
+				// from the project root, but the harness serves the root as a second
+				// public directory (see `playground-serve.ts`), so in the harness
+				// these files aren't denied.
 				"sensitive-files/**",
-				// Evaluates `crypto.randomUUID()` at global scope, which workerd only
-				// allows because the Vite module runner evaluates modules lazily.
+				// Restarts and observes the server through `viteServer.restart`,
+				// expects errors for Vite's "ssr" environment, and asserts that the
+				// old server survives a failed restart, whereas Rsbuild closes it
+				// first. The Worker also evaluates `crypto.randomUUID()` at global
+				// scope, which workerd only allows because the Vite module runner
+				// evaluates modules lazily.
 				"config-changes/**",
 				// Containers aren't supported yet.
 				"containers/**",
