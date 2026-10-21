@@ -22,9 +22,7 @@ Cloudflare example
 applied:
 
 - `rsbuild.config.ts` adds `cloudflare({ viteEnvironment: { name: "ssr" } })`
-  before `tanstackStart()`, and sets TanStack Start's
-  `rsbuild.installDevServerMiddleware` to `false` so that the Worker, rather
-  than Rsbuild's dev server, serves the app.
+  before `tanstackStart()`.
 - `cloudflare.config.ts` configures the Worker, as `wrangler.jsonc` does in the
   Cloudflare example: the Vite plugin, and so this plugin, no longer read
   Wrangler configuration files.

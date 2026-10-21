@@ -43,16 +43,17 @@ As with the Vite plugin, put `cloudflare()` before the framework's plugins, and
 set `viteEnvironment.name` to the framework's server environment. The plugin
 builds that environment for workerd, whatever target the framework sets.
 
-For [TanStack Start](https://tanstack.com/start), also turn off its dev server
-middleware, which would otherwise run the server bundle in Node.js. (With Vite,
-TanStack Start detects that the Worker's environment doesn't run in Node.js.)
+In dev, the Worker environment's `loadBundle()` returns a module whose `fetch`
+sends requests to the Worker in workerd, so frameworks that serve their server
+bundle through `loadBundle()`, such as
+[TanStack Start](https://tanstack.com/start), run it in workerd.
 
 ```ts
 export default defineConfig({
 	plugins: [
 		pluginReact(),
 		cloudflare({ viteEnvironment: { name: "ssr" } }),
-		tanstackStart({ rsbuild: { installDevServerMiddleware: false } }),
+		tanstackStart(),
 	],
 });
 ```

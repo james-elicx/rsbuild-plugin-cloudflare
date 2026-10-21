@@ -14,9 +14,6 @@ export default defineConfig({
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
     tanstackStart({
       srcDirectory: 'src',
-      // The Worker serves the app in workerd, rather than Rsbuild's dev server
-      // in Node.js.
-      rsbuild: { installDevServerMiddleware: false },
     }),
   ],
 })
