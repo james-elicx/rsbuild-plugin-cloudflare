@@ -65,6 +65,7 @@ import type {
 	PublicDir,
 	RsbuildDevServer,
 	RsbuildPlugin,
+	RsbuildPreviewServer,
 } from "@rsbuild/core";
 import type { Miniflare, WorkerOptions } from "miniflare";
 import type { IncomingMessage } from "node:http";
@@ -165,6 +166,17 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					// and Rsbuild checks that this directory exists before starting.
 					return mergeRsbuildConfig(userConfig, {
 						output: { distPath: { root: BUILD_OUTPUT_ROOT } },
+						server: {
+							// Rsbuild sets up the server with `server.setup` before calling
+							// plugins' `onBeforeStartPreviewServer`, so frameworks that
+							// serve their server bundle this way (e.g. TanStack Start) would
+							// otherwise handle requests in Node.js. As in Vite, Miniflare's
+							// middleware precedes those of the plugins listed after this one.
+							setup: (context) =>
+								context.action === "preview"
+									? setUpPreviewServer(context.server)
+									: undefined,
+						},
 					});
 				}
 
@@ -251,6 +263,11 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					// Top-level entries are merged into every environment, so replace
 					// them to keep client entries out of the Worker.
 					config.source.entry = getWorkerEntry(worker, root);
+					// Frameworks (e.g. TanStack Start) configure their server
+					// environment to run in Node.js, but the Worker runs in workerd as
+					// an ES module.
+					config.output.target = "web-worker";
+					config.output.module = true;
 				} else if (
 					action === "build" &&
 					ctx.resolvedPluginConfig.type !== "preview" &&
@@ -425,10 +442,10 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 
 			api.onCloseDevServer(() => ctx.disposeMiniflare());
 
-			api.onBeforeStartPreviewServer(async ({ server }) => {
-				if (ctx.resolvedPluginConfig.type !== "preview") {
-					return;
-				}
+			/** Runs the Build Output in Miniflare, which serves every preview request. */
+			async function setUpPreviewServer(
+				server: RsbuildPreviewServer
+			): Promise<void> {
 				const config = getServerConfig(api.getNormalizedConfig());
 				const { miniflareOptions } = await getPreviewMiniflareOptions(
 					ctx as PreviewPluginContext,
@@ -459,7 +476,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 						})
 					)
 				);
-			});
+			}
 
 			api.onAfterBuild(async ({ stats }) => {
 				const { resolvedPluginConfig } = ctx;

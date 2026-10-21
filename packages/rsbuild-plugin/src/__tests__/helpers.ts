@@ -38,6 +38,7 @@ function createFixtureRsbuild(root: string, config: RsbuildConfig) {
 					inspectorPort: false,
 					types: { generate: false },
 				}),
+				...(config.plugins ?? []),
 			],
 			logLevel: "warn",
 		},
@@ -87,10 +88,15 @@ export async function build(
  * Starts an Rsbuild preview server for a fixture copy that has been built.
  *
  * @param root The fixture root.
+ * @param config Additional Rsbuild config from the fixture's `rsbuild.config.ts`.
  * @returns The preview server's URL, closed when the test finishes.
  */
-export async function startPreviewServer(root: string): Promise<string> {
+export async function startPreviewServer(
+	root: string,
+	config: RsbuildConfig = {}
+): Promise<string> {
 	const rsbuild = await createFixtureRsbuild(root, {
+		...config,
 		server: { port: await getPort(), strictPort: true },
 	});
 	const { server, urls } = await rsbuild.preview();

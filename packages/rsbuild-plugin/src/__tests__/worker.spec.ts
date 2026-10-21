@@ -8,6 +8,7 @@ import {
 	startDevServer,
 	startPreviewServer,
 } from "./helpers";
+import type { RsbuildPlugin } from "@rsbuild/core";
 
 describe("worker", () => {
 	test("runs the Worker in workerd during dev", async ({ expect }) => {
@@ -100,5 +101,46 @@ describe("worker", () => {
 		expect(await get("/node")).toBe("hello");
 		expect(await get("/dynamic-import")).toBe("lazy chunk");
 		expect(await get("/secret")).toBe("from-dev-vars");
+	});
+
+	test("runs the Worker when a framework serves it in Node.js", async ({
+		expect,
+	}) => {
+		const root = copyFixture("worker");
+		// Like TanStack Start, which builds its server environment for Node.js and
+		// serves the server bundle with `server.setup`.
+		const nodeServerPlugin: RsbuildPlugin = {
+			name: "node-server",
+			setup(api) {
+				api.modifyRsbuildConfig((config, { mergeRsbuildConfig }) =>
+					mergeRsbuildConfig(config, {
+						environments: {
+							cloudflare: { output: { target: "node", module: false } },
+						},
+						server: {
+							setup: ({ action, server }) => {
+								if (action === "preview") {
+									server.middlewares.use((_req, res) => {
+										res.end("Hello from Node.js");
+									});
+								}
+							},
+						},
+					})
+				);
+			},
+		};
+		const devUrl = await startDevServer(root, { plugins: [nodeServerPlugin] });
+		expect(await (await fetch(devUrl)).text()).toBe(
+			"Hello from rsbuild + workerd"
+		);
+
+		await build(root, { plugins: [nodeServerPlugin] });
+		const previewUrl = await startPreviewServer(root, {
+			plugins: [nodeServerPlugin],
+		});
+		expect(await (await fetch(previewUrl)).text()).toBe(
+			"Hello from rsbuild + workerd"
+		);
 	});
 });
