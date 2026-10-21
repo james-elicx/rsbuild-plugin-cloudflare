@@ -1,0 +1,21 @@
+.changeset/README.md
+  s_3ce1770c226aa0::t_e828d216ec474f 8-9
+scripts/generate-changesets.ts
+  s_3ce1770c226aa0::t_dfc0577f781f66 5-6,25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2f5b5e37fced41a005088d15613ea575742c030c",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
