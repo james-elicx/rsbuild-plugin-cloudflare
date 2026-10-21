@@ -48,20 +48,25 @@ optional ref:
    `origin/main`, re-applies the patches, installs and builds workers-sdk, and
    syncs the plugin's dependencies.
 2. The bump is committed to the `upstream-sync` branch, with the upstream
-   commits in the message, and CI (`ci.yml`) runs against it: checks, unit
-   tests, the playground suite (serve and build) and the e2e suite.
-3. When CI passes, `upstream-sync` is fast-forwarded onto `main`. Otherwise an
-   issue labelled `upstream-sync` links to the failed run (and later failures
-   comment on it). The issue is closed by the next successful sync.
+   commits in the message, and pushed to a pull request to `main`. If that pull
+   request is already open, the branch is first rebased onto `main`, so that
+   fixes pushed to it are kept.
+3. CI (`ci.yml`) runs against the pushed commit: checks, unit tests, the
+   playground suite (serve and build) and the e2e suite.
+4. When CI passes, the pull request is rebase-merged into `main`. Otherwise a
+   comment on the pull request links to the failed run, and the pull request
+   stays open for fixes.
 
-The workflow pushes with `GITHUB_TOKEN`, so `main` must allow pushes from
-GitHub Actions.
+The workflow opens the pull request with `GITHUB_TOKEN`, so the repository must
+allow it: enable **Settings → Actions → General → Allow GitHub Actions to create
+and approve pull requests**. Pull requests opened with `GITHUB_TOKEN` don't
+trigger other workflows, which is why the sync workflow runs `ci.yml` itself.
 
 ## Fixing a failed sync
 
 ```sh
 git fetch origin
-git checkout upstream-sync   # Or bump locally: ./scripts/bump-upstream.sh
+git checkout upstream-sync   # The sync pull request's branch
 pnpm setup:upstream && pnpm install && pnpm build
 pnpm check && pnpm test && pnpm test:playground && pnpm test:e2e
 ```
@@ -85,8 +90,10 @@ Then, depending on what failed:
   `node --experimental-strip-types scripts/sync-upstream-deps.ts`, then
   `pnpm install`.
 
-Push the fixes to `upstream-sync`, open a pull request to `main`, and merge it
-once CI passes.
+Push the fixes to `upstream-sync`. The next sync (or a manual run of the
+workflow) rebases them onto `main`, runs CI, and merges the pull request when it
+passes. If the branch no longer rebases cleanly, rebase it onto `main` yourself
+and force-push it.
 
 If a fix would make the Rsbuild glue grow substantially, stop and reassess: the
 plugin is meant to stay a thin wrapper over upstream, so the better fix may be
