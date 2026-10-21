@@ -26,21 +26,41 @@ The Worker is configured in `cloudflare.config.ts`, as for the Vite plugin.
 
 The options are those of the Vite plugin's `cloudflare()` (e.g. `config`,
 `auxiliaryWorkers`, `persistState`, `inspectorPort`, `remoteBindings`), apart
-from `tunnel`, plus:
+from `tunnel`, and with `rsbuildEnvironment` in place of `viteEnvironment`
+(see [Worker environments](#worker-environments)), plus:
 
 - `envDir`: the directory to load `.env` and `.dev.vars` files from, or `false`
   to skip them. Defaults to the project root.
 - `envMode`: the mode used to load `cloudflare.config.ts`, `.env.[mode]` and
   `.dev.vars.[mode]`. Defaults to Rsbuild's mode.
 
-The entry Worker is built by an Rsbuild environment named `cloudflare`, unless
-`viteEnvironment.name` is set. Auxiliary Workers' environments are named as in
-the Vite plugin.
+### Worker environments
+
+Each Worker is built by an
+[Rsbuild environment](https://rsbuild.rs/config/environments). The entry
+Worker's is named `cloudflare`, unless `rsbuildEnvironment.name` is set.
+Auxiliary Workers' are named as in the Vite plugin, unless their own
+`rsbuildEnvironment.name` is set. `rsbuildEnvironment` replaces the Vite
+plugin's `viteEnvironment`, without `childEnvironments`.
+
+To change how a Worker is built, configure its environment in Rsbuild's
+`environments` config. The plugin merges its settings in, and yours take
+precedence, apart from `source.entry`, `output.target` and `output.module`,
+which the plugin always sets so that the Worker runs in workerd.
+
+```ts
+export default defineConfig({
+	plugins: [cloudflare()],
+	environments: {
+		cloudflare: { output: { minify: true } },
+	},
+});
+```
 
 ### Frameworks
 
 As with the Vite plugin, put `cloudflare()` before the framework's plugins, and
-set `viteEnvironment.name` to the framework's server environment. The plugin
+set `rsbuildEnvironment.name` to the framework's server environment. The plugin
 builds that environment for workerd, whatever target the framework sets.
 
 In dev, the Worker environment's `loadBundle()` returns a module whose `fetch`
@@ -52,7 +72,7 @@ bundle through `loadBundle()`, such as
 export default defineConfig({
 	plugins: [
 		pluginReact(),
-		cloudflare({ viteEnvironment: { name: "ssr" } }),
+		cloudflare({ rsbuildEnvironment: { name: "ssr" } }),
 		tanstackStart(),
 	],
 });

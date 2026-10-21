@@ -21,7 +21,7 @@ Cloudflare example
 ([`examples/react/start-basic-cloudflare`](https://github.com/TanStack/router/tree/08a419c109ea2739fef0b893e09f4919fbd1b0d8/examples/react/start-basic-cloudflare))
 applied:
 
-- `rsbuild.config.ts` adds `cloudflare({ viteEnvironment: { name: "ssr" } })`
+- `rsbuild.config.ts` adds `cloudflare({ rsbuildEnvironment: { name: "ssr" } })`
   before `tanstackStart()`.
 - `cloudflare.config.ts` configures the Worker, as `wrangler.jsonc` does in the
   Cloudflare example: the Vite plugin, and so this plugin, no longer read

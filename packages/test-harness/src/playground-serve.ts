@@ -4,6 +4,7 @@ import { createLogger, createRsbuild, mergeRsbuildConfig } from "@rsbuild/core";
 import { pluginBasicSsl } from "@rsbuild/plugin-basic-ssl";
 import { pluginReact } from "@rsbuild/plugin-react";
 import { cloudflare } from "rsbuild-plugin-cloudflare";
+import type { PluginConfig as VitePluginConfig } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
 import type {
 	EnvironmentConfig,
 	RsbuildConfig,
@@ -102,12 +103,12 @@ async function translateViteConfig(
 	viteConfig: InlineConfig,
 	root: string
 ): Promise<RsbuildConfig> {
-	let pluginConfig: PluginConfig | undefined;
+	let pluginConfig: VitePluginConfig | undefined;
 	const plugins: RsbuildPlugin[] = [];
 
 	for (const plugin of await flattenPlugins(viteConfig.plugins)) {
 		if (plugin.name === "vite-plugin-cloudflare") {
-			pluginConfig = (plugin.api as { pluginConfig: PluginConfig })
+			pluginConfig = (plugin.api as { pluginConfig: VitePluginConfig })
 				.pluginConfig;
 		}
 		const portable = portablePlugins.find(({ test }) => test(plugin.name));
@@ -131,7 +132,7 @@ async function translateViteConfig(
 		mode: "development",
 		plugins: [
 			cloudflare({
-				...pluginConfig,
+				...translatePluginConfig(pluginConfig),
 				envDir: viteConfig.envDir,
 				envMode: viteConfig.mode,
 			}),
@@ -176,6 +177,42 @@ async function translateViteConfig(
 		customLogger: createForwardingLogger(viteConfig.customLogger),
 	};
 	return mergeRsbuildConfig(config, getHtmlEntries(viteConfig, root));
+}
+
+/**
+ * Maps the Vite plugin's options to the Rsbuild plugin's, which name the
+ * Rsbuild environment that builds a Worker with `rsbuildEnvironment` rather
+ * than `viteEnvironment`.
+ */
+function translatePluginConfig({
+	auxiliaryWorkers,
+	prerenderWorker,
+	...pluginConfig
+}: VitePluginConfig): PluginConfig {
+	return {
+		...translateWorkerOptions(pluginConfig),
+		auxiliaryWorkers: auxiliaryWorkers?.map(translateWorkerOptions),
+		prerenderWorker: prerenderWorker && translateWorkerOptions(prerenderWorker),
+	};
+}
+
+function translateWorkerOptions<
+	T extends Pick<VitePluginConfig, "viteEnvironment">,
+>({
+	viteEnvironment,
+	...options
+}: T): Omit<T, "viteEnvironment"> & Pick<PluginConfig, "rsbuildEnvironment"> {
+	if (viteEnvironment?.childEnvironments) {
+		throw new Error(
+			"The Rsbuild plugin doesn't support child environments (`viteEnvironment.childEnvironments`)."
+		);
+	}
+	return {
+		...options,
+		...(viteEnvironment && {
+			rsbuildEnvironment: { name: viteEnvironment.name },
+		}),
+	};
 }
 
 /** Maps the entry Worker's Vite build options that playgrounds set. */
