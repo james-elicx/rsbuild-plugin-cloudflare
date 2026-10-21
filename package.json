@@ -22,7 +22,8 @@
 		"test:playground": "turbo build && pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground",
 		"changeset:generate": "node --experimental-strip-types scripts/generate-changesets.ts",
 		"release": "turbo build && changeset publish",
-		"version-packages": "changeset version && node --experimental-strip-types scripts/format-changelog.ts"
+		"version-packages": "changeset version && node --experimental-strip-types scripts/format-changelog.ts",
+		"update:deps": "node --experimental-strip-types scripts/update-deps.ts"
 	},
 	"devDependencies": {
 		"@changesets/cli": "2.29.7",

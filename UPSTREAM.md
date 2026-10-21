@@ -34,7 +34,8 @@ repository stays in sync, and what to do when a sync fails.
 - **Dependencies:** `pnpm check:upstream-deps` checks that the plugin's runtime
   dependencies are the Vite plugin's, that the `overrides` in
   `pnpm-workspace.yaml` link them to the submodule, and that the tooling,
-  Node.js and pnpm versions are workers-sdk's.
+  Node.js and pnpm versions (including CI's Node.js version) are
+  workers-sdk's.
 - **Skip lists:** `packages/test-harness/vitest.playground.config.ts` and
   `vitest.e2e.config.ts` skip the upstream tests of Vite-specific behaviour,
   each with a reason.
@@ -48,18 +49,24 @@ optional ref:
    `origin/main`, re-applies the patches, installs and builds workers-sdk, and
    syncs the plugin's dependencies.
 2. The bump is committed to the `upstream-sync` branch, with the upstream
-   commits in the message, and pushed to a pull request to `main`. If that pull
-   request is already open, the branch is first rebased onto `main`, so that
-   fixes pushed to it are kept.
-3. CI (`ci.yml`) runs against the pushed commit: checks, unit tests, the
+   commits in the message. If a sync pull request is already open, the branch
+   is first rebased onto `main`, so that fixes pushed to it are kept.
+3. `scripts/update-deps.ts` updates the dependencies that don't follow
+   workers-sdk (those with `^` or `~` ranges) within their ranges, refreshes the
+   lockfile, and commits that as "Update dependencies". Newer versions outside
+   the ranges are listed in the pull request, to update by hand.
+4. The branch is pushed to a pull request to `main`.
+5. CI (`ci.yml`) runs against the pushed commit: checks, unit tests, the
    playground suite (serve and build) and the e2e suite.
-4. When CI passes, the pull request is rebase-merged into `main`. Otherwise a
+6. When CI passes, the pull request is rebase-merged into `main`. Otherwise a
    comment on the pull request links to the failed run, and the pull request
    stays open for fixes.
 
 Each upstream commit that the sync brings in and that changes the Vite plugin
 (other than its tests) becomes a release note in the next release (see
 [.changeset/README.md](.changeset/README.md)).
+
+Dependabot updates the pinned GitHub Actions weekly (`.github/dependabot.yml`).
 
 The workflow opens the pull request with `GITHUB_TOKEN`, so the repository must
 allow it: enable **Settings → Actions → General → Allow GitHub Actions to create

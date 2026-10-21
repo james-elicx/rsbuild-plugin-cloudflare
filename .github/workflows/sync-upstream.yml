@@ -1,9 +1,10 @@
 name: Sync upstream
 
-# Moves the workers-sdk submodule to the latest `main` in a pull request from
-# the `upstream-sync` branch, then runs CI against it. When CI passes, the pull
-# request is rebased onto `main`. Otherwise it stays open for fixes, which later
-# runs keep (see UPSTREAM.md).
+# Moves the workers-sdk submodule to the latest `main`, and updates the
+# dependencies that don't follow it, in a pull request from the `upstream-sync`
+# branch, then runs CI against it. When CI passes, the pull request is rebased
+# onto `main`. Otherwise it stays open for fixes, which later runs keep (see
+# UPSTREAM.md).
 
 on:
   schedule:
@@ -88,7 +89,7 @@ jobs:
           after="$(git -C workers-sdk rev-parse HEAD)"
           echo "status=$status" >> "$GITHUB_OUTPUT"
           echo "sha=$after" >> "$GITHUB_OUTPUT"
-          git add workers-sdk package.json pnpm-lock.yaml packages/*/package.json pnpm-workspace.yaml
+          git add workers-sdk package.json pnpm-lock.yaml packages/*/package.json pnpm-workspace.yaml .github/actions/setup/action.yml
           if ! git diff --cached --quiet; then
             {
               echo "Bump workers-sdk to ${after:0:9}"
@@ -97,11 +98,21 @@ jobs:
             } | git commit --file -
           fi
 
+      # The dependencies that don't follow workers-sdk.
+      - name: Update dependencies
+        if: steps.bump.outputs.status == '0'
+        run: |
+          pnpm update:deps --report "$RUNNER_TEMP/dependencies.md"
+          git add package.json pnpm-lock.yaml packages/*/package.json
+          if ! git diff --cached --quiet; then
+            git commit --message "Update dependencies"
+          fi
+
       - name: Push the sync branch
         id: push
         run: |
           if [[ -z "${{ steps.pr.outputs.number }}" && "$(git rev-parse HEAD)" == "$(git rev-parse origin/main)" ]]; then
-            echo "workers-sdk is up to date."
+            echo "workers-sdk and the dependencies are up to date."
             exit 0
           fi
           git push --force-with-lease origin "$BRANCH"
@@ -113,7 +124,9 @@ jobs:
         run: |
           sha="${{ steps.bump.outputs.sha }}"
           title="Sync with workers-sdk ${sha:0:9}"
-          body="Moves the workers-sdk submodule to cloudflare/workers-sdk@$sha.
+          body="Moves the workers-sdk submodule to cloudflare/workers-sdk@$sha, and updates the dependencies that don't follow workers-sdk within their ranges.
+
+          $(cat "$RUNNER_TEMP/dependencies.md" 2>/dev/null)
 
           The [sync workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/sync-upstream.yml) opened this, and rebases it onto \`main\` once CI passes. If CI fails, push fixes to \`$BRANCH\`. Later syncs rebase the branch onto \`main\` and keep those fixes (see UPSTREAM.md)."
           number="${{ steps.pr.outputs.number }}"

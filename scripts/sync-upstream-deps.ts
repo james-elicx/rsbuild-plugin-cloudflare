@@ -7,7 +7,7 @@
  *   workspace are linked to the submodule with `overrides` in
  *   `pnpm-workspace.yaml`.
  * - The shared tooling (TypeScript, Vitest, oxlint...) and the Node.js and pnpm
- *   versions are workers-sdk's.
+ *   versions (including the Node.js version that CI uses) are workers-sdk's.
  *
  * Usage: node --experimental-strip-types scripts/sync-upstream-deps.ts [--check]
  */
@@ -227,6 +227,38 @@ if (updatedWorkspace !== workspace) {
 	);
 	if (!check) {
 		writeFileSync(workspacePath, updatedWorkspace);
+	}
+}
+
+// The Node.js version that CI uses: the default of workers-sdk's
+// `install-dependencies` action.
+const upstreamNodeVersion =
+	/^ {2}node-version:\n(?: {4}.*\n)*? {4}default: (\S+)$/m.exec(
+		readFileSync(
+			path.join(
+				upstreamRoot,
+				".github/actions/install-dependencies/action.yml"
+			),
+			"utf8"
+		)
+	)?.[1];
+if (!upstreamNodeVersion) {
+	throw new Error(
+		"Couldn't find the Node.js version in workers-sdk's `install-dependencies` action."
+	);
+}
+const setupActionPath = path.join(root, ".github/actions/setup/action.yml");
+const setupAction = readFileSync(setupActionPath, "utf8");
+const updatedSetupAction = setupAction.replace(
+	/^( {8}node-version: ).*$/m,
+	`$1${upstreamNodeVersion}`
+);
+if (updatedSetupAction !== setupAction) {
+	problems.push(
+		`.github/actions/setup/action.yml: "node-version" should be "${upstreamNodeVersion}".`
+	);
+	if (!check) {
+		writeFileSync(setupActionPath, updatedSetupAction);
 	}
 }
 

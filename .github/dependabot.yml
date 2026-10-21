@@ -1,0 +1,17 @@
+# The npm dependencies are updated by `.github/workflows/sync-upstream.yml`
+# (see `scripts/update-deps.ts`), which keeps the ones that follow workers-sdk
+# in line with it. Dependabot updates the pinned GitHub Actions.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directories:
+      - "/"
+      - "/.github/actions/*"
+    schedule:
+      interval: weekly
+    # Like `minimumReleaseAge` in `pnpm-workspace.yaml`.
+    cooldown:
+      default-days: 1
+    groups:
+      github-actions:
+        patterns: ["*"]
