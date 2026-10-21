@@ -19,6 +19,9 @@ test.describe("server rendering", () => {
 		// binding through `cloudflare:workers`.
 		expect(html).toContain("<p>Running in Cloudflare-Workers</p>");
 		expect(html).toContain("<p>Hello from Cloudflare</p>");
+		// The Worker and the client name the stylesheet that `__root.tsx` imports
+		// with `?url` alike, so the page links it once.
+		expect(html.match(/<link rel="stylesheet"/g)).toHaveLength(1);
 	});
 
 	test("renders nested layouts", async ({ request }) => {
