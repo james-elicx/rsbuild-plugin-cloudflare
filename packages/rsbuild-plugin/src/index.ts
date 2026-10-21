@@ -1,0 +1,609 @@
+import assert from "node:assert";
+import * as fs from "node:fs";
+import * as fsp from "node:fs/promises";
+import * as path from "node:path";
+import {
+	BUILD_OUTPUT_ROOT,
+	cleanBuildOutputDir,
+	DEFAULT_WORKER_DIRECTORY_NAME,
+	getWorkerAssetsDir,
+	writeRootConfig,
+	writeWorkerConfig,
+} from "@cloudflare/build-output-utils";
+import { buildPublicUrl } from "miniflare";
+import {
+	createDebugMiddleware,
+	createDevServer,
+	createDispatchMiddleware,
+	createLogger,
+	createPreviewServer,
+	createRequestHandler,
+	createResolvedConfig,
+	createStaticRoutingMiddleware,
+	createUserWorkerHandler,
+	DEBUG_PATH,
+	getDevMiniflareOptions,
+	getDevVarsCandidatePaths,
+	getEnvPaths,
+	getPreviewMiniflareOptions,
+	handleWebSocket,
+	isPreviewBuild,
+	moveImportedAssets,
+	PluginContext,
+	resolveDevOnly,
+	resolvePluginConfig,
+	toViteHttpServer,
+} from "./upstream";
+import {
+	getAdditionalModuleTypes,
+	getImportedAssetPaths,
+	getManifestFromCompilation,
+	getWorkerEntry,
+	getWorkerEnvironmentConfig,
+	removeUnemittedFiles,
+} from "./worker-environment";
+import type {
+	AssetsOnlyPluginContext,
+	DevHtmlHandlers,
+	PluginConfig,
+	PreviewPluginContext,
+	ServerConfig,
+	Worker,
+	WorkersPluginContext,
+} from "./upstream";
+import type {
+	EnvironmentContext,
+	NormalizedConfig,
+	PublicDir,
+	RsbuildDevServer,
+	RsbuildPlugin,
+} from "@rsbuild/core";
+import type { Miniflare, WorkerOptions } from "miniflare";
+import type { IncomingMessage } from "node:http";
+
+/** The same options as the Vite plugin's `cloudflare()`, apart from the tunnel. */
+export interface PluginCloudflareOptions extends Omit<PluginConfig, "tunnel"> {
+	/** The directory to load `.env` and `.dev.vars` files from, or `false` to skip them. Defaults to the project root. */
+	envDir?: string | false;
+	/** The mode used to load `cloudflare.config.ts`, `.env.[mode]` and `.dev.vars.[mode]`. Defaults to Rsbuild's mode. */
+	envMode?: string;
+}
+
+/** The Rsbuild environment that builds the entry Worker, unless `viteEnvironment.name` is set. */
+const ENTRY_ENVIRONMENT_NAME = "cloudflare";
+
+type MiniflareManifest = NonNullable<WorkerOptions["config"]["manifest"]>;
+
+/**
+ * Rsbuild plugin that builds the Workers defined in `cloudflare.config.ts` and
+ * the plugin options with rspack and runs them in workerd (via Miniflare)
+ * during `rsbuild dev`. `rsbuild build` writes the Build Output Specification
+ * to `.cloudflare/output`, which `rsbuild preview` runs in workerd.
+ *
+ * @param options Plugin options.
+ * @returns An Rsbuild plugin.
+ */
+export function pluginCloudflare(
+	options: PluginCloudflareOptions = {}
+): RsbuildPlugin {
+	return {
+		name: "rsbuild:cloudflare",
+		setup(api) {
+			const { action, rootPath: root } = api.context;
+			const ctx = new PluginContext({
+				restartingDevServerCount: 0,
+				tunnelHostnames: new Set(),
+			});
+			const logger = createLogger(api.logger);
+			/** The Workers to bundle, keyed by Rsbuild environment name. */
+			const workerEnvironments = new Map<string, Worker>();
+			/** The latest bundles, keyed by Worker name. */
+			const manifests = new Map<string, MiniflareManifest>();
+			let manifestsChanged = false;
+			/** The assets that the entry Worker imports, which a build moves to the client output. */
+			let importedAssets: { distPath: string; paths: string[] } | undefined;
+			/** The Worker environments whose latest dev build failed. */
+			const failedEnvironments = new Set<string>();
+			let devServer: RsbuildDevServer | undefined;
+			let environmentContexts: Record<string, EnvironmentContext> = {};
+			let serverConfig: ServerConfig | undefined;
+			let miniflareCreated = false;
+			/** Why Miniflare last failed to start or update, which requests report. */
+			let miniflareError: unknown;
+			let settleFirstStart: () => void = () => {};
+			/** Settles once Miniflare has first started, or failed to. */
+			const firstStart = new Promise<void>((resolve) => {
+				settleFirstStart = resolve;
+			});
+
+			api.modifyRsbuildConfig(async (userConfig, { mergeRsbuildConfig }) => {
+				const { envDir, envMode, ...pluginConfig } = options;
+				const mode =
+					envMode ??
+					userConfig.mode ??
+					(action === "dev" ? "development" : "production");
+				const resolvedPluginConfig = await resolvePluginConfig(
+					{
+						...pluginConfig,
+						viteEnvironment: {
+							...pluginConfig.viteEnvironment,
+							name:
+								pluginConfig.viteEnvironment?.name ?? ENTRY_ENVIRONMENT_NAME,
+						},
+					},
+					{ root, mode, envDir },
+					{
+						command: action === "build" ? "build" : "serve",
+						mode,
+						isPreview: action === "preview",
+					}
+				);
+				ctx.setResolvedPluginConfig(resolvedPluginConfig);
+				ctx.setResolvedViteConfig(
+					createResolvedConfig({
+						root,
+						mode,
+						publicDir:
+							getPublicDirs(userConfig.server?.publicDir, root)[0] ??
+							path.join(root, "public"),
+						logger,
+						logLevel: userConfig.logLevel,
+					})
+				);
+
+				if (resolvedPluginConfig.type === "preview") {
+					// Preview runs the Build Output rather than the project's sources,
+					// and Rsbuild checks that this directory exists before starting.
+					return mergeRsbuildConfig(userConfig, {
+						output: { distPath: { root: BUILD_OUTPUT_ROOT } },
+					});
+				}
+
+				for (const [
+					name,
+					worker,
+				] of resolvedPluginConfig.environmentNameToWorkerMap) {
+					if (action !== "build" || !resolveDevOnly(worker.devOnly)) {
+						workerEnvironments.set(name, worker);
+					}
+				}
+
+				// Without explicit environments (Rsbuild defaults them to `{}`), Rsbuild
+				// builds a single `web` environment from the top-level config, so keep
+				// it when there is a client entry.
+				const clientEnvironments = Object.fromEntries(
+					Object.entries(userConfig.environments ?? {}).filter(
+						([name]) => !workerEnvironments.has(name)
+					)
+				);
+				const environments =
+					Object.keys(clientEnvironments).length > 0
+						? clientEnvironments
+						: userConfig.source?.entry
+							? { web: {} }
+							: {};
+				const resolvedEnvDir =
+					envDir === false ? false : path.resolve(root, envDir ?? ".");
+
+				return mergeRsbuildConfig(userConfig, {
+					environments: {
+						...environments,
+						...Object.fromEntries(
+							[...workerEnvironments].map(([name, worker]) => [
+								name,
+								// The user's environment config overrides the defaults.
+								mergeRsbuildConfig(
+									getWorkerEnvironmentConfig(worker, root),
+									userConfig.environments?.[name] ?? {}
+								),
+							])
+						),
+					},
+					dev: {
+						watchFiles: {
+							paths: [
+								...resolvedPluginConfig.configPaths,
+								...getEnvPaths(resolvedEnvDir, mode),
+								...getDevVarsCandidatePaths(resolvedEnvDir, mode),
+								...(resolvedPluginConfig.experimental
+									.headersAndRedirectsDevModeSupport
+									? getPublicDirs(userConfig.server?.publicDir, root).flatMap(
+											(dir) => [
+												path.join(dir, "_headers"),
+												path.join(dir, "_redirects"),
+											]
+										)
+									: []),
+							],
+							type: "reload-server",
+						},
+					},
+					server: {
+						// The asset Worker handles HTML requests, as when deployed.
+						htmlFallback: false,
+						// Rsbuild only prints the server's URLs for client environments.
+						...(Object.keys(environments).length === 0 &&
+							userConfig.server?.printUrls === true && {
+								printUrls: ({ urls }: { urls: string[] }) => urls,
+							}),
+					},
+				});
+			});
+
+			api.modifyEnvironmentConfig((config, { name }) => {
+				const worker = workerEnvironments.get(name);
+				if (worker) {
+					// Top-level entries are merged into every environment, so replace
+					// them to keep client entries out of the Worker.
+					config.source.entry = getWorkerEntry(worker, root);
+				} else if (
+					action === "build" &&
+					ctx.resolvedPluginConfig.type !== "preview" &&
+					config.output.target === "web"
+				) {
+					config.output.distPath.root = getWorkerAssetsDir(root);
+				}
+			});
+
+			api.onBeforeStartDevServer(({ server, environments }) => {
+				devServer = server;
+				environmentContexts = environments;
+				serverConfig = getServerConfig(api.getNormalizedConfig());
+				const hmrPath = api.getNormalizedConfig().dev.client.path;
+				const workerNames = [...workerEnvironments.values()].map(
+					({ config }) => config.name
+				);
+				server.middlewares.use(
+					DEBUG_PATH,
+					createDebugMiddleware(workerNames, () =>
+						ctx.getResolvedInspectorPort()
+					)
+				);
+				const { entryWorkerConfig } = ctx;
+				if (entryWorkerConfig) {
+					const { httpServer } = server;
+					if (httpServer) {
+						void firstStart.then(
+							() =>
+								!miniflareError &&
+								handleWebSocket(
+									toViteHttpServer(httpServer, hmrPath),
+									ctx.miniflare,
+									entryWorkerConfig.name
+								)
+						);
+					}
+					const userWorkerHandler = createUserWorkerHandler(
+						getMiniflare,
+						entryWorkerConfig.name
+					);
+					// Local trigger routes (e.g. `/cdn-cgi/local/scheduled`) must reach
+					// the entry Worker rather than the router Worker.
+					server.middlewares.use("/cdn-cgi/local/", userWorkerHandler);
+					const staticRouting =
+						entryWorkerConfig.assets?.runWorkerFirst === true
+							? { user_worker: ["/*"] }
+							: ctx.resolvedPluginConfig.type === "workers"
+								? ctx.resolvedPluginConfig.staticRouting
+								: undefined;
+					if (staticRouting) {
+						server.middlewares.use(
+							createStaticRoutingMiddleware(staticRouting, userWorkerHandler)
+						);
+					}
+				}
+				// Rsbuild would serve its HTML pages itself, so send page requests to
+				// the router Worker first.
+				server.middlewares.use((req, res, next) =>
+					isPageRequest(req, hmrPath)
+						? dispatchMiddleware(req, res, next)
+						: next()
+				);
+				// Runs after Rsbuild's built-in middleware, so client assets are
+				// served first and every other request is handled by the router Worker.
+				return () => {
+					server.middlewares.use(dispatchMiddleware);
+				};
+			});
+
+			api.onAfterStartDevServer(({ port }) => {
+				if (serverConfig) {
+					// Rsbuild may have chosen another port.
+					serverConfig.port = port;
+					void firstStart.then(() => {
+						if (!miniflareError && serverConfig) {
+							ctx.miniflare.publicUrl = buildPublicUrl({
+								hostname: serverConfig.host,
+								port,
+								secure: serverConfig.https,
+							});
+						}
+					});
+				}
+			});
+
+			api.onBeforeBuild({
+				// Runs before Rsbuild empties the output directories and copies
+				// `public/` into them, so that the copies aren't removed.
+				order: "pre",
+				async handler({ isFirstCompile }) {
+					if (isFirstCompile) {
+						// As in the Vite plugin, drop Workers and Containers from
+						// previous builds.
+						await cleanBuildOutputDir(root);
+					}
+				},
+			});
+
+			api.onAfterEnvironmentCompile(async ({ environment, stats }) => {
+				const worker = workerEnvironments.get(environment.name);
+				if (!worker || !stats) {
+					return;
+				}
+				if (stats.hasErrors()) {
+					failedEnvironments.add(environment.name);
+					return;
+				}
+				failedEnvironments.delete(environment.name);
+				manifests.set(worker.config.name, {
+					...getManifestFromCompilation(stats.compilation),
+					modulesRoot: environment.distPath,
+				});
+				manifestsChanged = true;
+				if (action === "build") {
+					await removeUnemittedFiles(environment.distPath, stats.compilation);
+					if (worker.directoryName === DEFAULT_WORKER_DIRECTORY_NAME) {
+						importedAssets = {
+							distPath: environment.distPath,
+							paths: getImportedAssetPaths(stats.compilation),
+						};
+					}
+				}
+			});
+
+			api.onAfterDevCompile(async () => {
+				if (failedEnvironments.size > 0) {
+					miniflareError = new Error(
+						"The Worker failed to build. See the dev server output for details."
+					);
+					settleFirstStart();
+					return;
+				}
+				// Miniflare runs every Worker, so wait until they have all built, and
+				// don't restart it when only client code changed.
+				if (
+					(miniflareCreated && !manifestsChanged) ||
+					manifests.size < workerEnvironments.size
+				) {
+					return;
+				}
+				manifestsChanged = false;
+				try {
+					const { miniflareOptions, containerOptions } =
+						await getDevMiniflareOptions(
+							ctx as AssetsOnlyPluginContext | WorkersPluginContext,
+							createDevServer(
+								(req, res) => devServer?.middlewares(req, res),
+								serverConfig ?? getServerConfig(api.getNormalizedConfig()),
+								logger
+							),
+							{ manifests, html: htmlHandlers }
+						);
+					if (containerOptions) {
+						logger.warn(
+							"Containers aren't supported by the Rsbuild plugin yet, so Container-backed Durable Objects will fail."
+						);
+					}
+					await startOrUpdateMiniflare(miniflareOptions);
+					miniflareError = undefined;
+				} catch (error) {
+					// Keep the dev server running, so that fixing the Worker retries.
+					miniflareError = error;
+					api.logger.error(error);
+				}
+				settleFirstStart();
+			});
+
+			api.onCloseDevServer(() => ctx.disposeMiniflare());
+
+			api.onBeforeStartPreviewServer(async ({ server }) => {
+				if (ctx.resolvedPluginConfig.type !== "preview") {
+					return;
+				}
+				const config = getServerConfig(api.getNormalizedConfig());
+				const { miniflareOptions } = await getPreviewMiniflareOptions(
+					ctx as PreviewPluginContext,
+					createPreviewServer(config, logger)
+				);
+				await startOrUpdateMiniflare(miniflareOptions);
+				settleFirstStart();
+				// Rsbuild has no preview close hook, so dispose with the HTTP server.
+				server.httpServer?.on("close", () => void ctx.disposeMiniflare());
+				const workerNames = miniflareOptions.workers.flatMap(
+					({ config: { name } }) => name ?? []
+				);
+				server.middlewares.use(
+					DEBUG_PATH,
+					createDebugMiddleware(workerNames, () =>
+						ctx.getResolvedInspectorPort()
+					)
+				);
+				if (server.httpServer) {
+					handleWebSocket(toViteHttpServer(server.httpServer), ctx.miniflare);
+				}
+				// As in the Vite plugin, put the middleware before Rsbuild's so that
+				// Miniflare serves the assets as well, as it would when deployed.
+				server.middlewares.use(
+					createRequestHandler(async (request) =>
+						(await getMiniflare()).dispatchFetch(request, {
+							redirect: "manual",
+						})
+					)
+				);
+			});
+
+			api.onAfterBuild(async ({ stats }) => {
+				const { resolvedPluginConfig } = ctx;
+				if (resolvedPluginConfig.type === "preview" || stats?.hasErrors()) {
+					return;
+				}
+				const assetsDir = getWorkerAssetsDir(root);
+				if (!fs.existsSync(assetsDir)) {
+					// Without a client entry there's no web environment to copy
+					// `public/` into the assets directory, as Vite's client build does.
+					for (const { name, copyOnBuild } of api.getNormalizedConfig().server
+						.publicDir) {
+						// Rsbuild normalizes `name` to an absolute path.
+						if (copyOnBuild && fs.existsSync(name)) {
+							await fsp.cp(name, assetsDir, { recursive: true });
+						}
+					}
+				}
+				if (importedAssets) {
+					// As in the Vite plugin, serve assets that the entry Worker imports.
+					moveImportedAssets(
+						importedAssets.paths,
+						importedAssets.distPath,
+						assetsDir
+					);
+				}
+				if (resolvedPluginConfig.type === "assets-only") {
+					await writeWorkerConfig({
+						root,
+						config: resolvedPluginConfig.config,
+					});
+				}
+				for (const worker of resolvedPluginConfig.environmentNameToWorkerMap.values()) {
+					if (!resolveDevOnly(worker.devOnly)) {
+						const manifest = manifests.get(worker.config.name);
+						assert(
+							manifest,
+							`Expected Worker "${worker.config.name}" to be built`
+						);
+						await writeWorkerConfig({
+							root,
+							config: worker.config,
+							manifest: {
+								type: "partial",
+								mainModule: manifest.mainModule,
+								modules: getAdditionalModuleTypes(manifest.modules),
+							},
+							directoryName: worker.directoryName,
+						});
+					} else if (worker.directoryName === DEFAULT_WORKER_DIRECTORY_NAME) {
+						// `assetsOnly`: the entry Worker runs in dev but deploys as assets.
+						await writeWorkerConfig({
+							root,
+							config: worker.config,
+							directoryName: worker.directoryName,
+						});
+					}
+				}
+				await writeRootConfig(root, resolvedPluginConfig.settings, {
+					isPreview: isPreviewBuild(),
+					mode: ctx.resolvedViteConfig.mode,
+				});
+			});
+
+			async function startOrUpdateMiniflare(
+				miniflareOptions: Parameters<PluginContext["startOrUpdateMiniflare"]>[0]
+			): Promise<void> {
+				await ctx.startOrUpdateMiniflare(miniflareOptions);
+				miniflareCreated = true;
+				await ctx.miniflare.ready;
+			}
+
+			async function getMiniflare(): Promise<Miniflare> {
+				await firstStart;
+				if (miniflareError) {
+					throw miniflareError;
+				}
+				return ctx.miniflare;
+			}
+
+			/** Forwards a request to the router Worker, or to the asset Worker for asset requests. */
+			const dispatchMiddleware = createDispatchMiddleware(getMiniflare);
+
+			/** Reads HTML pages from Rsbuild for the asset Worker. */
+			const htmlHandlers: DevHtmlHandlers = {
+				async htmlExists(pathname) {
+					return !!(findHtmlEntry(pathname) || findPublicFile(pathname));
+				},
+				async fetchHtml(pathname) {
+					const entry = findHtmlEntry(pathname);
+					const environment =
+						entry && devServer?.environments[entry.environmentName];
+					if (entry && environment) {
+						return environment.getTransformedHtml(entry.entryName);
+					}
+					const publicFile = findPublicFile(pathname);
+					if (!publicFile) {
+						throw new Error(`No HTML found for "${pathname}".`);
+					}
+					return fsp.readFile(publicFile, "utf8");
+				},
+			};
+
+			function findHtmlEntry(
+				pathname: string
+			): { environmentName: string; entryName: string } | undefined {
+				const { base } = api.getNormalizedConfig().server;
+				for (const [environmentName, { htmlPaths }] of Object.entries(
+					environmentContexts
+				)) {
+					for (const [entryName, htmlPath] of Object.entries(htmlPaths)) {
+						if (path.posix.join(base, htmlPath) === pathname) {
+							return { environmentName, entryName };
+						}
+					}
+				}
+			}
+
+			function findPublicFile(pathname: string): string | undefined {
+				return getPublicDirs(api.getNormalizedConfig().server.publicDir, root)
+					.map((dir) => path.join(dir, pathname))
+					.find((file) =>
+						fs.statSync(file, { throwIfNoEntry: false })?.isFile()
+					);
+			}
+		},
+	};
+}
+
+/** Gets the server settings that the Vite plugin's internals read. */
+function getServerConfig({ server }: NormalizedConfig): ServerConfig {
+	return {
+		host: server.host,
+		port: server.port,
+		https: !!server.https,
+		headers: server.headers ?? {},
+	};
+}
+
+/** Resolves Rsbuild's `server.publicDir` option to absolute directories. */
+function getPublicDirs(
+	publicDir: PublicDir | undefined,
+	root: string
+): string[] {
+	if (publicDir === false) {
+		return [];
+	}
+	return [publicDir ?? {}]
+		.flat()
+		.map(({ name = "public" }) => path.resolve(root, name));
+}
+
+/**
+ * Whether a request is for a page, which Rsbuild would otherwise serve itself:
+ * a `GET` or `HEAD` for an HTML file or an extension-less path, other than
+ * Rsbuild's own routes.
+ */
+function isPageRequest(req: IncomingMessage, hmrPath: string): boolean {
+	const { pathname } = new URL(req.url ?? "/", "http://localhost");
+	return (
+		(req.method === "GET" || req.method === "HEAD") &&
+		pathname !== hmrPath &&
+		!/^\/(__|rsbuild-)/.test(pathname) &&
+		(pathname.endsWith(".html") || path.posix.extname(pathname) === "")
+	);
+}

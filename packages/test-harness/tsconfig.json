@@ -1,0 +1,12 @@
+{
+	"extends": "../../workers-sdk/packages/workers-tsconfig/tsconfig.json",
+	"compilerOptions": {
+		"module": "preserve",
+		"moduleResolution": "bundler",
+		"resolveJsonModule": true,
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+		"types": ["node"]
+	},
+	"include": ["src", "*.ts"]
+}

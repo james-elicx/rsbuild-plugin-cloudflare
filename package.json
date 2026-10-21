@@ -1,0 +1,43 @@
+{
+	"name": "rsbuild-plugin-cloudflare",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Experimental Rsbuild plugin for Cloudflare Workers, built on workers-sdk's Vite plugin internals",
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"build": "turbo build",
+		"check": "pnpm check:copied-code && pnpm check:upstream-deps && pnpm check:lint && pnpm check:format && pnpm check:type",
+		"check:copied-code": "node --experimental-strip-types scripts/check-copied-code.ts",
+		"check:format": "oxfmt --check",
+		"check:lint": "oxlint --deny-warnings --type-aware packages scripts vitest.shared.ts",
+		"check:type": "turbo check:type",
+		"check:upstream-deps": "node --experimental-strip-types scripts/sync-upstream-deps.ts --check",
+		"fix": "oxlint --fix --type-aware packages scripts vitest.shared.ts && pnpm run prettify",
+		"prettify": "oxfmt",
+		"setup:upstream": "./scripts/setup-upstream.sh",
+		"test": "turbo test",
+		"test:ci": "turbo test:ci",
+		"test:e2e": "turbo build && pnpm -F @cloudflare/rsbuild-plugin-test-harness test:e2e",
+		"test:playground": "turbo build && pnpm -F @cloudflare/rsbuild-plugin-test-harness test:playground"
+	},
+	"devDependencies": {
+		"@types/node": "22.15.17",
+		"eslint-plugin-turbo": "2.8.20",
+		"oxfmt": "0.68.0",
+		"oxlint": "1.56.0",
+		"oxlint-tsgolint": "0.17.1",
+		"turbo": "2.7.2",
+		"typescript": "5.8.3",
+		"vitest": "5.0.4"
+	},
+	"engines": {
+		"node": ">=22.0.0",
+		"pnpm": "^10.33.0"
+	},
+	"volta": {
+		"node": "22.22.1",
+		"pnpm": "10.33.0"
+	},
+	"packageManager": "pnpm@10.33.0"
+}

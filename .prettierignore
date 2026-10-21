@@ -1,0 +1,2 @@
+# oxfmt applies the submodule's own config there instead of our `ignorePatterns`.
+workers-sdk

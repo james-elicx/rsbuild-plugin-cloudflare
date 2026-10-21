@@ -1,0 +1,4 @@
+[submodule "workers-sdk"]
+	path = workers-sdk
+	url = https://github.com/cloudflare/workers-sdk.git
+	ignore = dirty

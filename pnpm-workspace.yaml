@@ -1,0 +1,30 @@
+# The `workers-sdk` submodule is its own pnpm workspace, installed and built by
+# `scripts/setup-upstream.sh`. It isn't part of this one.
+packages:
+  - "packages/*"
+
+# The packages that the Vite plugin's internals import at runtime are linked to
+# the submodule's builds, so that the plugin runs against exactly the upstream
+# code that it bundles. `pnpm check:upstream-deps` keeps the versions in
+# `packages/rsbuild-plugin/package.json` in line with the submodule's, which
+# are what a packed plugin installs.
+overrides:
+  "@cloudflare/build-output-utils": "link:./workers-sdk/packages/build-output-utils"
+  "@cloudflare/config": "link:./workers-sdk/packages/config"
+  "@cloudflare/runtime-types": "link:./workers-sdk/packages/runtime-types"
+  "@cloudflare/unenv-preset": "link:./workers-sdk/packages/unenv-preset"
+  miniflare: "link:./workers-sdk/packages/miniflare"
+
+# Supply chain security, as in workers-sdk.
+# See: https://pnpm.io/supply-chain-security
+blockExoticSubdeps: true
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - "@cloudflare/*"
+  - "cf"
+  - "workerd"
+
+allowBuilds:
+  esbuild: true
+  workerd: true
+  playwright-chromium: true

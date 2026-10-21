@@ -1,0 +1,15 @@
+// The workers-sdk formatting options (`workers-sdk/.oxfmtrc.jsonc`).
+{
+	"printWidth": 80,
+	"singleQuote": false,
+	"semi": true,
+	"useTabs": true,
+	"trailingComma": "es5",
+	"sortImports": {
+		"groups": ["builtin", "external", "parent", "sibling", "index", "type"],
+		"newlinesBetween": false,
+	},
+	"sortTailwindcss": {},
+	"sortPackageJson": {},
+	"ignorePatterns": ["CHANGELOG.md", "patches/**"],
+}

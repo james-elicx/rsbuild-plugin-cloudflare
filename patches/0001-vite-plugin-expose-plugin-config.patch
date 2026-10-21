@@ -1,0 +1,13 @@
+diff --git a/packages/vite-plugin-cloudflare/src/index.ts b/packages/vite-plugin-cloudflare/src/index.ts
+index 5438a9033..41531ed7c 100644
+--- a/packages/vite-plugin-cloudflare/src/index.ts
++++ b/packages/vite-plugin-cloudflare/src/index.ts
+@@ -71,6 +71,8 @@ export function cloudflare(pluginConfig: PluginConfig = {}): vite.Plugin[] {
+ 		{
+ 			name: "vite-plugin-cloudflare",
+ 			sharedDuringBuild: true,
++			// Exposes the options so that tools can read them from a resolved Vite config.
++			api: { pluginConfig },
+ 			async config(userConfig, env) {
+ 				ctx.setResolvedPluginConfig(
+ 					await resolvePluginConfig(pluginConfig, userConfig, env)

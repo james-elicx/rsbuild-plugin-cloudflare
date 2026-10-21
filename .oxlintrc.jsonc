@@ -1,0 +1,153 @@
+// The workers-sdk lint rules (`workers-sdk/.oxlintrc.jsonc`), with the overrides
+// that apply to the Vite plugin. Keep the rules in sync when bumping upstream.
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["typescript", "import", "unicorn", "vitest", "react"],
+	"categories": {
+		"correctness": "error",
+	},
+	"rules": {
+		"@typescript-eslint/await-thenable": "off",
+		"@typescript-eslint/no-base-to-string": "off",
+		"@typescript-eslint/no-duplicate-type-constituents": "off",
+		"@typescript-eslint/no-for-in-array": "off",
+		"@typescript-eslint/no-misused-spread": "off",
+		"@typescript-eslint/no-redundant-type-constituents": "off",
+		"@typescript-eslint/restrict-template-expressions": "off",
+		"@typescript-eslint/unbound-method": "off",
+		"no-meaningless-void-operator": "off",
+		"require-array-sort-compare": "off",
+		"unicorn/no-new-array": "off",
+		"unicorn/no-thenable": "off",
+		"unicorn/no-useless-fallback-in-spread": "off",
+		"unicorn/no-useless-spread": "off",
+		"vitest/hoisted-apis-on-top": "off",
+		"vitest/warn-todo": "off",
+		"vitest/no-conditional-tests": "off",
+		"no-case-declarations": "error",
+		"no-fallthrough": "error",
+		"no-prototype-builtins": "error",
+		"no-array-constructor": "error",
+		"@typescript-eslint/ban-ts-comment": "error",
+		"@typescript-eslint/no-unsafe-function-type": "error",
+		"curly": ["error", "all"],
+		"prefer-const": "error",
+		"prefer-rest-params": "error",
+		"prefer-spread": "error",
+		"@typescript-eslint/consistent-type-imports": [
+			"error",
+			{ "disallowTypeAnnotations": false },
+		],
+		"no-var": "error",
+		"no-regex-spaces": "error",
+		"@typescript-eslint/no-empty-object-type": "error",
+		"@typescript-eslint/no-explicit-any": "error",
+		"@typescript-eslint/no-namespace": "error",
+		"@typescript-eslint/no-require-imports": "error",
+		"no-shadow": ["error", { "allow": ["expect"] }],
+		"no-unexpected-multiline": "error",
+		"@typescript-eslint/no-unnecessary-type-constraint": "error",
+		"unicorn/prefer-node-protocol": "error",
+		"vitest/no-focused-tests": "error",
+		"@typescript-eslint/no-non-null-assertion": "error",
+		"turbo/no-undeclared-env-vars": "error",
+		"workers-sdk/no-unsafe-command-execution": "error",
+		"workers-sdk/no-direct-recursive-rm": "error",
+		"workers-sdk/require-description-when-disabling": "error",
+		"@typescript-eslint/no-deprecated": "error",
+
+		"no-unused-vars": [
+			"error",
+			{
+				"argsIgnorePattern": "^_",
+				"varsIgnorePattern": "^_",
+				"ignoreRestSiblings": true,
+				"fix": { "imports": "fix" },
+			},
+		],
+		"no-restricted-imports": [
+			"error",
+			{
+				"paths": [
+					{
+						"name": "ci-info",
+						"importNames": [
+							"isCI",
+							"CLOUDFLARE_PAGES",
+							"CLOUDFLARE_WORKERS",
+							"isPR",
+							"name",
+						],
+						"message": "Use default import (`import ci from \"ci-info\"`) and access properties via `ci.isCI`, `ci.CLOUDFLARE_PAGES`, etc. Named imports cannot be controlled in test mocks.",
+					},
+					{
+						"name": "vitest",
+						"importNames": ["expect"],
+						"message": "Import 'expect' from the test context instead of 'vitest' for concurrency safety. Use: test('name', ({ expect }) => { ... })",
+					},
+					{
+						"name": "am-i-vibing",
+						"message": "Use `detectAgent()` from `src/utils/detect-agent` instead.",
+					},
+				],
+			},
+		],
+	},
+	"ignorePatterns": [
+		"**/*.js",
+		"**/*.cjs",
+		"**/*.mjs",
+		"workers-sdk/**",
+		"packages/rsbuild-plugin/src/__tests__/fixtures/**",
+	],
+	"jsPlugins": [
+		"eslint-plugin-turbo",
+		{
+			"name": "workers-sdk",
+			"specifier": "./workers-sdk/packages/lint-config-shared/oxlint-plugin.mjs",
+		},
+	],
+	"overrides": [
+		// As for the Vite plugin's e2e tests.
+		{
+			"files": ["packages/test-harness/**", "scripts/**"],
+			"rules": {
+				"no-console": "off",
+				"no-restricted-globals": "off",
+				"workers-sdk/no-unsafe-command-execution": "off",
+			},
+		},
+		// Only `src/upstream` imports workers-sdk code, so that upstream changes
+		// surface there when the submodule is bumped. See AGENTS.md.
+		{
+			"files": ["packages/rsbuild-plugin/src/*.ts"],
+			"rules": {
+				"no-restricted-imports": [
+					"error",
+					{
+						"paths": [
+							{
+								"name": "@cloudflare/workers-utils",
+								"message": "Import workers-sdk code through `./upstream`.",
+							},
+						],
+						"patterns": [
+							{
+								"group": ["**/workers-sdk/**", "@cloudflare/workers-utils/*"],
+								"message": "Import workers-sdk code through `./upstream`.",
+							},
+						],
+					},
+				],
+			},
+		},
+		// Make sure Wrangler's version checking logic in the reused Vite plugin code
+		// can run properly.
+		{
+			"files": ["packages/rsbuild-plugin/**"],
+			"rules": {
+				"workers-sdk/no-wrangler-named-imports": "error",
+			},
+		},
+	],
+}

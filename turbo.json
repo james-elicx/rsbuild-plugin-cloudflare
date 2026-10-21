@@ -1,0 +1,28 @@
+{
+	"$schema": "http://turbo.build/schema.json",
+	"globalPassThroughEnv": [
+		"CI",
+		"PWD",
+		"CLOUDFLARE_PREVIEW_BUILD",
+		"CLOUDFLARE_RSBUILD_PLUGIN_TARBALL"
+	],
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": ["dist/**"],
+			// The plugin bundles sources from the workers-sdk submodule, which Turbo
+			// doesn't hash, so a cached build could predate a submodule bump.
+			"cache": false
+		},
+		"check:type": {
+			// The plugin's tests import its build.
+			"dependsOn": ["^build", "build"]
+		},
+		"test": {
+			"dependsOn": ["build"]
+		},
+		"test:ci": {
+			"dependsOn": ["build"]
+		}
+	}
+}

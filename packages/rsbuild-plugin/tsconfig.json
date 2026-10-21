@@ -1,0 +1,10 @@
+{
+	// The Vite plugin's sources that this package imports are type-checked with
+	// the same settings as in workers-sdk.
+	"extends": "../../workers-sdk/packages/workers-tsconfig/worker.json",
+	"compilerOptions": {
+		"types": ["@cloudflare/workers-types/experimental", "node"]
+	},
+	"include": ["src", "*.ts"],
+	"exclude": ["src/__tests__/fixtures"]
+}

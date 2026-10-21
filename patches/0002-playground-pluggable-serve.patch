@@ -1,0 +1,30 @@
+diff --git a/packages/vite-plugin-cloudflare/playground/vitest-setup.ts b/packages/vite-plugin-cloudflare/playground/vitest-setup.ts
+index 03bb2c611..dac84bc10 100644
+--- a/packages/vite-plugin-cloudflare/playground/vitest-setup.ts
++++ b/packages/vite-plugin-cloudflare/playground/vitest-setup.ts
+@@ -286,6 +286,25 @@ export async function startDefaultServe(): Promise<
+ 	// Vitest 4 sets NODE_ENV=test — override so Vite uses the correct mode
+ 	process.env.NODE_ENV = isBuild ? "production" : "development";
+ 
++	// Lets another bundler's integration run the playgrounds: the module builds
++	// and serves the playground from its Vite config.
++	const serveModule = process.env.CLOUDFLARE_VITE_PLAYGROUND_SERVE_MODULE;
++	if (serveModule) {
++		const { startServe } = (await import(serveModule)) as {
++			startServe: (
++				config: InlineConfig,
++				options: { isBuild: boolean }
++			) => Promise<{ url: string; close: () => Promise<void> }>;
++		};
++		const server = await startServe(
++			await loadConfig({ command: isBuild ? "build" : "serve", mode: "" }),
++			{ isBuild }
++		);
++		viteTestUrl = server.url;
++		await page.goto(viteTestUrl);
++		return server as unknown as ViteDevServer;
++	}
++
+ 	if (!isBuild) {
+ 		process.env.VITE_INLINE = "inline-serve";
+ 		const config = await loadConfig({ command: "serve", mode: "development" });

@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  # `sync-upstream.yml` runs this against the branch that bumps workers-sdk.
+  workflow_call:
+    inputs:
+      ref:
+        description: the ref to test
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.ref || github.event.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # We run `playwright install` manually instead
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+  NODE_OPTIONS: "--max_old_space_size=8192"
+
+jobs:
+  check:
+    name: Checks and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: true
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+
+      - name: Check
+        run: pnpm check
+
+      - name: Unit tests
+        run: pnpm test:ci
+
+  playground:
+    name: ${{ format('Vite plugin playgrounds ({0})', matrix.mode) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [serve, build]
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: true
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+
+      - name: Install playwright
+        run: pnpm -F @cloudflare/rsbuild-plugin-test-harness playwright:install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run the playground suite against Rsbuild
+        run: pnpm -F @cloudflare/rsbuild-plugin-test-harness test:playground:${{ matrix.mode }}
+        env:
+          NODE_DEBUG: "@cloudflare:vite-plugin"
+
+  e2e:
+    name: Vite plugin e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: true
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build
+
+      # Without Cloudflare credentials, the remote-binding tests are skipped.
+      - name: Run the e2e suite against Rsbuild
+        run: pnpm -F @cloudflare/rsbuild-plugin-test-harness test:e2e
+        env:
+          NODE_DEBUG: "vite-plugin:test"

@@ -1,0 +1,13 @@
+node_modules
+dist
+.tmp
+.turbo
+*.tsbuildinfo
+*.log
+*.tgz
+.DS_Store
+.cloudflare
+.wrangler
+.env
+.dev.vars
+!packages/rsbuild-plugin/src/__tests__/fixtures/**/.dev.vars

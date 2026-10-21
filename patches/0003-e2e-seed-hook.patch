@@ -1,0 +1,19 @@
+diff --git a/packages/vite-plugin-cloudflare/e2e/helpers.ts b/packages/vite-plugin-cloudflare/e2e/helpers.ts
+index 56fef0a6b..509100279 100644
+--- a/packages/vite-plugin-cloudflare/e2e/helpers.ts
++++ b/packages/vite-plugin-cloudflare/e2e/helpers.ts
+@@ -62,6 +62,14 @@ export function seed(
+ 		});
+ 		debuglog("Fixture copied to " + projectPath);
+ 		await updateVitePluginVersion(projectPath, pm);
++		// Lets another bundler's integration convert the seeded project.
++		const seedModule = process.env.CLOUDFLARE_VITE_E2E_SEED_MODULE;
++		if (seedModule) {
++			const { afterSeed } = (await import(seedModule)) as {
++				afterSeed: (projectPath: string) => Promise<void>;
++			};
++			await afterSeed(projectPath);
++		}
+ 		debuglog("Fixing up replacements in seeded files");
+ 		await fixupReplacements(projectPath, replacements);
+ 		debuglog("Updated vite-plugin version in package.json");

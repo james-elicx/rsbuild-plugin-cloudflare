@@ -1,0 +1,140 @@
+name: Sync upstream
+
+# Moves the workers-sdk submodule to the latest `main`, then runs CI against it.
+# When CI passes, the bump is fast-forwarded onto `main`. Otherwise it's left on
+# the `upstream-sync` branch, and an issue tracks the failure (see UPSTREAM.md).
+
+on:
+  schedule:
+    # Daily, at 06:17 UTC.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: the workers-sdk ref to move to
+        default: origin/main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  BRANCH: upstream-sync
+
+jobs:
+  bump:
+    name: Bump workers-sdk
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.bump.outputs.changed }}
+      sha: ${{ steps.bump.outputs.sha }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: main
+          submodules: true
+          # The full history, including the submodule's, for the commit message's
+          # upstream log.
+          fetch-depth: 0
+
+      - name: Set up
+        uses: ./.github/actions/setup
+        with:
+          setup-upstream: "false"
+
+      - name: Bump workers-sdk
+        id: bump
+        run: |
+          before="$(git rev-parse HEAD:workers-sdk)"
+          ./scripts/bump-upstream.sh "${{ inputs.ref || 'origin/main' }}"
+          after="$(git -C workers-sdk rev-parse HEAD)"
+          echo "sha=$after" >> "$GITHUB_OUTPUT"
+          if [[ "$before" == "$after" ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          {
+            echo "Bump workers-sdk to ${after:0:9}"
+            echo
+            git -C workers-sdk log --oneline --no-decorate "$before..$after" | head -n 100
+          } > "$RUNNER_TEMP/commit-message.txt"
+
+      - name: Push the bump
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add workers-sdk package.json pnpm-lock.yaml packages/*/package.json pnpm-workspace.yaml
+          git commit --file "$RUNNER_TEMP/commit-message.txt"
+          git push --force origin "$BRANCH"
+
+  test:
+    name: Test
+    needs: bump
+    if: needs.bump.outputs.changed == 'true'
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: upstream-sync
+
+  merge:
+    name: Merge into main
+    needs: [bump, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ env.BRANCH }}
+
+      # Fails if `main` has moved on since the bump, in which case the next run
+      # bumps again.
+      - name: Fast-forward main
+        run: git push origin "HEAD:main"
+
+      - name: Close the failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          number="$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number')"
+          if [[ -n "$number" ]]; then
+            gh issue close "$number" --comment "Fixed: workers-sdk ${{ needs.bump.outputs.sha }} is now on main."
+          fi
+
+  report-failure:
+    name: Report failure
+    needs: [bump, test]
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          body="Syncing with workers-sdk \`${{ needs.bump.outputs.sha || inputs.ref || 'origin/main' }}\` failed: $run_url
+
+          Fix it on the \`$BRANCH\` branch (see UPSTREAM.md), then merge it into main."
+          gh label create upstream-sync --color d93f0b --description "workers-sdk sync failures" 2>/dev/null || true
+          number="$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number')"
+          if [[ -n "$number" ]]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create --title "Syncing with workers-sdk failed" --label upstream-sync --body "$body"
+          fi
