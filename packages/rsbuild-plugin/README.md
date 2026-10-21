@@ -93,8 +93,9 @@ that depends on how Vite works internally isn't available:
 - Child environments, the hot channel, `bundledDev`, middleware mode, custom
   `buildApp`s and Vite plugins (e.g. for virtual modules) don't apply.
 - Prerendering isn't supported, as Rsbuild has no equivalent of `buildApp`.
-- Containers aren't supported yet: a warning is logged, and Container-backed
-  Durable Objects fail.
+- Containers aren't supported yet: in dev and preview, a warning is logged and
+  Container-backed Durable Objects fail; in a build, a warning is logged and no
+  Container images or Container output are written.
 - `tunnel` and the Vite CLI shortcuts aren't supported.
 
 Other differences:

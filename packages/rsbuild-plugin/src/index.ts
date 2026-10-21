@@ -112,6 +112,10 @@ export interface PluginConfig extends RsbuildWorkerOptions<
 /** The Rsbuild environment that builds the entry Worker, unless `rsbuildEnvironment.name` is set. */
 const ENTRY_ENVIRONMENT_NAME = "cloudflare";
 
+/** Logged in dev, preview and build, where the Vite plugin runs or builds Containers. */
+const CONTAINERS_WARNING =
+	"Containers aren't supported by the Rsbuild plugin yet, so Container-backed Durable Objects will fail.";
+
 type MiniflareManifest = NonNullable<WorkerOptions["config"]["manifest"]>;
 
 /**
@@ -494,9 +498,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 							{ manifests, html: htmlHandlers }
 						);
 					if (containerOptions) {
-						logger.warn(
-							"Containers aren't supported by the Rsbuild plugin yet, so Container-backed Durable Objects will fail."
-						);
+						logger.warn(CONTAINERS_WARNING);
 					}
 					await startOrUpdateMiniflare(miniflareOptions);
 					miniflareError = undefined;
@@ -517,10 +519,14 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				server: RsbuildPreviewServer
 			): Promise<void> {
 				const config = getServerConfig(api.getNormalizedConfig());
-				const { miniflareOptions } = await getPreviewMiniflareOptions(
-					ctx as PreviewPluginContext,
-					createPreviewServer(config, logger)
-				);
+				const { miniflareOptions, containerOptions } =
+					await getPreviewMiniflareOptions(
+						ctx as PreviewPluginContext,
+						createPreviewServer(config, logger)
+					);
+				if (containerOptions) {
+					logger.warn(CONTAINERS_WARNING);
+				}
 				await startOrUpdateMiniflare(miniflareOptions);
 				settleFirstStart();
 				// Rsbuild has no preview close hook, so dispose with the HTTP server.
@@ -618,6 +624,10 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 							directoryName: worker.directoryName,
 						});
 					}
+				}
+				if (resolvedPluginConfig.containers.length > 0) {
+					// Rsbuild may build again in watch mode.
+					logger.warnOnce(CONTAINERS_WARNING);
 				}
 				await writeRootConfig(root, resolvedPluginConfig.settings, {
 					isPreview: isPreviewBuild(),
