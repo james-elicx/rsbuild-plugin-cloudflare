@@ -1,5 +1,6 @@
 import { Buffer } from "node:buffer";
 import { env } from "cloudflare:workers";
+import { modeCondition } from "#mode";
 
 interface Env {
 	KV: KVNamespace;
@@ -27,6 +28,9 @@ export default {
 			}
 			case "/ssr": {
 				return new Response(String(import.meta.env.SSR));
+			}
+			case "/mode-condition": {
+				return new Response(modeCondition);
 			}
 			case "/dynamic-import": {
 				const { message } = await import("./lazy");
