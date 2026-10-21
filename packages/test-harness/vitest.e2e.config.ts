@@ -35,7 +35,10 @@ export default mergeConfig(
 				"dynamic.test.ts",
 				// Asserts the Vite plugin's validation of Vite environment options.
 				"invalid-worker-environment-options.test.ts",
-				// Asserts the warning for Vite's "ssr" environment.
+				// Asserts that the warning names Vite's "ssr" environment (the Rsbuild
+				// plugin's is "cloudflare"), and that `vite dev` exits when workerd
+				// fails to start, whereas `rsbuild dev` keeps running so that fixing
+				// the Worker retries.
 				"nodejs-compat-warnings.test.ts",
 				// Containers aren't supported yet.
 				"containers-image-free.test.ts",
