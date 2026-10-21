@@ -446,13 +446,16 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				});
 				manifestsChanged = true;
 				if (action === "build") {
-					await removeUnemittedFiles(environment.distPath, stats.compilation);
+					// Record the imported assets before awaiting anything: Rsbuild calls
+					// `onAfterBuild` as soon as the last environment finishes, which
+					// may be while this hook is still running for an earlier one.
 					if (worker.directoryName === DEFAULT_WORKER_DIRECTORY_NAME) {
 						importedAssets = {
 							distPath: environment.distPath,
 							paths: getImportedAssetPaths(stats.compilation),
 						};
 					}
+					await removeUnemittedFiles(environment.distPath, stats.compilation);
 				}
 			});
 
