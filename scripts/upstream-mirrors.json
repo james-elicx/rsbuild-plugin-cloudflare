@@ -1,0 +1,24 @@
+{
+	"packages/vite-plugin-cloudflare/src/plugins/config.ts": {
+		"configPlugin": "3fc19eb7aea070ba31adbcfc917ac28f4ed4f85c0b6e0dd00d23a47960146c25"
+	},
+	"packages/vite-plugin-cloudflare/src/cloudflare-environment.ts": {
+		"createCloudflareEnvironmentOptions": "d760f13b85e520b8f3e1d475e426c7e47686ce53a4849e0db6aec4ac0d00b2c3"
+	},
+	"packages/vite-plugin-cloudflare/src/plugins/virtual-modules.ts": {
+		"virtualModulesPlugin": "1e82e29c702c78df368dc7964b4986debbcffe7b7904f02c0061947a5f008bed"
+	},
+	"packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts": {
+		"additionalModulesPlugin": "35e56137e2dd679d9beeee14be60549322b72244a0fa2063f40f2519341a73f0"
+	},
+	"packages/vite-plugin-cloudflare/src/plugins/nodejs-compat.ts": {
+		"nodeJsCompatPlugin": "e589276f040aae34cd0afff9c114d1167ee4216b0422ed96154babf86257542d",
+		"nodeJsCompatWarningsPlugin": "3667eb8fb656c7d9045c59630e8de0c407882a90fb0e5edb9f5f7f3a59ee710a"
+	},
+	"packages/vite-plugin-cloudflare/src/plugins/preview.ts": {
+		"previewPlugin": "14f53e78b10f3fcd0d19a464783e8bb6bdf83fb1ca8cddcf69f8469e7c03be4f"
+	},
+	"packages/vite-plugin-cloudflare/src/plugins/build-output.ts": {
+		"buildOutputPlugin": "054dc6f705b2948391257a49120180dae77bff18fe33571941b5d750d89050c9"
+	}
+}

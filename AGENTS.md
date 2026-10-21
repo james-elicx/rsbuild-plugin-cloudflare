@@ -29,14 +29,18 @@ change that exposes what the plugin needs.
   inlined in Vite hooks: copy it into `src/upstream/copied.ts`, record the
   upstream declaration in `src/upstream/upstream-copies.json`, and run
   `pnpm check:copied-code --update`. `src/upstream/` holds only copies.
+  When the glue has to reproduce an upstream declaration for Rsbuild instead,
+  record it in `scripts/upstream-mirrors.json` (and the table in
+  [UPSTREAM.md](UPSTREAM.md)) so that `pnpm check:copied-code` flags its
+  upstream changes too.
 - **Don't change upstream behaviour.** Adapters may only post-process upstream
   results for Rsbuild. Document every intentional difference from the Vite
   plugin in `packages/rsbuild-plugin/README.md`.
-- **Check alignment with the Vite plugin.** Copies are checked by
-  `pnpm check:copied-code`, but nothing checks that the glue and adapters still
-  behave like the Vite plugin. After the submodule moves, or when changing them,
-  follow the `check-upstream-alignment` skill
-  (`.claude/skills/check-upstream-alignment/SKILL.md`).
+- **Check alignment with the Vite plugin.** `pnpm check:copied-code` flags
+  upstream changes to the copied and mirrored declarations, but nothing checks
+  that the glue and adapters still behave like the Vite plugin. After the
+  submodule moves, or when changing them, follow the `check-upstream-alignment`
+  skill (`.claude/skills/check-upstream-alignment/SKILL.md`).
 - **Skip upstream tests only for Vite-specific behaviour**, with a reason, in
   `packages/test-harness/vitest.playground.config.ts` or
   `vitest.e2e.config.ts`.

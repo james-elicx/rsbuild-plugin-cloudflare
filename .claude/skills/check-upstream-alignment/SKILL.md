@@ -8,10 +8,14 @@ description: Review whether the Rsbuild plugin's own code (everything outside sr
 `rsbuild-plugin-cloudflare` must behave like `@cloudflare/vite-plugin` wherever
 the bundlers allow it. Code copied from upstream is already checked
 mechanically: `pnpm check:copied-code` fails when an upstream declaration that
-`src/upstream/copied.ts` came from changes. Nothing checks the rest of the
-plugin (the Rsbuild glue and the adapters), which reproduces what the Vite
-plugin does in Vite hooks. This skill reviews that code against upstream and
-reports where it has drifted.
+`src/upstream/copied.ts` came from changes. It also fails when one of the
+upstream declarations listed in `scripts/upstream-mirrors.json` changes: these
+are the ones that the plugin's own code reproduces (see the table in
+`UPSTREAM.md`). That only says that a declaration changed, not whether the
+plugin still matches it. Nothing else checks the rest of the plugin (the
+Rsbuild glue and the adapters), which reproduces what the Vite plugin does in
+Vite hooks. This skill reviews that code against upstream and reports where it
+has drifted.
 
 Read `AGENTS.md`, `UPSTREAM.md`, and `packages/rsbuild-plugin/README.md`
 ("Differences from the Vite plugin") first. The README lists the intentional
@@ -82,7 +86,9 @@ the whole plugin when the user asks for a full review.
    will drift silently. The fix is to import it, or export it with a patch like
    `patches/0004-vite-plugin-export-internals.patch`. Copy it into
    `src/upstream/copied.ts` (recording it in `upstream-copies.json`) only if it
-   is inlined in a Vite hook.
+   is inlined in a Vite hook. If the plugin has to reproduce it for Rsbuild,
+   record it in `scripts/upstream-mirrors.json` so that its changes are
+   flagged.
 5. **Check the options.** Compare upstream's `PluginConfig`
    (`src/plugin-config.ts`) with the plugin's (`index.ts`). Check that every
    upstream option is passed through and has an effect, or is documented as
