@@ -106,6 +106,11 @@ workflow) rebases them onto `main`, runs CI, and merges the pull request when it
 passes. If the branch no longer rebases cleanly, rebase it onto `main` yourself
 and force-push it.
 
+Passing CI doesn't mean the plugin still behaves like the Vite plugin: only
+copied code is checked mechanically. To review the rest against an upstream
+change, follow the `check-upstream-alignment` skill
+(`.claude/skills/check-upstream-alignment/SKILL.md`).
+
 If a fix would make the Rsbuild glue grow substantially, stop and reassess: the
 plugin is meant to stay a thin wrapper over upstream, so the better fix may be
 an upstream change that exposes what the plugin needs.
