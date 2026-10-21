@@ -26,6 +26,7 @@ import { DEBUG_PATH } from "../../../workers-sdk/packages/vite-plugin-cloudflare
 import { getPreviewMiniflareOptions } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/miniflare-options";
 import {
 	resolveDevOnly,
+	resolveEnvDir,
 	resolvePluginConfig,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
 import {
@@ -277,8 +278,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 						: userConfig.source?.entry
 							? { web: {} }
 							: {};
-				const resolvedEnvDir =
-					envDir === false ? false : path.resolve(root, envDir ?? ".");
+				const resolvedEnvDir = resolveEnvDir(root, envDir);
 				// Rsbuild only prints the server's URLs for client environments.
 				printUrls =
 					Object.keys(environments).length === 0 &&
