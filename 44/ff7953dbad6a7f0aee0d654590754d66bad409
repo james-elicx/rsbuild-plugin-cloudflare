@@ -1,0 +1,29 @@
+packages/rsbuild-plugin/src/__tests__/fixtures/no-default-export/cloudflare.config.ts
+  s_3ce1770c226aa0::t_9917e671d3cf9f 1-10
+packages/rsbuild-plugin/src/__tests__/fixtures/no-default-export/rsbuild.config.ts
+  s_3ce1770c226aa0::t_d1ae2c9ca92e64 1-6
+packages/rsbuild-plugin/src/__tests__/fixtures/no-default-export/src/index.ts
+  s_3ce1770c226aa0::t_9d9dabee40bdbe 1-9
+packages/rsbuild-plugin/src/__tests__/fixtures/no-default-export/tsconfig.json
+  s_3ce1770c226aa0::t_9a0c41837e96fe 1-7
+packages/rsbuild-plugin/src/__tests__/no-default-export.spec.ts
+  s_3ce1770c226aa0::t_cb3236101e7747 1-17
+packages/rsbuild-plugin/src/worker-environment.ts
+  s_3ce1770c226aa0::t_ff028668682d74 201-215,219-220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "44ff7953dbad6a7f0aee0d654590754d66bad409",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
