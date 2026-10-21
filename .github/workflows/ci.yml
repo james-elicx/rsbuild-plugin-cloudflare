@@ -67,13 +67,13 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Install playwright
-        run: pnpm -F @cloudflare/rsbuild-plugin-test-harness playwright:install
+        run: pnpm -F rsbuild-plugin-cloudflare-test-harness playwright:install
 
       - name: Build
         run: pnpm build
 
       - name: Run the playground suite against Rsbuild
-        run: pnpm -F @cloudflare/rsbuild-plugin-test-harness test:playground:${{ matrix.mode }}
+        run: pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground:${{ matrix.mode }}
         env:
           NODE_DEBUG: "@cloudflare:vite-plugin"
 
@@ -97,6 +97,6 @@ jobs:
 
       # Without Cloudflare credentials, the remote-binding tests are skipped.
       - name: Run the e2e suite against Rsbuild
-        run: pnpm -F @cloudflare/rsbuild-plugin-test-harness test:e2e
+        run: pnpm -F rsbuild-plugin-cloudflare-test-harness test:e2e
         env:
           NODE_DEBUG: "vite-plugin:test"

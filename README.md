@@ -20,7 +20,7 @@ and the differences from the Vite plugin.
 | --------------------------------------- | ---------------------------------------------------------------------- |
 | `workers-sdk/`                          | workers-sdk, as a pinned git submodule. Never edited directly.         |
 | `patches/`                              | Small hooks applied to the submodule (see [UPSTREAM.md](UPSTREAM.md)). |
-| `packages/rsbuild-plugin/`              | `@cloudflare/rsbuild-plugin`.                                          |
+| `packages/rsbuild-plugin/`              | `rsbuild-plugin-cloudflare`.                                           |
 | `packages/rsbuild-plugin/src/upstream/` | Code copied from workers-sdk, and the ledger that tracks it.           |
 | `packages/test-harness/`                | Runs the Vite plugin's playground and e2e suites against Rsbuild.      |
 | `scripts/`                              | Submodule setup, bumping, and the upstream checks.                     |
@@ -52,9 +52,9 @@ workers-sdk dependencies are linked to the submodule's packages.
 | `pnpm test:e2e`        | The Vite plugin's e2e suite against Rsbuild (needs npm, pnpm and yarn).      |
 
 To run part of a suite, pass a filter, e.g.
-`pnpm -F @cloudflare/rsbuild-plugin-test-harness test:playground:serve assets`.
+`pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground:serve assets`.
 The playground suite needs Chromium:
-`pnpm -F @cloudflare/rsbuild-plugin-test-harness playwright:install`.
+`pnpm -F rsbuild-plugin-cloudflare-test-harness playwright:install`.
 
 ## Staying in sync with workers-sdk
 

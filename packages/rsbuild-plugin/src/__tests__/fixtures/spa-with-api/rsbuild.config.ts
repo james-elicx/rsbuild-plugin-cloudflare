@@ -1,7 +1,7 @@
-import { pluginCloudflare } from "@cloudflare/rsbuild-plugin";
 import { defineConfig } from "@rsbuild/core";
+import { cloudflare } from "rsbuild-plugin-cloudflare";
 
 export default defineConfig({
 	source: { entry: { index: "./src/index.ts" } },
-	plugins: [pluginCloudflare({ types: { includeRuntime: false } })],
+	plugins: [cloudflare({ types: { includeRuntime: false } })],
 });

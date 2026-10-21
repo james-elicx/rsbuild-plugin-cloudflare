@@ -3,7 +3,7 @@ import { defineConfig, mergeConfig } from "vitest/config";
 import playgroundConfig from "../../workers-sdk/packages/vite-plugin-cloudflare/playground/vitest.config.e2e.ts";
 
 /**
- * Runs the Vite plugin's playground suite against `@cloudflare/rsbuild-plugin`.
+ * Runs the Vite plugin's playground suite against `rsbuild-plugin-cloudflare`.
  * `playground-serve.ts` translates each playground's Vite config, and the
  * playground setup uses it in place of Vite (see
  * `patches/0002-playground-pluggable-serve.patch`).

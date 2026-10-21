@@ -3,7 +3,7 @@ import { defineConfig, mergeConfig } from "vitest/config";
 import e2eConfig from "../../workers-sdk/packages/vite-plugin-cloudflare/e2e/vitest.config.ts";
 
 /**
- * Runs the Vite plugin's e2e suite against `@cloudflare/rsbuild-plugin`.
+ * Runs the Vite plugin's e2e suite against `rsbuild-plugin-cloudflare`.
  * `seed()` converts each fixture to an Rsbuild project with `e2e-seed.ts` (see
  * `patches/0003-e2e-seed-hook.patch`).
  *
