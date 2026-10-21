@@ -32,7 +32,7 @@ runs:
     # Building workers-sdk's packages (Miniflare, the Vite plugin...) is the
     # slowest part of the setup, so reuse Turbo's cache between runs.
     - name: Cache the workers-sdk build
-      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: workers-sdk/.turbo/cache
         key: upstream-turbo-${{ runner.os }}-${{ steps.upstream.outputs.sha }}-${{ hashFiles('patches/**') }}
