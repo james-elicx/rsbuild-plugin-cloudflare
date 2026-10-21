@@ -57,6 +57,10 @@ optional ref:
    comment on the pull request links to the failed run, and the pull request
    stays open for fixes.
 
+Each upstream commit that the sync brings in and that changes the Vite plugin
+(other than its tests) becomes a release note in the next release (see
+[.changeset/README.md](.changeset/README.md)).
+
 The workflow opens the pull request with `GITHUB_TOKEN`, so the repository must
 allow it: enable **Settings → Actions → General → Allow GitHub Actions to create
 and approve pull requests**. Pull requests opened with `GITHUB_TOKEN` don't

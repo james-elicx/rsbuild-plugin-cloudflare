@@ -1,0 +1,79 @@
+name: Publish
+
+# Generates a patch changeset for each change since the last release (see
+# `.changeset/README.md`), then opens or updates the "Version Packages" pull
+# request. Once that's merged, publishes the new version to npm.
+#
+# Publishing uses npm's trusted publishing, so `rsbuild-plugin-cloudflare` on
+# npm must trust this workflow (`publish.yml`).
+
+on:
+  push:
+    branches: [main]
+  # The daily sync merges with `GITHUB_TOKEN`, which doesn't trigger `push`.
+  workflow_run:
+    workflows: [Sync upstream]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      # To push the "Version Packages" branch and tags, and create releases.
+      contents: write
+      pull-requests: write
+      # For npm's trusted publishing.
+      id-token: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: main
+          submodules: true
+          # The full history, including the submodule's, to find the changes
+          # since the last release.
+          fetch-depth: 0
+
+      - name: Set up
+        uses: ./.github/actions/setup
+        with:
+          setup-upstream: "false"
+          registry-url: https://registry.npmjs.org
+
+      - name: Generate changesets
+        id: generate
+        run: pnpm changeset:generate
+
+      - name: Install dependencies
+        if: steps.generate.outputs.publish != 'true'
+        # Only Changesets is needed to version.
+        run: pnpm install --frozen-lockfile --filter rsbuild-plugin-cloudflare-monorepo
+
+      - name: Install dependencies and build workers-sdk
+        if: steps.generate.outputs.publish == 'true'
+        run: |
+          ./scripts/setup-upstream.sh
+          pnpm install --frozen-lockfile
+          # Trusted publishing needs npm 11.5.1 or later. pnpm publishes with npm.
+          npm install --global npm@11
+
+      - name: Version or publish
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        with:
+          publish: ${{ steps.generate.outputs.publish == 'true' && 'pnpm release' || '' }}
+          title: Version Packages
+          commit: Version Packages
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
