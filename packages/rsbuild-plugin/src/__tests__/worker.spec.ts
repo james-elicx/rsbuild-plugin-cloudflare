@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { readBuildOutput } from "@cloudflare/build-output-utils";
-import { describe, test, vi } from "vitest";
+import { describe, onTestFinished, test, vi } from "vitest";
 import {
 	build,
 	copyFixture,
@@ -10,8 +10,17 @@ import {
 } from "./helpers";
 import type { RsbuildPlugin } from "@rsbuild/core";
 
+/** Lets Rsbuild set `NODE_ENV` for its command, as when run from its CLI. */
+function unsetNodeEnv() {
+	vi.stubEnv("NODE_ENV", undefined);
+	onTestFinished(() => {
+		vi.unstubAllEnvs();
+	});
+}
+
 describe("worker", () => {
 	test("runs the Worker in workerd during dev", async ({ expect }) => {
+		unsetNodeEnv();
 		const url = await startDevServer(copyFixture("worker"));
 
 		async function get(pathname: string): Promise<string> {
@@ -22,6 +31,7 @@ describe("worker", () => {
 		expect(await get("/kv")).toBe("value");
 		expect(await get("/node")).toBe("hello");
 		expect(await get("/process")).toBe("object");
+		expect(await get("/node-env")).toBe("development");
 		expect(await get("/dynamic-import")).toBe("lazy chunk");
 		expect(await get("/secret")).toBe("from-dev-vars");
 	});
@@ -108,6 +118,7 @@ describe("worker", () => {
 	});
 
 	test("previews the Build Output in workerd", async ({ expect }) => {
+		unsetNodeEnv();
 		const root = copyFixture("worker");
 		await build(root);
 		const url = await startPreviewServer(root);
@@ -119,6 +130,7 @@ describe("worker", () => {
 		expect(await get("/")).toBe("Hello from rsbuild + workerd");
 		expect(await get("/kv")).toBe("value");
 		expect(await get("/node")).toBe("hello");
+		expect(await get("/node-env")).toBe("production");
 		expect(await get("/dynamic-import")).toBe("lazy chunk");
 		expect(await get("/secret")).toBe("from-dev-vars");
 	});

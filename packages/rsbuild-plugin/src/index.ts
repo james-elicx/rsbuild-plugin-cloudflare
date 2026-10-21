@@ -261,7 +261,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 									name,
 									// The user's environment config overrides the defaults.
 									mergeRsbuildConfig(
-										getWorkerEnvironmentConfig(worker, root),
+										getWorkerEnvironmentConfig(worker, root, mode),
 										userConfig.environments?.[name] ?? {}
 									),
 								])

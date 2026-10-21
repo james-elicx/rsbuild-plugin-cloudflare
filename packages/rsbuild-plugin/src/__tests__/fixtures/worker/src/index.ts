@@ -22,6 +22,9 @@ export default {
 			case "/process": {
 				return new Response(typeof process.env);
 			}
+			case "/node-env": {
+				return new Response(process.env.NODE_ENV);
+			}
 			case "/dynamic-import": {
 				const { message } = await import("./lazy");
 				return new Response(message);
