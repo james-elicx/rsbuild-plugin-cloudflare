@@ -90,13 +90,20 @@ that depends on how Vite works internally isn't available:
 
 - Workers are rebuilt and reloaded when their code changes; there's no in-Worker
   HMR (`import.meta.hot`).
+- Uncaught errors in the entry Worker aren't returned to the dev server with
+  the `MF-Experimental-Error-Stack` header, as the Vite plugin's module runner
+  does, so there's no error overlay or source-mapped stack: the browser gets a
+  plain-text `500` response.
 - Child environments, the hot channel, `bundledDev`, middleware mode, custom
   `buildApp`s and Vite plugins (e.g. for virtual modules) don't apply.
-- Prerendering isn't supported, as Rsbuild has no equivalent of `buildApp`.
+- Prerendering isn't supported, as Rsbuild has no equivalent of `buildApp`. The
+  prerender Worker is still built and written to the Build Output.
 - Containers aren't supported yet: in dev and preview, a warning is logged and
   Container-backed Durable Objects fail; in a build, a warning is logged and no
   Container images or Container output are written.
 - `tunnel` and the Vite CLI shortcuts aren't supported.
+- The Local Explorer hint that the Vite plugin prints for AI agents isn't
+  printed.
 
 Other differences:
 
@@ -110,6 +117,20 @@ Other differences:
 - Setting `output.externals` (other than Node.js built-ins) for a Worker's
   environment logs a warning, where the Vite plugin rejects `resolve.external`,
   as Rsbuild also applies top-level externals to every environment.
+- Config changes (e.g. to `cloudflare.config.ts` or `.dev.vars`) restart
+  Rsbuild's dev server, which closes the old server first: a broken config
+  leaves no server running, whereas the Vite plugin keeps the old one. Miniflare
+  is recreated rather than updated.
+- The Rsbuild CLI loads `.env`, `.env.local`, `.env.[mode]` and
+  `.env.[mode].local` into `process.env`, using its own env mode and directory
+  rather than `envMode` and `envDir`. `process.env` takes precedence over the
+  plugin's `.env` files, so these values override the Worker's `.env` values. A
+  `.dev.vars` file is used on its own, so it isn't affected.
+- `devOnly` and `assetsOnly` functions are called when the config is resolved,
+  to choose the Worker environments to build, rather than lazily at build time.
+- Additional modules (e.g. `.wasm` and `.txt` imports) are emitted at the root
+  of the Worker's output directory, with hashed names, rather than in `assets/`.
+- SWC lowers `using` declarations in the Worker build, which Vite keeps.
 - No "Debug" URL is printed, but `/__debug` works.
 - Miniflare's message about updating the compatibility date mentions
   `@cloudflare/vite-plugin`.
