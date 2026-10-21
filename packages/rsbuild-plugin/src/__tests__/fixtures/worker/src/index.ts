@@ -1,5 +1,7 @@
 import { Buffer } from "node:buffer";
 import { env } from "cloudflare:workers";
+import cjs from "./extensions/common";
+import { mts } from "./extensions/module";
 import { modeCondition } from "#mode";
 
 interface Env {
@@ -31,6 +33,9 @@ export default {
 			}
 			case "/mode-condition": {
 				return new Response(modeCondition);
+			}
+			case "/extensions": {
+				return new Response(`${mts} ${cjs}`);
 			}
 			case "/dynamic-import": {
 				const { message } = await import("./lazy");
