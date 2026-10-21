@@ -150,6 +150,8 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			let devServerListening = false;
 			/** Why Miniflare last failed to start or update, which requests report. */
 			let miniflareError: unknown;
+			/** Forwards WebSockets to the entry Worker, once Miniflare first starts. */
+			let attachWebSockets: (() => void) | undefined;
 			let settleFirstStart: () => void = () => {};
 			/** Settles once Miniflare has first started, or failed to. */
 			const firstStart = new Promise<void>((resolve) => {
@@ -354,15 +356,12 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				if (entryWorkerConfig) {
 					const { httpServer } = server;
 					if (httpServer) {
-						void firstStart.then(
-							() =>
-								!miniflareError &&
-								handleWebSocket(
-									toViteHttpServer(httpServer, hmrPath),
-									ctx.miniflare,
-									entryWorkerConfig.name
-								)
-						);
+						attachWebSockets = () =>
+							handleWebSocket(
+								toViteHttpServer(httpServer, hmrPath),
+								ctx.miniflare,
+								entryWorkerConfig.name
+							);
 					}
 					const userWorkerHandler = createUserWorkerHandler(
 						getMiniflare,
@@ -494,6 +493,8 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					}
 					await startOrUpdateMiniflare(miniflareOptions);
 					miniflareError = undefined;
+					attachWebSockets?.();
+					attachWebSockets = undefined;
 				} catch (error) {
 					// Keep the dev server running, so that fixing the Worker retries.
 					miniflareError = error;

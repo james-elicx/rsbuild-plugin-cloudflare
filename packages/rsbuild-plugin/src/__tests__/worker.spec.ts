@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { readBuildOutput } from "@cloudflare/build-output-utils";
-import { describe, test, vi } from "vitest";
+import { describe, onTestFinished, test, vi } from "vitest";
 import {
 	build,
 	copyFixture,
@@ -67,6 +67,40 @@ describe("worker", () => {
 			},
 			{ timeout: 10_000, interval: 100 }
 		);
+	});
+
+	test("forwards WebSockets once a broken Worker is fixed", async ({
+		expect,
+	}) => {
+		const root = copyFixture("worker");
+		const lazyPath = path.join(root, "src", "lazy.ts");
+		const lazySource = fs.readFileSync(lazyPath, "utf8");
+		fs.writeFileSync(lazyPath, `${lazySource}\nexport const broken = ;`);
+		const url = await startDevServer(root);
+		// Requests wait for Miniflare's first start, which fails.
+		expect((await fetch(url)).status).toBe(500);
+
+		fs.writeFileSync(lazyPath, lazySource);
+		await vi.waitFor(
+			async () => {
+				expect((await fetch(url)).status).toBe(200);
+			},
+			{ timeout: 10_000, interval: 100 }
+		);
+
+		const webSocket = new WebSocket(
+			new URL("/websocket", url.replace(/^http/, "ws")).href
+		);
+		onTestFinished(() => webSocket.close());
+		await new Promise((resolve, reject) => {
+			webSocket.addEventListener("open", resolve);
+			webSocket.addEventListener("error", reject);
+		});
+		const message = new Promise((resolve) =>
+			webSocket.addEventListener("message", ({ data }) => resolve(data))
+		);
+		webSocket.send("ping");
+		expect(await message).toBe("ping");
 	});
 
 	test("writes the Build Output Specification", async ({ expect }) => {

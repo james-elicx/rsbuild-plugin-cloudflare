@@ -30,6 +30,12 @@ export default {
 			case "/secret": {
 				return new Response(workerEnv.SECRET);
 			}
+			case "/websocket": {
+				const { 0: client, 1: server } = new WebSocketPair();
+				server.accept();
+				server.addEventListener("message", ({ data }) => server.send(data));
+				return new Response(null, { status: 101, webSocket: client });
+			}
 			case "/stream": {
 				// Stream builds the preview URL from the server's public URL.
 				const video = await workerEnv.STREAM.upload(`${origin}/video`);
