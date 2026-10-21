@@ -1,8 +1,9 @@
 /**
- * Code copied from the Vite plugin, where it isn't exported or is inlined in
- * Vite hooks. Every copy is recorded in `upstream-copies.json`, and
- * `pnpm check:copied-code` fails when its upstream source changes, so that the
- * copy is reviewed when the submodule is bumped.
+ * Code copied from the Vite plugin, where it's inlined in Vite hooks rather
+ * than exported. This directory only holds such copies; everything else
+ * imports workers-sdk directly. Every copy is recorded in
+ * `upstream-copies.json`, and `pnpm check:copied-code` fails when its upstream
+ * source changes, so that the copy is reviewed when the submodule is bumped.
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -17,7 +18,6 @@ import { UNKNOWN_HOST } from "../../../../workers-sdk/packages/vite-plugin-cloud
 import { createRequestHandler } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/utils";
 import { generateStaticRoutingRuleMatcher } from "../../../../workers-sdk/packages/workers-shared/asset-worker/src/utils/rules-engine";
 import type { StaticRouting } from "../../../../workers-sdk/packages/workers-shared/utils/types";
-import type { ModuleType } from "@cloudflare/config";
 import type { Miniflare } from "miniflare";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
@@ -27,52 +27,7 @@ type Middleware = (
 	next: (error?: unknown) => void
 ) => void;
 
-// From `plugins/additional-modules.ts`.
-
-const ADDITIONAL_MODULE_TYPES = ["CompiledWasm", "Data", "Text"] as const;
-type AdditionalModuleType = (typeof ADDITIONAL_MODULE_TYPES)[number];
-
-export function toModuleType(type: AdditionalModuleType): ModuleType {
-	switch (type) {
-		case "CompiledWasm":
-			return "wasm";
-		case "Data":
-			return "data";
-		case "Text":
-			return "text";
-	}
-}
-
-type ModuleRules = Array<{
-	type: AdditionalModuleType;
-	pattern: RegExp;
-}>;
-
-const moduleRules: ModuleRules = [
-	{ type: "CompiledWasm", pattern: /\.wasm(\?module)?$/ },
-	{ type: "Data", pattern: /\.bin$/ },
-	{ type: "Text", pattern: /\.(txt|html|sql)$/ },
-];
-
-const subpathImportRE = /^#/;
-export const moduleRuleFilters = [
-	...moduleRules.map((rule) => rule.pattern),
-	subpathImportRE,
-];
-
-export function matchAdditionalModule(source: string) {
-	for (const rule of moduleRules) {
-		if (rule.pattern.test(source)) {
-			return rule.type;
-		}
-	}
-
-	return null;
-}
-
 // From `plugins/wasm.ts`.
-
-export const wasmInitRE = /\.wasm\?init$/;
 
 /**
  * Gets the module that a `.wasm?init` import loads (the Vite plugin's `load`

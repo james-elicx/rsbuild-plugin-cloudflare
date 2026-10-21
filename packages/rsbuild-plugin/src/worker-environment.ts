@@ -5,15 +5,18 @@ import * as path from "node:path";
 import { getWorkerBundleDir } from "@cloudflare/build-output-utils";
 import { rspack } from "@rsbuild/core";
 import {
-	getWasmInitModule,
 	hasNodeJsAls,
 	isNodeAlsModule,
+} from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
+import {
 	matchAdditionalModule,
 	moduleRuleFilters,
 	toModuleType,
-	wasmInitRE,
-} from "./upstream";
-import type { NodeJsCompat, Worker } from "./upstream";
+} from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugins/additional-modules";
+import { wasmInitRE } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugins/wasm";
+import { getWasmInitModule } from "./upstream/copied";
+import type { NodeJsCompat } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
+import type { Worker } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
 import type { ModuleType } from "@cloudflare/config";
 import type { EnvironmentConfig, Rspack } from "@rsbuild/core";
 import type { WorkerOptions } from "miniflare";

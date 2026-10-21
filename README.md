@@ -16,14 +16,14 @@ and the differences from the Vite plugin.
 
 ## Layout
 
-| Path                                    | What                                                                        |
-| --------------------------------------- | --------------------------------------------------------------------------- |
-| `workers-sdk/`                          | workers-sdk, as a pinned git submodule. Never edited directly.              |
-| `patches/`                              | Small test hooks applied to the submodule (see [UPSTREAM.md](UPSTREAM.md)). |
-| `packages/rsbuild-plugin/`              | `@cloudflare/rsbuild-plugin`.                                               |
-| `packages/rsbuild-plugin/src/upstream/` | The only code that imports workers-sdk, and the ledger of copied code.      |
-| `packages/test-harness/`                | Runs the Vite plugin's playground and e2e suites against Rsbuild.           |
-| `scripts/`                              | Submodule setup, bumping, and the upstream checks.                          |
+| Path                                    | What                                                                   |
+| --------------------------------------- | ---------------------------------------------------------------------- |
+| `workers-sdk/`                          | workers-sdk, as a pinned git submodule. Never edited directly.         |
+| `patches/`                              | Small hooks applied to the submodule (see [UPSTREAM.md](UPSTREAM.md)). |
+| `packages/rsbuild-plugin/`              | `@cloudflare/rsbuild-plugin`.                                          |
+| `packages/rsbuild-plugin/src/upstream/` | Code copied from workers-sdk, and the ledger that tracks it.           |
+| `packages/test-harness/`                | Runs the Vite plugin's playground and e2e suites against Rsbuild.      |
+| `scripts/`                              | Submodule setup, bumping, and the upstream checks.                     |
 
 ## Getting started
 

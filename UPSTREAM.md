@@ -8,8 +8,9 @@ repository stays in sync, and what to do when a sync fails.
 
 - **The submodule pointer** is the pinned workers-sdk commit. The plugin bundles
   sources from it, and links its runtime dependencies to its packages.
-- **`patches/`** are small hooks applied to the submodule, so that the upstream
-  suites can run against Rsbuild without forking them:
+- **`patches/`** are small, behaviour-neutral hooks applied to the submodule,
+  so that the plugin can reuse upstream code and the upstream suites can run
+  against Rsbuild without forking them:
   - `0001-vite-plugin-expose-plugin-config.patch`: exposes the `cloudflare()`
     options on the Vite plugin (`api.pluginConfig`), which the playground
     harness passes to the Rsbuild plugin.
@@ -18,15 +19,18 @@ repository stays in sync, and what to do when a sync fails.
     (`CLOUDFLARE_VITE_PLAYGROUND_SERVE_MODULE`).
   - `0003-e2e-seed-hook.patch`: lets the e2e helpers convert each seeded
     project (`CLOUDFLARE_VITE_E2E_SEED_MODULE`).
+  - `0004-vite-plugin-export-internals.patch`: exports the additional-module
+    helpers and `wasmInitRE`, which the plugin imports instead of copying.
 
   Keep them small, and propose them upstream where they make sense; each one
   that lands upstream can be deleted.
 
-- **`packages/rsbuild-plugin/src/upstream/`** is the only code that imports
-  workers-sdk (enforced by oxlint), so API changes surface there as type errors.
-- **`src/upstream/copied.ts`** holds the little code that upstream doesn't
-  export. `upstream-copies.json` records a hash of each upstream declaration
-  that a copy came from, and `pnpm check:copied-code` fails when one changes.
+- **Imports:** the plugin imports the Vite plugin's internals straight from
+  the submodule, so internal API changes surface as type errors.
+- **`packages/rsbuild-plugin/src/upstream/`** holds only the code copied from
+  upstream, where it's inlined in Vite hooks rather than exported.
+  `upstream-copies.json` records a hash of each upstream declaration that a
+  copy came from, and `pnpm check:copied-code` fails when one changes.
 - **Dependencies:** `pnpm check:upstream-deps` checks that the plugin's runtime
   dependencies are the Vite plugin's, that the `overrides` in
   `pnpm-workspace.yaml` link them to the submodule, and that the tooling,
@@ -72,8 +76,9 @@ Then, depending on what failed:
   declaration, update `src/upstream/copied.ts` to match, then run
   `pnpm check:copied-code --update`. Better still, if upstream now exports it,
   import it instead and drop the copy.
-- **Type errors in `src/upstream/`:** an internal API changed. Adapt the
-  adapter, not the Rsbuild glue, where possible.
+- **Type errors:** an internal API changed. Adapt the adapters
+  (`src/vite-server.ts`, `src/miniflare-options.ts`) rather than the Rsbuild
+  glue where possible.
 - **A playground or e2e test fails:** if it tests Vite-specific behaviour, add
   it to the skip list with a reason. Otherwise fix the plugin.
 - **`check:upstream-deps`:** run

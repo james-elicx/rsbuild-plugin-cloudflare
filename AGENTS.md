@@ -17,17 +17,18 @@ change that exposes what the plugin needs.
 
 ## Repository rules
 
-- **Never edit `workers-sdk/`.** It's a pinned submodule. Hooks that the test
-  harness needs are small patches in `patches/`, applied by
+- **Never edit `workers-sdk/`.** It's a pinned submodule. Hooks that the plugin
+  or the test harness need are small patches in `patches/`, applied by
   `scripts/apply-patches.sh` (see [UPSTREAM.md](UPSTREAM.md)).
-- **Only `packages/rsbuild-plugin/src/upstream/` imports workers-sdk code**,
-  whether by relative path into the submodule or from a package that is linked
-  to it (e.g. `@cloudflare/workers-utils`). oxlint enforces this for the
-  plugin's other modules.
-- **Prefer reusing upstream code to copying it.** When upstream doesn't export
-  something, copy it into `src/upstream/copied.ts`, record the upstream
-  declaration in `src/upstream/upstream-copies.json`, and run
-  `pnpm check:copied-code --update`.
+- **Import upstream code directly** from the submodule (by relative path, e.g.
+  `../../../workers-sdk/packages/vite-plugin-cloudflare/src/context`) or from
+  a package linked to it (e.g. `@cloudflare/workers-utils`).
+- **Prefer reusing upstream code to copying it.** If upstream has a top-level
+  declaration that just isn't exported, export it with a patch (see
+  `patches/0004-vite-plugin-export-internals.patch`). Only copy code that is
+  inlined in Vite hooks: copy it into `src/upstream/copied.ts`, record the
+  upstream declaration in `src/upstream/upstream-copies.json`, and run
+  `pnpm check:copied-code --update`. `src/upstream/` holds only copies.
 - **Don't change upstream behaviour.** Adapters may only post-process upstream
   results for Rsbuild. Document every intentional difference from the Vite
   plugin in `packages/rsbuild-plugin/README.md`.
@@ -80,7 +81,7 @@ this list.
 - Comments should explain why; do not add comments that merely restate code.
 - Lint-disable comments require a reason after `--`.
 - Don't depend on `vite`: derive the Vite types that the internals need from
-  their signatures (see `src/upstream/vite-server.ts`).
+  their signatures (see `src/vite-server.ts`).
 
 oxfmt determines whitespace, quoting, import order, and package.json sorting.
 Do not reproduce those rules manually; run `pnpm prettify`.

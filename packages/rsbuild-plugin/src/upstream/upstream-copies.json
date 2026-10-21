@@ -1,16 +1,5 @@
 {
-	"packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts": {
-		"ADDITIONAL_MODULE_TYPES": "6726232ee0436dff704cb307aa108127906d72fce96c141cd04b36f9c1c42e56",
-		"AdditionalModuleType": "c9bbfb0a5a29841146a0defe0a9d1d19b7dfe710eb63d4688772879cfc9b59a9",
-		"toModuleType": "a610077be5e0b2f4174d8ebc38b2b556b0ecf8891d06f159ae3271e96f8dc3ef",
-		"ModuleRules": "c98f4c12058fd2e5b9a63eb5f1cc7eddb975a0d27a50dd84019d736df221d6fe",
-		"moduleRules": "da0ef7cebb9a0218fe5e1fc934a23e1a06447d5521ba0d7fbd9d828803fd9b03",
-		"subpathImportRE": "f6f00d01d3dd8dbe85513b9f6e985334ee4622a5e87bde1e65a5a3ba953318a3",
-		"moduleRuleFilters": "6b292c7941a79f21571e560487133f41683140ab76a961d63df9e2d7f46e7c69",
-		"matchAdditionalModule": "3e0346186078364b1f6d019dd0b1bd9521d1d4b3320170911622c088ef97a4f3"
-	},
 	"packages/vite-plugin-cloudflare/src/plugins/wasm.ts": {
-		"wasmInitRE": "7a2afc551b23cd9d2f3e2c4652aee1444a537aacb610543a6eb7ef73f1a95f02",
 		"wasmHelperPlugin": "a8a22c4fd5447347df1ecb65a8c67e4abfcf0d336bf0c994963595b644d5dea7"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/dev.ts": {

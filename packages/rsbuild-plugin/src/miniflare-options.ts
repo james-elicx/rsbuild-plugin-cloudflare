@@ -1,6 +1,6 @@
 import { Response as MiniflareResponse } from "miniflare";
-import { ASSET_WORKER_NAME } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/constants";
-import { getDevMiniflareOptions as getViteDevMiniflareOptions } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/miniflare-options";
+import { ASSET_WORKER_NAME } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/constants";
+import { getDevMiniflareOptions as getViteDevMiniflareOptions } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/miniflare-options";
 import type { WorkerOptions } from "miniflare";
 
 type MiniflareManifest = NonNullable<WorkerOptions["config"]["manifest"]>;
