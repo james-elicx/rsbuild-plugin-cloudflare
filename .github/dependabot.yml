@@ -12,6 +12,11 @@ updates:
     # Like `minimumReleaseAge` in `pnpm-workspace.yaml`.
     cooldown:
       default-days: 1
+    ignore:
+      # v2 needs Changesets CLI v3, but `@changesets/cli` follows workers-sdk's
+      # version (see `scripts/sync-upstream-deps.ts`), which is v2.
+      - dependency-name: changesets/action
+        update-types: ["version-update:semver-major"]
     groups:
       github-actions:
         patterns: ["*"]
