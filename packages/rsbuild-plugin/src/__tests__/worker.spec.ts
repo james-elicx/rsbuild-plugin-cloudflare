@@ -184,4 +184,15 @@ describe("worker", () => {
 			"Hello from rsbuild + workerd"
 		);
 	});
+
+	test("gives Workers the preview server's URL when Rsbuild picks the port", async ({
+		expect,
+	}) => {
+		const root = copyFixture("worker");
+		await build(root);
+		const url = await startPreviewServer(root, { server: { port: 0 } });
+
+		const preview = await (await fetch(new URL("/stream", url))).text();
+		expect(new URL(preview).port).toBe(new URL(url).port);
+	});
 });

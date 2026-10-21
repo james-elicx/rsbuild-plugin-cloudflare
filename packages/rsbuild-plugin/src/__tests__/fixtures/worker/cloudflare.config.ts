@@ -11,6 +11,7 @@ export default defineConfig({
 			KV: bindings.kv(),
 			GREETING: bindings.text("Hello"),
 			SECRET: bindings.secret(),
+			STREAM: bindings.stream(),
 		},
 	},
 });

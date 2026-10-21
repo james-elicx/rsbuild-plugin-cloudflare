@@ -5,11 +5,12 @@ interface Env {
 	KV: KVNamespace;
 	GREETING: string;
 	SECRET: string;
+	STREAM: StreamBinding;
 }
 
 export default {
 	async fetch(request, workerEnv) {
-		const { pathname } = new URL(request.url);
+		const { origin, pathname } = new URL(request.url);
 
 		switch (pathname) {
 			case "/kv": {
@@ -28,6 +29,14 @@ export default {
 			}
 			case "/secret": {
 				return new Response(workerEnv.SECRET);
+			}
+			case "/stream": {
+				// Stream builds the preview URL from the server's public URL.
+				const video = await workerEnv.STREAM.upload(`${origin}/video`);
+				return new Response(video.preview);
+			}
+			case "/video": {
+				return new Response(new Uint8Array([0, 1, 2, 3]));
 			}
 		}
 

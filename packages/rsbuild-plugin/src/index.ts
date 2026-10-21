@@ -526,8 +526,22 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 						ctx.getResolvedInspectorPort()
 					)
 				);
-				if (server.httpServer) {
-					handleWebSocket(toViteHttpServer(server.httpServer), ctx.miniflare);
+				const { httpServer } = server;
+				if (httpServer) {
+					// As in the Vite plugin, Rsbuild may listen on another port than the
+					// configured one (e.g. port 0), so update Miniflare's public URL once
+					// it listens.
+					httpServer.on("listening", () => {
+						const address = httpServer.address();
+						if (typeof address === "object" && address !== null) {
+							ctx.miniflare.publicUrl = buildPublicUrl({
+								hostname: config.host,
+								port: address.port,
+								secure: config.https,
+							});
+						}
+					});
+					handleWebSocket(toViteHttpServer(httpServer), ctx.miniflare);
 				}
 				// As in the Vite plugin, put the middleware before Rsbuild's so that
 				// Miniflare serves the assets as well, as it would when deployed.
