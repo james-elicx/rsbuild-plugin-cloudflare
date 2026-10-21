@@ -198,9 +198,9 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					createResolvedConfig({
 						root,
 						mode,
+						// As in Vite, a disabled public directory resolves to "".
 						publicDir:
-							getPublicDirs(userConfig.server?.publicDir, root)[0] ??
-							path.join(root, "public"),
+							getPublicDirs(userConfig.server?.publicDir, root)[0] ?? "",
 						logger,
 						logLevel: userConfig.logLevel,
 					})
