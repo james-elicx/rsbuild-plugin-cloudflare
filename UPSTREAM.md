@@ -21,6 +21,10 @@ repository stays in sync, and what to do when a sync fails.
     project (`CLOUDFLARE_VITE_E2E_SEED_MODULE`).
   - `0004-vite-plugin-export-internals.patch`: exports the additional-module
     helpers and `wasmInitRE`, which the plugin imports instead of copying.
+  - `0005-vite-plugin-share-worker-environment-options.patch`: moves the
+    Worker environments' export conditions, resolve extensions and
+    `process.env` replacements to a module that doesn't import Vite, so that
+    the plugin can import them.
 
   Keep them small, and propose them upstream where they make sense; each one
   that lands upstream can be deleted.
