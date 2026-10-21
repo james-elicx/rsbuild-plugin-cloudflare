@@ -100,3 +100,39 @@ jobs:
         run: pnpm -F rsbuild-plugin-cloudflare-test-harness test:e2e
         env:
           NODE_DEBUG: "vite-plugin:test"
+
+  apps:
+    name: ${{ format('E2E apps ({0})', matrix.mode) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [dev, preview]
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: true
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+
+      - name: Install playwright
+        run: pnpm -F rsbuild-plugin-cloudflare-e2e playwright:install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run the e2e apps' tests
+        run: pnpm -F rsbuild-plugin-cloudflare-e2e test:apps:${{ matrix.mode }}
+
+      - name: Upload the test results
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ format('e2e-apps-{0}-results', matrix.mode) }}
+          path: packages/e2e/test-results
+          retention-days: 7

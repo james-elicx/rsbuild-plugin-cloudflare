@@ -11,5 +11,7 @@
 	},
 	"sortTailwindcss": {},
 	"sortPackageJson": {},
-	"ignorePatterns": ["CHANGELOG.md", "patches/**"],
+	// The e2e fixtures keep their templates' formatting, so that they're easy to
+	// compare with them.
+	"ignorePatterns": ["CHANGELOG.md", "patches/**", "packages/e2e/fixtures/**"],
 }

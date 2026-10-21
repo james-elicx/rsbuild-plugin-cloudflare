@@ -17,6 +17,7 @@
 		"prettify": "oxfmt",
 		"setup:upstream": "./scripts/setup-upstream.sh",
 		"test": "turbo test",
+		"test:apps": "turbo build && pnpm -F rsbuild-plugin-cloudflare-e2e test:apps",
 		"test:ci": "turbo test:ci",
 		"test:e2e": "turbo build && pnpm -F rsbuild-plugin-cloudflare-test-harness test:e2e",
 		"test:playground": "turbo build && pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground",

@@ -1,0 +1,19 @@
+{
+	"name": "rsbuild-plugin-cloudflare-e2e",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Playwright tests of real-world apps built with the Rsbuild plugin",
+	"type": "module",
+	"scripts": {
+		"check:type": "tsc",
+		"playwright:install": "playwright install chromium",
+		"test:apps": "pnpm test:apps:dev && pnpm test:apps:preview",
+		"test:apps:dev": "playwright test -c playwright.dev.config.ts",
+		"test:apps:preview": "playwright test -c playwright.preview.config.ts"
+	},
+	"devDependencies": {
+		"@playwright/test": "1.60.0",
+		"@types/node": "22.15.17",
+		"typescript": "5.8.3"
+	}
+}

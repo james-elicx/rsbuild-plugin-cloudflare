@@ -154,6 +154,10 @@ const packageJsonPaths = [
 	".",
 	"packages/rsbuild-plugin",
 	"packages/test-harness",
+	"packages/e2e",
+	...readdirSync(path.join(root, "packages/e2e/fixtures")).map(
+		(name) => `packages/e2e/fixtures/${name}`
+	),
 ];
 for (const relativePath of packageJsonPaths) {
 	const directory = path.join(root, relativePath);
@@ -200,9 +204,13 @@ for (const relativePath of packageJsonPaths) {
 	}
 
 	if (!check) {
+		const packageJsonPath = path.join(directory, "package.json");
+		// Keep the file's indentation, as the e2e fixtures keep their templates'.
+		const indent =
+			/^(\s+)"/m.exec(readFileSync(packageJsonPath, "utf8"))?.[1] ?? "\t";
 		writeFileSync(
-			path.join(directory, "package.json"),
-			JSON.stringify(packageJson, null, "\t") + "\n"
+			packageJsonPath,
+			JSON.stringify(packageJson, null, indent) + "\n"
 		);
 	}
 }
