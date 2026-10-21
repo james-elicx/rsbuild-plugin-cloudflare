@@ -1,8 +1,9 @@
 name: Sync upstream
 
-# Moves the workers-sdk submodule to the latest `main`, then runs CI against it.
-# When CI passes, the bump is fast-forwarded onto `main`. Otherwise it's left on
-# the `upstream-sync` branch, and an issue tracks the failure (see UPSTREAM.md).
+# Moves the workers-sdk submodule to the latest `main` in a pull request from
+# the `upstream-sync` branch, then runs CI against it. When CI passes, the pull
+# request is rebased onto `main`. Otherwise it stays open for fixes, which later
+# runs keep (see UPSTREAM.md).
 
 on:
   schedule:
@@ -31,9 +32,13 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+      pull-requests: write
     outputs:
-      changed: ${{ steps.bump.outputs.changed }}
-      sha: ${{ steps.bump.outputs.sha }}
+      # Set even when a later step fails, so that the failure can be reported.
+      pr: ${{ steps.update-pr.outputs.number || steps.pr.outputs.number }}
+      sha: ${{ steps.push.outputs.sha }}
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -49,92 +54,126 @@ jobs:
         with:
           setup-upstream: "false"
 
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # Keeps any fixes pushed to an open sync pull request, on top of `main`.
+      - name: Check out the sync branch
+        id: pr
+        run: |
+          number="$(gh pr list --head "$BRANCH" --base main --state open --json number --jq '.[0].number')"
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+          if [[ -n "$number" ]]; then
+            git checkout -B "$BRANCH" "origin/$BRANCH"
+            if ! git rebase origin/main; then
+              git rebase --abort
+              echo "::error::The sync branch doesn't rebase cleanly onto main. Rebase it manually."
+              exit 1
+            fi
+            git submodule update --init
+          else
+            git checkout -B "$BRANCH" origin/main
+          fi
+
       - name: Bump workers-sdk
         id: bump
         run: |
           before="$(git rev-parse HEAD:workers-sdk)"
-          ./scripts/bump-upstream.sh "${{ inputs.ref || 'origin/main' }}"
+          # Commit and open the pull request even when the bump fails (e.g. a
+          # patch no longer applies), so that it can be fixed there.
+          status=0
+          ./scripts/bump-upstream.sh "${{ inputs.ref || 'origin/main' }}" || status=$?
           after="$(git -C workers-sdk rev-parse HEAD)"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
           echo "sha=$after" >> "$GITHUB_OUTPUT"
-          if [[ "$before" == "$after" ]]; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+          git add workers-sdk package.json pnpm-lock.yaml packages/*/package.json pnpm-workspace.yaml
+          if ! git diff --cached --quiet; then
+            {
+              echo "Bump workers-sdk to ${after:0:9}"
+              echo
+              git -C workers-sdk log --oneline --no-decorate "$before..$after" | head -n 100
+            } | git commit --file -
+          fi
+
+      - name: Push the sync branch
+        id: push
+        run: |
+          if [[ -z "${{ steps.pr.outputs.number }}" && "$(git rev-parse HEAD)" == "$(git rev-parse origin/main)" ]]; then
+            echo "workers-sdk is up to date."
             exit 0
           fi
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-          {
-            echo "Bump workers-sdk to ${after:0:9}"
-            echo
-            git -C workers-sdk log --oneline --no-decorate "$before..$after" | head -n 100
-          } > "$RUNNER_TEMP/commit-message.txt"
+          git push --force-with-lease origin "$BRANCH"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Push the bump
-        if: steps.bump.outputs.changed == 'true'
+      - name: Open or update the pull request
+        id: update-pr
+        if: steps.push.outputs.sha
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -B "$BRANCH"
-          git add workers-sdk package.json pnpm-lock.yaml packages/*/package.json pnpm-workspace.yaml
-          git commit --file "$RUNNER_TEMP/commit-message.txt"
-          git push --force origin "$BRANCH"
+          sha="${{ steps.bump.outputs.sha }}"
+          title="Sync with workers-sdk ${sha:0:9}"
+          body="Moves the workers-sdk submodule to cloudflare/workers-sdk@$sha.
+
+          The [sync workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/sync-upstream.yml) opened this, and rebases it onto \`main\` once CI passes. If CI fails, push fixes to \`$BRANCH\`. Later syncs rebase the branch onto \`main\` and keep those fixes (see UPSTREAM.md)."
+          number="${{ steps.pr.outputs.number }}"
+          if [[ -n "$number" ]]; then
+            gh pr edit "$number" --title "$title" --body "$body"
+          else
+            gh pr create --base main --head "$BRANCH" --title "$title" --body "$body"
+            number="$(gh pr view "$BRANCH" --json number --jq .number)"
+          fi
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+
+      - name: Fail if the bump failed
+        if: steps.bump.outputs.status != '0'
+        run: |
+          echo "::error::scripts/bump-upstream.sh failed; see the 'Bump workers-sdk' step."
+          exit 1
 
   test:
     name: Test
     needs: bump
-    if: needs.bump.outputs.changed == 'true'
+    if: needs.bump.outputs.sha
     uses: ./.github/workflows/ci.yml
     with:
-      ref: upstream-sync
+      # The pushed commit, so that what's merged below is exactly what was
+      # tested.
+      ref: ${{ needs.bump.outputs.sha }}
 
   merge:
-    name: Merge into main
+    name: Rebase onto main
     needs: [bump, test]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
-      issues: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          ref: ${{ env.BRANCH }}
-
-      # Fails if `main` has moved on since the bump, in which case the next run
-      # bumps again.
-      - name: Fast-forward main
-        run: git push origin "HEAD:main"
-
-      - name: Close the failure issue
-        env:
-          GH_TOKEN: ${{ github.token }}
+      # Fails if the branch has changed since it was tested, in which case the
+      # next run tests it again.
+      - name: Merge the pull request
         run: |
-          number="$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number')"
-          if [[ -n "$number" ]]; then
-            gh issue close "$number" --comment "Fixed: workers-sdk ${{ needs.bump.outputs.sha }} is now on main."
-          fi
+          gh pr merge "${{ needs.bump.outputs.pr }}" --rebase --delete-branch \
+            --match-head-commit "${{ needs.bump.outputs.sha }}"
 
   report-failure:
     name: Report failure
-    needs: [bump, test]
-    if: failure()
+    needs: [bump, test, merge]
+    if: failure() && needs.bump.outputs.pr
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     permissions:
-      issues: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
-      - name: Open or update the failure issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
+      - name: Comment on the pull request
         run: |
-          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          body="Syncing with workers-sdk \`${{ needs.bump.outputs.sha || inputs.ref || 'origin/main' }}\` failed: $run_url
+          gh pr comment "${{ needs.bump.outputs.pr }}" --body "Syncing failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          Fix it on the \`$BRANCH\` branch (see UPSTREAM.md), then merge it into main."
-          gh label create upstream-sync --color d93f0b --description "workers-sdk sync failures" 2>/dev/null || true
-          number="$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number')"
-          if [[ -n "$number" ]]; then
-            gh issue comment "$number" --body "$body"
-          else
-            gh issue create --title "Syncing with workers-sdk failed" --label upstream-sync --body "$body"
-          fi
+          Push fixes to \`$BRANCH\`. The next sync rebases them onto \`main\`, and merges the pull request once CI passes."
