@@ -107,6 +107,9 @@ Other differences:
   before Rsbuild's `server.proxy`.
 - When workerd restarts, the Vite plugin restarts the dev server; the Rsbuild
   bundles don't depend on workerd's state, so the plugin doesn't.
+- Setting `output.externals` (other than Node.js built-ins) for a Worker's
+  environment logs a warning, where the Vite plugin rejects `resolve.external`,
+  as Rsbuild also applies top-level externals to every environment.
 - No "Debug" URL is printed, but `/__debug` works.
 - Miniflare's message about updating the compatibility date mentions
   `@cloudflare/vite-plugin`.

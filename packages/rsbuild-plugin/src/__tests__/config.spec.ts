@@ -71,6 +71,34 @@ describe("config", () => {
 		);
 	});
 
+	test("warns about externals in Worker environments", async ({ expect }) => {
+		const { logger, warn } = createWarningLogger();
+
+		await build(copyFixture("worker"), {
+			customLogger: logger,
+			output: { externals: ["node:fs"] },
+			environments: { cloudflare: { output: { externals: ["some-package"] } } },
+		});
+
+		expect(warn).toHaveBeenCalledOnce();
+		expect(warn).toHaveBeenCalledWith(
+			expect.stringContaining(
+				'The "cloudflare" environment\'s `output.externals` option is incompatible'
+			)
+		);
+	});
+
+	test("doesn't warn about Node.js built-in externals", async ({ expect }) => {
+		const { logger, warn } = createWarningLogger();
+
+		await build(copyFixture("worker"), {
+			customLogger: logger,
+			output: { externals: ["node:fs", "path"] },
+		});
+
+		expect(warn).not.toHaveBeenCalled();
+	});
+
 	test("reads `_headers` from the public directory, unless it's disabled", async ({
 		expect,
 	}) => {
