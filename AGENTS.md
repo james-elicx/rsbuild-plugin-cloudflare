@@ -32,6 +32,11 @@ change that exposes what the plugin needs.
 - **Don't change upstream behaviour.** Adapters may only post-process upstream
   results for Rsbuild. Document every intentional difference from the Vite
   plugin in `packages/rsbuild-plugin/README.md`.
+- **Check alignment with the Vite plugin.** Copies are checked by
+  `pnpm check:copied-code`, but nothing checks that the glue and adapters still
+  behave like the Vite plugin. After the submodule moves, or when changing them,
+  follow the `check-upstream-alignment` skill
+  (`.claude/skills/check-upstream-alignment/SKILL.md`).
 - **Skip upstream tests only for Vite-specific behaviour**, with a reason, in
   `packages/test-harness/vitest.playground.config.ts` or
   `vitest.e2e.config.ts`.
