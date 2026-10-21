@@ -9,6 +9,8 @@ dist
 .cloudflare
 .wrangler
 .env
+test-results
+playwright-report
 .dev.vars
 !packages/rsbuild-plugin/src/__tests__/fixtures/**/.dev.vars
 

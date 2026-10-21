@@ -23,6 +23,7 @@ and the differences from the Vite plugin.
 | `packages/rsbuild-plugin/`              | `rsbuild-plugin-cloudflare`.                                           |
 | `packages/rsbuild-plugin/src/upstream/` | Code copied from workers-sdk, and the ledger that tracks it.           |
 | `packages/test-harness/`                | Runs the Vite plugin's playground and e2e suites against Rsbuild.      |
+| `packages/e2e/`                         | This repository's e2e tests: Playwright tests of real-world apps.      |
 | `scripts/`                              | Submodule setup, bumping, and the upstream checks.                     |
 
 ## Getting started
@@ -50,11 +51,14 @@ workers-sdk dependencies are linked to the submodule's packages.
 | `pnpm test`            | The plugin's unit tests.                                                     |
 | `pnpm test:playground` | The Vite plugin's playground suite against Rsbuild, in serve and build mode. |
 | `pnpm test:e2e`        | The Vite plugin's e2e suite against Rsbuild (needs npm, pnpm and yarn).      |
+| `pnpm test:apps`       | Playwright tests of real-world apps (e.g. TanStack Start), dev and preview.  |
 
 To run part of a suite, pass a filter, e.g.
 `pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground:serve assets`.
 The playground suite needs Chromium:
-`pnpm -F rsbuild-plugin-cloudflare-test-harness playwright:install`.
+`pnpm -F rsbuild-plugin-cloudflare-test-harness playwright:install`, as does
+`pnpm test:apps`: `pnpm -F rsbuild-plugin-cloudflare-e2e playwright:install`
+(see [`packages/e2e`](packages/e2e/README.md)).
 
 ## Staying in sync with workers-sdk
 

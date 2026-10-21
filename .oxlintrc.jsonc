@@ -99,6 +99,8 @@
 		"**/*.mjs",
 		"workers-sdk/**",
 		"packages/rsbuild-plugin/src/__tests__/fixtures/**",
+		// Copied from their templates, which have their own lint rules.
+		"packages/e2e/fixtures/**",
 	],
 	"jsPlugins": [
 		"eslint-plugin-turbo",

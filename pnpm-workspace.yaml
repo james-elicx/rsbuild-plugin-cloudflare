@@ -2,6 +2,8 @@
 # `scripts/setup-upstream.sh`. It isn't part of this one.
 packages:
   - "packages/*"
+  # The apps that `packages/e2e` tests.
+  - "packages/e2e/fixtures/*"
 
 # The packages that the Vite plugin's internals import at runtime are linked to
 # the submodule's builds, so that the plugin runs against exactly the upstream

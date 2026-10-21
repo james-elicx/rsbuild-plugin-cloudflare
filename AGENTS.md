@@ -66,6 +66,8 @@ The root `package.json` is authoritative for available scripts.
 - `pnpm test` — the plugin's unit tests.
 - `pnpm test:playground` / `pnpm test:e2e` — the Vite plugin's playground and
   e2e suites against Rsbuild.
+- `pnpm test:apps` — this repository's own e2e tests: Playwright tests of the
+  apps in `packages/e2e/fixtures`, with `rsbuild dev` and `rsbuild preview`.
 
 Prefer the narrowest relevant test while developing (e.g.
 `pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground:serve assets`),
@@ -101,6 +103,8 @@ Do not reproduce those rules manually; run `pnpm prettify`.
   it from `vitest`.
 - Prefer `runInTempDir()` and real filesystem operations over filesystem mocks.
 - Use fixtures for Worker scenarios, and keep them clear and realistic.
+- Keep the apps in `packages/e2e/fixtures` close to the templates that they
+  come from, and record their sources in `packages/e2e/README.md`.
 
 ## Changes and pull requests
 
