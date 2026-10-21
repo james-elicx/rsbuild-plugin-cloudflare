@@ -61,14 +61,17 @@ export function getWorkerEnvironmentConfig(
 				js: "",
 				jsAsync: "",
 			},
+			// Other assets keep Rsbuild's hashed names: those that the Worker
+			// imports are moved to the client's output, where they must match the
+			// client's own copies.
 			filename: { js: "[name].js" },
-			filenameHash: false,
 			// As in the Vite plugin, source maps are written to the bundle rather
 			// than the public assets, so emit them for readable stack traces.
 			sourceMap: { js: "source-map" },
 			// Like the Vite plugin and Wrangler, don't minify the Worker, which also
-			// keeps license comments in the deployed modules.
-			minify: false,
+			// keeps license comments in the deployed modules. Minify CSS as the
+			// client does, so that both emit the same stylesheets.
+			minify: { js: false, css: true },
 			externals: [
 				async ({ request = "", context = "", dependencyType, getResolve }) => {
 					const nodeRequest = request.startsWith("node:")
