@@ -1,0 +1,21 @@
+README.md
+  s_3ce1770c226aa0::t_2b8be8467e39f7 61-62
+UPSTREAM.md
+  s_3ce1770c226aa0::t_1f3197c3ddf69b 51-58,60-63,69,93-96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9bc4cf5f3dc5566745c5d59471832a6b5ac2b194",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
