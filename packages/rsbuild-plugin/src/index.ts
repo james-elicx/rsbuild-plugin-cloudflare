@@ -148,7 +148,9 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			const manifests = new Map<string, MiniflareManifest>();
 			let manifestsChanged = false;
 			/** The assets that the entry Worker imports, which a build moves to the client output. */
-			let importedAssets: { distPath: string; paths: string[] } | undefined;
+			let importedAssets:
+				| { environmentName: string; distPath: string; paths: string[] }
+				| undefined;
 			/** The Worker environments whose latest dev build failed. */
 			const failedEnvironments = new Set<string>();
 			let devServer: RsbuildDevServer | undefined;
@@ -487,6 +489,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					// may be while this hook is still running for an earlier one.
 					if (worker.directoryName === DEFAULT_WORKER_DIRECTORY_NAME) {
 						importedAssets = {
+							environmentName: environment.name,
 							distPath: environment.distPath,
 							paths: getImportedAssetPaths(stats.compilation),
 						};
@@ -613,11 +616,14 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				}
 				if (importedAssets) {
 					// As in the Vite plugin, serve assets that the entry Worker imports.
-					moveImportedAssets(
-						importedAssets.paths,
-						importedAssets.distPath,
-						assetsDir
-					);
+					moveImportedAssets({
+						importedAssetPaths: importedAssets.paths,
+						entryWorkerBuildDirectory: importedAssets.distPath,
+						clientBuildDirectory: assetsDir,
+						entryWorkerEnvironmentName: importedAssets.environmentName,
+						root,
+						logger,
+					});
 				}
 				if (resolvedPluginConfig.type === "assets-only") {
 					await writeWorkerConfig({
