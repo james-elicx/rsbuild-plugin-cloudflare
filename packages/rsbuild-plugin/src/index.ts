@@ -73,15 +73,42 @@ import type {
 import type { Miniflare, WorkerOptions } from "miniflare";
 import type { IncomingMessage } from "node:http";
 
-/** The same options as the Vite plugin's `cloudflare()`, apart from the tunnel. */
-export interface PluginConfig extends Omit<VitePluginConfig, "tunnel"> {
+/** Options for the Rsbuild environment that builds a Worker. */
+interface RsbuildEnvironmentOptions {
+	/**
+	 * The Rsbuild environment that builds the Worker, in place of the Vite
+	 * plugin's `viteEnvironment`. `name` is its key in Rsbuild's
+	 * `environments` config.
+	 */
+	rsbuildEnvironment?: { name?: string };
+}
+
+/** A Worker's options in the Vite plugin, with `rsbuildEnvironment` in place of `viteEnvironment`. */
+type RsbuildWorkerOptions<T> = Omit<T, "viteEnvironment"> &
+	RsbuildEnvironmentOptions;
+
+/**
+ * The same options as the Vite plugin's `cloudflare()`, apart from the tunnel,
+ * with `rsbuildEnvironment` in place of `viteEnvironment`.
+ */
+export interface PluginConfig extends RsbuildWorkerOptions<
+	Omit<VitePluginConfig, "tunnel" | "auxiliaryWorkers" | "prerenderWorker">
+> {
+	auxiliaryWorkers?: Array<
+		RsbuildWorkerOptions<
+			NonNullable<VitePluginConfig["auxiliaryWorkers"]>[number]
+		>
+	>;
+	prerenderWorker?: RsbuildWorkerOptions<
+		NonNullable<VitePluginConfig["prerenderWorker"]>
+	>;
 	/** The directory to load `.env` and `.dev.vars` files from, or `false` to skip them. Defaults to the project root. */
 	envDir?: string | false;
 	/** The mode used to load `cloudflare.config.ts`, `.env.[mode]` and `.dev.vars.[mode]`. Defaults to Rsbuild's mode. */
 	envMode?: string;
 }
 
-/** The Rsbuild environment that builds the entry Worker, unless `viteEnvironment.name` is set. */
+/** The Rsbuild environment that builds the entry Worker, unless `rsbuildEnvironment.name` is set. */
 const ENTRY_ENVIRONMENT_NAME = "cloudflare";
 
 type MiniflareManifest = NonNullable<WorkerOptions["config"]["manifest"]>;
@@ -130,7 +157,14 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			});
 
 			api.modifyRsbuildConfig(async (userConfig, { mergeRsbuildConfig }) => {
-				const { envDir, envMode, ...pluginConfig } = options;
+				const {
+					envDir,
+					envMode,
+					rsbuildEnvironment,
+					auxiliaryWorkers,
+					prerenderWorker,
+					...pluginConfig
+				} = options;
 				const mode =
 					envMode ??
 					userConfig.mode ??
@@ -139,10 +173,11 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					{
 						...pluginConfig,
 						viteEnvironment: {
-							...pluginConfig.viteEnvironment,
-							name:
-								pluginConfig.viteEnvironment?.name ?? ENTRY_ENVIRONMENT_NAME,
+							name: rsbuildEnvironment?.name ?? ENTRY_ENVIRONMENT_NAME,
 						},
+						auxiliaryWorkers: auxiliaryWorkers?.map(toViteWorkerOptions),
+						prerenderWorker:
+							prerenderWorker && toViteWorkerOptions(prerenderWorker),
 					},
 					{ root, mode, envDir },
 					{
@@ -637,6 +672,27 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					);
 			}
 		},
+	};
+}
+
+/**
+ * Maps a Worker's `rsbuildEnvironment` option to the Vite plugin's
+ * `viteEnvironment`, which its config resolution reads.
+ *
+ * @param options The Worker's options.
+ * @returns The options that the Vite plugin accepts.
+ */
+function toViteWorkerOptions<T extends RsbuildEnvironmentOptions>({
+	rsbuildEnvironment,
+	...options
+}: T): Omit<T, "rsbuildEnvironment"> & {
+	viteEnvironment?: { name?: string };
+} {
+	return {
+		...options,
+		...(rsbuildEnvironment && {
+			viteEnvironment: { name: rsbuildEnvironment.name },
+		}),
 	};
 }
 

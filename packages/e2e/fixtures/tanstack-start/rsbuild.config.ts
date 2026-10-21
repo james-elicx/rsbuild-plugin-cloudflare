@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [
     pluginTailwindcss(),
     pluginReact(),
-    cloudflare({ viteEnvironment: { name: 'ssr' } }),
+    cloudflare({ rsbuildEnvironment: { name: 'ssr' } }),
     tanstackStart({
       srcDirectory: 'src',
     }),

@@ -4,8 +4,9 @@ import harnessPackage from "../package.json" with { type: "json" };
 
 /**
  * Turns a seeded Vite fixture into the equivalent Rsbuild project: the
- * `cloudflare()` options are passed unchanged to the Rsbuild plugin's `cloudflare()`, and the
- * `vite` scripts become `rsbuild` ones. The e2e helpers (`seed()`) call this
+ * `cloudflare()` options are passed to the Rsbuild plugin's `cloudflare()`,
+ * with `viteEnvironment` renamed to `rsbuildEnvironment`, and the `vite`
+ * scripts become `rsbuild` ones. The e2e helpers (`seed()`) call this
  * when `CLOUDFLARE_VITE_E2E_SEED_MODULE` points at this module.
  *
  * @param projectPath The seeded project
@@ -69,6 +70,12 @@ export async function afterSeed(projectPath: string): Promise<void> {
 	] as const) {
 		config = config.replace(from, to);
 	}
+	if (config.includes("childEnvironments")) {
+		throw new Error(
+			`${viteConfigFile} uses child environments, which the Rsbuild plugin doesn't support.`
+		);
+	}
+	config = config.replaceAll("viteEnvironment", "rsbuildEnvironment");
 	if (/from "(vite|@vitejs\/.*|@cloudflare\/vite-plugin)"/.test(config)) {
 		throw new Error(
 			`${viteConfigFile} has imports with no Rsbuild equivalent.`
