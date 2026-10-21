@@ -21,6 +21,12 @@ function createWarningLogger(): {
 }
 
 describe("config", () => {
+	test("rejects a Worker environment named `web`", async ({ expect }) => {
+		await expect(
+			build(copyFixture("worker"), {}, { rsbuildEnvironment: { name: "web" } })
+		).rejects.toThrow('"web" is a reserved Rsbuild environment name');
+	});
+
 	test("warns in a build that Containers aren't supported", async ({
 		expect,
 	}) => {

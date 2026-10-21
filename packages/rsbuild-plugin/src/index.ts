@@ -229,6 +229,10 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					name,
 					worker,
 				] of resolvedPluginConfig.environmentNameToWorkerMap) {
+					// As the Vite plugin reserves Vite's client environment name.
+					if (name === "web") {
+						throw new Error(`"web" is a reserved Rsbuild environment name`);
+					}
 					if (action !== "build" || !resolveDevOnly(worker.devOnly)) {
 						workerEnvironments.set(name, worker);
 					}
