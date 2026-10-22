@@ -139,7 +139,9 @@ Other differences:
   Rsbuild's default entry (`src/index.*`) only when `index.html` exists at the
   project root, where Vite builds one whenever `index.html` exists. The default
   entry mustn't be a Worker's entrypoint. Rsbuild doesn't use that `index.html`
-  as the page's template unless `html.template` is set to it.
+  as the page's template unless `html.template` is set to it. Otherwise, as in
+  the Vite plugin, the client output has only the public assets (and the assets
+  that the entry Worker imports).
 - `devOnly` and `assetsOnly` functions are called when the config is resolved,
   to choose the Worker environments to build, rather than lazily at build time.
 - Additional modules (e.g. `.wasm` and `.txt` imports) are emitted at the root
