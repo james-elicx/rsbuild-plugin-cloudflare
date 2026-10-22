@@ -9,6 +9,10 @@ It's built on the internals of
 [`@cloudflare/vite-plugin`](https://developers.cloudflare.com/workers/vite-plugin/),
 and accepts the same options.
 
+> **Using TanStack Start?** Follow the [TanStack Start guide](#tanstack-start):
+> the framework's server environment has to be set as the Worker's, or every
+> request fails.
+
 ## Usage
 
 ```ts
