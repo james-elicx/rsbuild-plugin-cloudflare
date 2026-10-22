@@ -1,0 +1,44 @@
+name: Prerelease
+
+# Publishes the plugin to pkg.pr.new for each pull request and each push to
+# `main`, and comments on the pull request with how to install it, e.g.
+# `npm i https://pkg.pr.new/rsbuild-plugin-cloudflare@123`.
+#
+# Needs the pkg.pr.new GitHub App (https://github.com/apps/pkg-pr-new) to be
+# installed on the repository.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  prerelease:
+    name: Publish to pkg.pr.new
+    # Pull requests from forks would publish code that nobody has reviewed under
+    # the repository's name.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build --filter rsbuild-plugin-cloudflare
+
+      # `--pnpm` packs with pnpm, which `changeset publish` publishes with.
+      - name: Publish
+        run: pnpm exec pkg-pr-new publish --pnpm ./packages/rsbuild-plugin

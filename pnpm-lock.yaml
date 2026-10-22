@@ -33,6 +33,9 @@ importers:
       oxlint-tsgolint:
         specifier: 0.17.1
         version: 0.17.1
+      pkg-pr-new:
+        specifier: 0.0.91
+        version: 0.0.91
       turbo:
         specifier: 2.7.2
         version: 2.7.2
@@ -2342,6 +2345,10 @@ packages:
   pify@4.0.1:
     resolution: {integrity: sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==}
     engines: {node: '>=6'}
+
+  pkg-pr-new@0.0.91:
+    resolution: {integrity: sha512-FQPmjspKRKYV4MlHQnun9snJqlYm6Yhmo12x1O3pgE2Akim/y/BZjMOppK//BFdh222WOj6WGqlmeZfrtUtfgQ==}
+    hasBin: true
 
   pkijs@3.4.2:
     resolution: {integrity: sha512-LIy5RqLEzlliax2ANQNWvDLvhJ2CtlpJahiSvKtXnpMdKHhXXoLdpdnWqae/uaTyF3U5l5ARweW0kZp9B0s2VA==}
@@ -4852,6 +4859,8 @@ snapshots:
   picomatch@4.0.7: {}
 
   pify@4.0.1: {}
+
+  pkg-pr-new@0.0.91: {}
 
   pkijs@3.4.2:
     dependencies:
