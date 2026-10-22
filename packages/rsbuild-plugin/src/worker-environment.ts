@@ -28,7 +28,7 @@ import type {
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
 import type { Worker } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
 import type { ModuleType } from "@cloudflare/config";
-import type { EnvironmentConfig, Rspack } from "@rsbuild/core";
+import type { EnvironmentConfig, RsbuildConfig, Rspack } from "@rsbuild/core";
 import type { WorkerOptions } from "miniflare";
 
 /**
@@ -54,6 +54,7 @@ export const WORKER_ENTRY_NAME = "index";
  * @param worker The resolved Worker.
  * @param root The project root.
  * @param mode The mode, which `process.env.NODE_ENV` falls back to.
+ * @param userConfig The user's Rsbuild config.
  * @param nodeJsCompatWarnings Collects the Worker's Node.js imports when it
  * doesn't have Node.js compat.
  * @returns An Rsbuild environment config.
@@ -62,9 +63,11 @@ export function getWorkerEnvironmentConfig(
 	worker: Worker,
 	root: string,
 	mode: string,
+	userConfig: RsbuildConfig,
 	nodeJsCompatWarnings?: NodeJsCompatWarnings
 ): EnvironmentConfig {
 	const { config, directoryName, nodeJsCompat } = worker;
+	const { minify } = userConfig.output ?? {};
 	const conditionNames = getConditionNames();
 	/** The additional modules to emit, keyed by output file name. */
 	const additionalModules = new Map<
@@ -104,8 +107,12 @@ export function getWorkerEnvironmentConfig(
 			sourceMap: { js: "source-map" },
 			// Like the Vite plugin and Wrangler, don't minify the Worker, which also
 			// keeps license comments in the deployed modules. Minify CSS as the
-			// client does, so that both emit the same stylesheets.
-			minify: { js: false, css: true },
+			// client does, with the top-level setting, so that both emit the same
+			// stylesheets.
+			minify:
+				typeof minify === "object"
+					? { ...minify, js: false }
+					: { js: false, css: minify ?? true },
 			externals: [
 				async ({
 					request = "",

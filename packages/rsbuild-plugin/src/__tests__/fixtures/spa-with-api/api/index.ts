@@ -1,3 +1,5 @@
+import stylesheet from "../src/style.css?url";
+
 // Workers without `nodejs_compat` have no `process`, but the plugin replaces
 // `process.env` with an empty object, as the Vite plugin does.
 declare const process: { env: Record<string, string | undefined> };
@@ -12,6 +14,11 @@ export default {
 
 		if (pathname === "/api/env") {
 			return new Response(String(process.env.UNDEFINED_VARIABLE));
+		}
+
+		// Server-rendered pages link the client's stylesheet.
+		if (pathname === "/api/stylesheet") {
+			return new Response(stylesheet);
 		}
 
 		if (pathname === "/api/hello") {
