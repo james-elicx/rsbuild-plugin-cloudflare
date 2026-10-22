@@ -1,0 +1,21 @@
+UPSTREAM.md
+  s_3ce1770c226aa0::t_cf8427bfa5d091 50
+scripts/upstream-mirrors.json
+  s_3ce1770c226aa0::t_96bf9163f2c684 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "53a633e347d13a873845d0054232a67c8877b4c6",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
