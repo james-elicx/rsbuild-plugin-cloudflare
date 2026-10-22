@@ -74,6 +74,29 @@ describe("spa-with-api", () => {
 		});
 	});
 
+	test("links the client's stylesheet from the Worker whatever the minify setting", async ({
+		expect,
+	}) => {
+		const root = copyFixture("spa-with-api");
+		await build(root, {
+			...config,
+			mode: "production",
+			output: { minify: false },
+		});
+		const url = await startPreviewServer(root);
+
+		const stylesheet = await (
+			await fetch(new URL("/api/stylesheet", url))
+		).text();
+		expect(stylesheet).toMatch(/^\/static\/css\/.+\.css$/);
+		// The Worker's copy of the stylesheet isn't added to the client's.
+		const cssDir = path.join(
+			root,
+			".cloudflare/output/v0/workers/default/assets/static/css"
+		);
+		expect(fs.readdirSync(cssDir)).toEqual([path.basename(stylesheet)]);
+	});
+
 	test("previews the Build Output with assets served by workerd", async ({
 		expect,
 	}) => {

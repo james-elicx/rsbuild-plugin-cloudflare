@@ -320,6 +320,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 											worker,
 											root,
 											mode,
+											userConfig,
 											nodeJsCompatWarnings.get(name)
 										),
 										userConfig.environments?.[name] ?? {}
