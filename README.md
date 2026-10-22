@@ -5,6 +5,11 @@ Workers in workerd during `rsbuild dev` and `rsbuild preview`, and builds them
 with `rsbuild build` into a Cloudflare Build Output that you can deploy with
 `cf deploy --prebuilt`.
 
+> **Using TanStack Start?** Follow the
+> [TanStack Start guide](packages/rsbuild-plugin/README.md#tanstack-start): the
+> framework's server environment has to be set as the Worker's, or every request
+> fails.
+
 The plugin is a thin wrapper over the internals of workers-sdk's
 [`@cloudflare/vite-plugin`](https://github.com/cloudflare/workers-sdk/tree/main/packages/vite-plugin-cloudflare):
 config resolution, Miniflare options, the asset and router Workers, Node.js
@@ -12,8 +17,7 @@ compatibility and build output all come from upstream. This repository holds
 the Rsbuild glue, and runs the Vite plugin's own playground and e2e suites
 against it.
 
-See [`packages/rsbuild-plugin`](packages/rsbuild-plugin/README.md) for usage,
-including [how to set up TanStack Start](packages/rsbuild-plugin/README.md#tanstack-start),
+See [`packages/rsbuild-plugin`](packages/rsbuild-plugin/README.md) for usage
 and the differences from the Vite plugin.
 
 ## Layout
