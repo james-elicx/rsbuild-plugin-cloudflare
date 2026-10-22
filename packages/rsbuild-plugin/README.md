@@ -126,6 +126,12 @@ Other differences:
   rather than `envMode` and `envDir`. `process.env` takes precedence over the
   plugin's `.env` files, so these values override the Worker's `.env` values. A
   `.dev.vars` file is used on its own, so it isn't affected.
+- The top-level `output.minify` setting for JavaScript, and the top-level
+  `resolve.extensions`, `resolve.conditionNames` and `resolve.mainFields`, don't
+  apply to Workers: the plugin sets these for the Worker environments, and
+  Rsbuild uses an environment's settings over the top-level ones. Set them in
+  `environments.<name>` instead. The top-level `output.sourceMap`, and the
+  `output.minify` setting for CSS, do apply.
 - `devOnly` and `assetsOnly` functions are called when the config is resolved,
   to choose the Worker environments to build, rather than lazily at build time.
 - Additional modules (e.g. `.wasm` and `.txt` imports) are emitted at the root

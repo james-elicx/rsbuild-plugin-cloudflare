@@ -67,7 +67,7 @@ export function getWorkerEnvironmentConfig(
 	nodeJsCompatWarnings?: NodeJsCompatWarnings
 ): EnvironmentConfig {
 	const { config, directoryName, nodeJsCompat } = worker;
-	const { minify } = userConfig.output ?? {};
+	const { minify, sourceMap } = userConfig.output ?? {};
 	const conditionNames = getConditionNames();
 	/** The additional modules to emit, keyed by output file name. */
 	const additionalModules = new Map<
@@ -103,8 +103,12 @@ export function getWorkerEnvironmentConfig(
 			// client's own copies.
 			filename: { js: "[name].js" },
 			// As in the Vite plugin, source maps are written to the bundle rather
-			// than the public assets, so emit them for readable stack traces.
-			sourceMap: { js: "source-map" },
+			// than the public assets, so emit them for readable stack traces unless
+			// the user's top-level setting (or the environment's) disables them.
+			sourceMap:
+				typeof sourceMap === "boolean"
+					? sourceMap
+					: { js: sourceMap?.js ?? "source-map" },
 			// Like the Vite plugin and Wrangler, don't minify the Worker, which also
 			// keeps license comments in the deployed modules. Minify CSS as the
 			// client does, with the top-level setting, so that both emit the same
