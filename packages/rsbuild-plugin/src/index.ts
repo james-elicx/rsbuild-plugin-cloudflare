@@ -173,6 +173,8 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			let miniflareCreated = false;
 			/** Whether the plugin prints the dev server's URLs, once it listens. */
 			let printUrls = false;
+			/** Whether a client environment or entry is built. */
+			let hasClient = false;
 			/** Whether the fallback client is built, which only copies `public/`. */
 			let hasFallbackClient = false;
 			let devServerListening = false;
@@ -295,7 +297,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 						root,
 						resolvedPluginConfig.environmentNameToWorkerMap.values()
 					);
-				const hasClient =
+				hasClient =
 					Object.keys(clientEnvironments).length > 0 || hasClientEntry;
 				// Without client or Worker environments, Rsbuild would build its
 				// default one from `src/index.*`, so build an empty client that
@@ -628,6 +630,11 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					return;
 				}
 				const assetsDir = getWorkerAssetsDir(root);
+				const publicDirs = api
+					.getNormalizedConfig()
+					// Rsbuild normalizes `name` to an absolute path.
+					.server.publicDir.filter(({ copyOnBuild }) => copyOnBuild)
+					.map(({ name }) => name);
 				if (hasFallbackClient) {
 					// As the Vite plugin's `fallbackBuild`, keep only the copied
 					// public assets, and write no client output without any.
@@ -645,12 +652,14 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				} else if (!fs.existsSync(assetsDir)) {
 					// Without a client entry there's no web environment to copy
 					// `public/` into the assets directory, as Vite's client build does.
-					for (const { name, copyOnBuild } of api.getNormalizedConfig().server
-						.publicDir) {
-						// Rsbuild normalizes `name` to an absolute path.
-						if (copyOnBuild && fs.existsSync(name)) {
+					for (const name of publicDirs) {
+						if (fs.existsSync(name)) {
 							await fsp.cp(name, assetsDir, { recursive: true });
 						}
+					}
+					if (resolvedPluginConfig.prerenderWorkerEnvironmentName) {
+						// As the Vite plugin's fallback build for the prerender Worker.
+						await fsp.mkdir(assetsDir, { recursive: true });
 					}
 				}
 				if (importedAssets) {
@@ -689,7 +698,13 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 						});
 					} else if (worker.directoryName === DEFAULT_WORKER_DIRECTORY_NAME) {
 						// `assetsOnly`: the entry Worker runs in dev but deploys as assets.
-						if (!fs.existsSync(assetsDir)) {
+						// As in the Vite plugin, a client is built for a client entry,
+						// public assets or the prerender Worker.
+						if (
+							!hasClient &&
+							!publicDirs.some(getHasPublicAssets) &&
+							!resolvedPluginConfig.prerenderWorkerEnvironmentName
+						) {
 							throw new Error(
 								"If `assetsOnly` is set to `true`, the client environment must be built"
 							);
@@ -866,6 +881,21 @@ function getFallbackClientConfig(): EnvironmentConfig {
 		},
 		performance: { printFileSize: false },
 	};
+}
+
+/**
+ * Whether a public directory has files, as the Vite plugin's
+ * `getHasPublicAssets` checks.
+ *
+ * @param publicDir The absolute path of the public directory.
+ * @returns Whether the directory exists and isn't empty.
+ */
+function getHasPublicAssets(publicDir: string): boolean {
+	try {
+		return fs.readdirSync(publicDir).length > 0;
+	} catch {
+		return false;
+	}
 }
 
 /**

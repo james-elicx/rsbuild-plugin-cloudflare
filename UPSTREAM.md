@@ -57,7 +57,7 @@ repository stays in sync, and what to do when a sync fails.
   | `nodeJsCompatPlugin`, `nodeJsCompatWarningsPlugin` (`plugins/nodejs-compat.ts`) | The externals and `nodeJsCompatPlugin` (`worker-environment.ts`)                                                                                        |
   | `previewPlugin` (`plugins/preview.ts`)                                          | `server.setup`, which calls `setUpPreviewServer` (`index.ts`)                                                                                           |
   | `buildOutputPlugin` (`plugins/build-output.ts`)                                 | `onAfterEnvironmentCompile` and `onAfterBuild` (`index.ts`)                                                                                             |
-  | `getHasPublicAssets`, `fallbackBuild`, `getImportedAssetPaths` (`build.ts`)     | `getFallbackClientConfig` and `onAfterBuild` (`index.ts`), and `getImportedAssetPaths` (`worker-environment.ts`)                                        |
+  | `getHasPublicAssets`, `fallbackBuild`, `getImportedAssetPaths` (`build.ts`)     | `getFallbackClientConfig`, `getHasPublicAssets` and `onAfterBuild` (`index.ts`), and `getImportedAssetPaths` (`worker-environment.ts`)                  |
   | `getDevMiniflareOptions` (`miniflare-options.ts`)                               | `getDevMiniflareOptions` (`miniflare-options.ts`), which removes the module runner's bindings from its result, and `createDevServer` (`vite-server.ts`) |
   | `getPreviewMiniflareOptions` (`miniflare-options.ts`)                           | `createPreviewServer` (`vite-server.ts`), which stands in for the Vite preview server that it reads                                                     |
 
