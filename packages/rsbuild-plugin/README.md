@@ -2,7 +2,8 @@
 
 An experimental [Rsbuild](https://rsbuild.rs) plugin for Cloudflare Workers. It
 runs your Workers in workerd during `rsbuild dev` and `rsbuild preview`, and
-builds them, with your client assets, during `rsbuild build`.
+builds them, with your client assets, during `rsbuild build` into a Cloudflare
+Build Output that you can deploy with `cf deploy --prebuilt`.
 
 It's built on the internals of
 [`@cloudflare/vite-plugin`](https://developers.cloudflare.com/workers/vite-plugin/),
