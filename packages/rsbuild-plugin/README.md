@@ -112,6 +112,9 @@ Other differences:
   extension, apart from Rsbuild's HMR path and paths starting with `/__` or
   `/rsbuild-`) and sends them to the Workers. These requests reach the Workers
   before Rsbuild's `server.proxy`.
+- In dev, Rsbuild also serves the Worker environments' output (e.g.
+  `/index.js` and `/index.js.map`), as it serves the assets of every
+  `web-worker` environment.
 - When workerd restarts, the Vite plugin restarts the dev server; the Rsbuild
   bundles don't depend on workerd's state, so the plugin doesn't.
 - Setting `output.externals` (other than Node.js built-ins) for a Worker's
