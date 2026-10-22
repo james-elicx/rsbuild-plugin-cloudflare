@@ -14,7 +14,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-utils": "link:../../workers-sdk/packages/workers-utils",
-		"@rsbuild/core": "^2.2.13",
+		"@rsbuild/core": "^2.2.14",
 		"@rsbuild/plugin-basic-ssl": "^2.0.0",
 		"@rsbuild/plugin-react": "^2.1.1",
 		"@types/node": "22.15.17",
