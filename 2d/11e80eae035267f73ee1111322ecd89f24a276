@@ -1,0 +1,29 @@
+packages/rsbuild-plugin/README.md
+  s_3ce1770c226aa0::t_81bb6b7c2bf61b 129-131
+packages/rsbuild-plugin/src/__tests__/spa-with-api.spec.ts
+  s_3ce1770c226aa0::t_1fdb0679e9ac75 77-97
+packages/rsbuild-plugin/src/__tests__/worker.spec.ts
+  s_3ce1770c226aa0::t_7f4fcb81405c6a 135-138
+packages/rsbuild-plugin/src/index.ts
+  s_3ce1770c226aa0::t_c47294292cc6c6 283-288,292,809-832
+  s_3ce1770c226aa0::t_cb1e7744defd42 685-689
+packages/rsbuild-plugin/src/__tests__/config.spec.ts
+  s_3ce1770c226aa0::t_4538c1f31d006b 74-96
+  s_3ce1770c226aa0::t_82ba2f47816080 36,47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2d11e80eae035267f73ee1111322ecd89f24a276",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
