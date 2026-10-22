@@ -1,12 +1,13 @@
 diff --git a/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts b/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts
-index e99e5f58e..51b4ecc31 100644
+index e99e5f58e..1144813db 100644
 --- a/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts
 +++ b/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts
-@@ -15,6 +15,11 @@ import {
+@@ -15,6 +15,12 @@ import {
  	WORKER_ENTRY_PATH_HEADER,
  } from "./shared";
  import { debuglog, getOutputDirectory, isRolldown } from "./utils";
 +import {
++	cloudflareBuiltInModules,
 +	defaultConditions,
 +	getProcessEnvReplacements,
 +	resolveExtensions,
@@ -14,16 +15,24 @@ index e99e5f58e..51b4ecc31 100644
  import type { ExportTypes } from "./export-types";
  import type {
  	ResolvedWorkerConfig,
-@@ -195,8 +200,6 @@ export const cloudflareBuiltInModules = [
- 	"cloudflare:workflows",
- ];
+@@ -187,16 +193,6 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
+ 	}
+ }
  
+-export const cloudflareBuiltInModules = [
+-	"cloudflare:email",
+-	"cloudflare:node",
+-	"cloudflare:sockets",
+-	"cloudflare:workers",
+-	"cloudflare:workflows",
+-];
+-
 -const defaultConditions = ["workerd", "worker", "module", "browser"];
 -
  // workerd runs every es2026 feature natively, including `using` and `await using`.
  // Oxc (Vite 8) accepts an es2026 target, so it leaves them as written instead of
  // lowering them to `_usingCtx` helpers. esbuild (Vite 6 and 7) has no es2026
-@@ -213,20 +216,6 @@ const cssTarget = "es2024";
+@@ -213,20 +209,6 @@ const cssTarget = "es2024";
  // it as written. Kept in step with Wrangler's COMMON_ESBUILD_OPTIONS.
  const esbuildSupported = { using: true };
  
@@ -44,7 +53,7 @@ index e99e5f58e..51b4ecc31 100644
  /**
   * Worker source maps are written to the Worker's build output rather than its
   * public assets, so emit them by default for readable stack traces. Users can
-@@ -376,35 +365,6 @@ export function createCloudflareEnvironmentOptions({
+@@ -376,35 +358,6 @@ export function createCloudflareEnvironmentOptions({
  	};
  }
  
@@ -80,14 +89,42 @@ index e99e5f58e..51b4ecc31 100644
  /**
   * On Vite 6 and 7, Vite's `vite:esbuild-transpile` build plugin lowers each
   * chunk to `build.target` with the top-level `esbuild` options. Those options
+diff --git a/packages/vite-plugin-cloudflare/src/plugins/config.ts b/packages/vite-plugin-cloudflare/src/plugins/config.ts
+index 47d6575ce..3ff3024cf 100644
+--- a/packages/vite-plugin-cloudflare/src/plugins/config.ts
++++ b/packages/vite-plugin-cloudflare/src/plugins/config.ts
+@@ -8,7 +8,6 @@ import { normalizePath } from "vite";
+ import { createBuildApp } from "../build";
+ import {
+ 	applyWorkerEsbuildSupported,
+-	cloudflareBuiltInModules,
+ 	createCloudflareEnvironmentOptions,
+ } from "../cloudflare-environment";
+ import { assertIsNotPreview } from "../context";
+@@ -18,6 +17,7 @@ import {
+ } from "../plugin-config";
+ import { createPlugin, getOutputDirectory } from "../utils";
+ import { validateWorkerEnvironmentOptions } from "../vite-config";
++import { cloudflareBuiltInModules } from "../worker-environment-options";
+ import { getServerWatchConfig } from "./cloudflare-watch-ignore";
+ import type { PluginContext } from "../context";
+ import type { EnvironmentOptions, UserConfig } from "vite";
 diff --git a/packages/vite-plugin-cloudflare/src/worker-environment-options.ts b/packages/vite-plugin-cloudflare/src/worker-environment-options.ts
 new file mode 100644
-index 000000000..dd6a92e84
+index 000000000..520c3ebfe
 --- /dev/null
 +++ b/packages/vite-plugin-cloudflare/src/worker-environment-options.ts
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,55 @@
 +// The Worker environments' resolve and `define` options, which don't depend on
 +// Vite so that other bundler integrations can share them.
++
++export const cloudflareBuiltInModules = [
++	"cloudflare:email",
++	"cloudflare:node",
++	"cloudflare:sockets",
++	"cloudflare:workers",
++	"cloudflare:workflows",
++];
 +
 +export const defaultConditions = ["workerd", "worker", "module", "browser"];
 +

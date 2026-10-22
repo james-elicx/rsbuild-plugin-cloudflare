@@ -22,12 +22,12 @@ repository stays in sync, and what to do when a sync fails.
   - `0004-vite-plugin-export-internals.patch`: exports the additional-module
     helpers and `wasmInitRE`, which the plugin imports instead of copying.
   - `0005-vite-plugin-share-worker-environment-options.patch`: moves the
-    Worker environments' export conditions, resolve extensions and
-    `process.env` replacements to a module that doesn't import Vite, so that
-    the plugin can import them.
-  - `0006-vite-plugin-share-cloudflare-built-in-modules.patch`: moves
-    `cloudflareBuiltInModules` to the same module, so that the plugin
-    externalizes the same `cloudflare:` built-in modules.
+    Worker environments' export conditions (`defaultConditions`), resolve
+    extensions (`resolveExtensions`), `process.env` replacements
+    (`getProcessEnvReplacements`) and `cloudflare:` built-in modules
+    (`cloudflareBuiltInModules`) to a module that doesn't import Vite
+    (`worker-environment-options.ts`), so that the plugin resolves, defines
+    and externalizes the same way as the Vite plugin.
 
   Keep them small, and propose them upstream where they make sense; each one
   that lands upstream can be deleted.
