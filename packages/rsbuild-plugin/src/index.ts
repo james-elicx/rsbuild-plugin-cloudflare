@@ -678,6 +678,11 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 						});
 					} else if (worker.directoryName === DEFAULT_WORKER_DIRECTORY_NAME) {
 						// `assetsOnly`: the entry Worker runs in dev but deploys as assets.
+						if (!fs.existsSync(assetsDir)) {
+							throw new Error(
+								"If `assetsOnly` is set to `true`, the client environment must be built"
+							);
+						}
 						await writeWorkerConfig({
 							root,
 							config: worker.config,
