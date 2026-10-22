@@ -1,0 +1,29 @@
+UPSTREAM.md
+  s_b889283533877b::t_4392e6bdcb6587 25-30
+patches/0005-vite-plugin-share-worker-environment-options.patch
+  s_3ce1770c226aa0::t_7c89e771081bb2 2,5,10,18-20,22-29,35,56,92-111,114,117,121-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "284affdb636699c4dca7df7f68341d74985ed184",
+  "prompts": {},
+  "sessions": {
+    "s_3ce1770c226aa0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aa0d7fc-f6fa-486a-a9d4-ae1cb9c710b0",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    },
+    "s_b889283533877b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "51c85a7c-79fa-4ca1-a28d-178178fd329a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
