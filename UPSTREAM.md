@@ -43,18 +43,27 @@ repository stays in sync, and what to do when a sync fails.
   `scripts/upstream-mirrors.json` records their hashes in the same way, so
   `pnpm check:copied-code` also fails when one of them changes:
 
-  | Upstream declaration                                                            | The plugin's counterpart                                                     |
-  | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-  | `configPlugin` (`plugins/config.ts`)                                            | `modifyRsbuildConfig` and `modifyEnvironmentConfig` (`index.ts`)             |
-  | `createCloudflareEnvironmentOptions` (`cloudflare-environment.ts`)              | `getWorkerEnvironmentConfig` (`worker-environment.ts`)                       |
-  | `virtualModulesPlugin` (`plugins/virtual-modules.ts`)                           | `getWorkerEntry` (`worker-environment.ts`)                                   |
-  | `additionalModulesPlugin` (`plugins/additional-modules.ts`)                     | The externals and `additionalModulesPlugin` (`worker-environment.ts`)        |
-  | `nodeJsCompatPlugin`, `nodeJsCompatWarningsPlugin` (`plugins/nodejs-compat.ts`) | The externals and `nodeJsCompatPlugin` (`worker-environment.ts`)             |
-  | `previewPlugin` (`plugins/preview.ts`)                                          | `onBeforeStartPreviewServer` (`index.ts`)                                    |
-  | `buildOutputPlugin` (`plugins/build-output.ts`)                                 | `onBeforeBuild`, `onAfterEnvironmentCompile` and `onAfterBuild` (`index.ts`) |
+  | Upstream declaration                                                            | The plugin's counterpart                                                                                                                                |
+  | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | `cloudflare` (`index.ts`), which lists the sub-plugins                          | `cloudflare` (`index.ts`), which reproduces their hooks                                                                                                 |
+  | `configPlugin` (`plugins/config.ts`)                                            | `modifyRsbuildConfig` and `modifyEnvironmentConfig` (`index.ts`)                                                                                        |
+  | `getEnvironmentsConfig`, `forceBuildOutputDirs` (`plugins/config.ts`)           | The `environments` set in `modifyRsbuildConfig`, and the output directories set in `modifyEnvironmentConfig` (`index.ts`)                               |
+  | `validateWorkerEnvironmentOptions` (`vite-config.ts`)                           | The `output.externals` warning in `modifyRsbuildConfig` (`index.ts`)                                                                                    |
+  | `createCloudflareEnvironmentOptions` (`cloudflare-environment.ts`)              | `getWorkerEnvironmentConfig` (`worker-environment.ts`)                                                                                                  |
+  | `getWorkerSourcemap` (`cloudflare-environment.ts`)                              | `output.sourceMap` in `getWorkerEnvironmentConfig` (`worker-environment.ts`)                                                                            |
+  | `virtualModulesPlugin` (`plugins/virtual-modules.ts`)                           | `getWorkerEntry` (`worker-environment.ts`)                                                                                                              |
+  | `additionalModulesPlugin` (`plugins/additional-modules.ts`)                     | The externals and `additionalModulesPlugin` (`worker-environment.ts`)                                                                                   |
+  | `nodeJsAlsPlugin` (`plugins/nodejs-compat.ts`)                                  | The `isNodeAls` externals (`worker-environment.ts`)                                                                                                     |
+  | `nodeJsCompatPlugin`, `nodeJsCompatWarningsPlugin` (`plugins/nodejs-compat.ts`) | The externals and `nodeJsCompatPlugin` (`worker-environment.ts`)                                                                                        |
+  | `previewPlugin` (`plugins/preview.ts`)                                          | `onBeforeStartPreviewServer` (`index.ts`)                                                                                                               |
+  | `buildOutputPlugin` (`plugins/build-output.ts`)                                 | `onBeforeBuild`, `onAfterEnvironmentCompile` and `onAfterBuild` (`index.ts`)                                                                            |
+  | `getHasPublicAssets`, `fallbackBuild`, `getImportedAssetPaths` (`build.ts`)     | The copy of the public directory in `onAfterBuild` (`index.ts`), and `getImportedAssetPaths` (`worker-environment.ts`)                                  |
+  | `getDevMiniflareOptions` (`miniflare-options.ts`)                               | `getDevMiniflareOptions` (`miniflare-options.ts`), which removes the module runner's bindings from its result, and `createDevServer` (`vite-server.ts`) |
+  | `getPreviewMiniflareOptions` (`miniflare-options.ts`)                           | `createPreviewServer` (`vite-server.ts`), which stands in for the Vite preview server that it reads                                                     |
 
   `devPlugin`, which also holds the static routing selection that
-  `onBeforeStartDevServer` reproduces, is already tracked as a copy's source.
+  `onBeforeStartDevServer` reproduces, and `createBuildApp` (`build.ts`) are
+  already tracked as copies' sources.
   The hashes are of the patched submodule, as `pnpm setup:upstream` leaves it.
 
 - **Dependencies:** `pnpm check:upstream-deps` checks that the plugin's runtime
