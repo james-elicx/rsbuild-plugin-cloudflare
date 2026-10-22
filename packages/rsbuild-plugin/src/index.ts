@@ -16,7 +16,7 @@ import {
 	getDevVarsCandidatePaths,
 	getEnvPaths,
 } from "@cloudflare/workers-utils/local-env";
-import { buildPublicUrl, CoreHeaders } from "miniflare";
+import { CoreHeaders } from "miniflare";
 import { isPreviewBuild } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/build-output-env";
 import {
 	assertIsNotPreview,
@@ -394,7 +394,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			api.onBeforeStartDevServer(({ server, environments }) => {
 				devServer = server;
 				environmentContexts = environments;
-				serverConfig = getServerConfig(api.getNormalizedConfig());
+				serverConfig = getServerConfig(api.getNormalizedConfig(), server);
 				const hmrPath = api.getNormalizedConfig().dev.client.path;
 				assertIsNotPreview(ctx);
 				const debugMiddleware = createDebugMiddleware(
@@ -463,23 +463,10 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				};
 			});
 
-			api.onAfterStartDevServer(({ port }) => {
+			api.onAfterStartDevServer(() => {
 				devServerListening = true;
 				if (printUrls) {
 					devServer?.printUrls();
-				}
-				if (serverConfig) {
-					// Rsbuild may have chosen another port.
-					serverConfig.port = port;
-					void firstStart.then(() => {
-						if (!miniflareError && serverConfig) {
-							ctx.miniflare.publicUrl = buildPublicUrl({
-								hostname: serverConfig.host,
-								port,
-								secure: serverConfig.https,
-							});
-						}
-					});
 				}
 			});
 
@@ -576,7 +563,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			async function setUpPreviewServer(
 				server: RsbuildPreviewServer
 			): Promise<void> {
-				const config = getServerConfig(api.getNormalizedConfig());
+				const config = getServerConfig(api.getNormalizedConfig(), server);
 				const { miniflareOptions, containerOptions } =
 					await getPreviewMiniflareOptions(
 						ctx as PreviewPluginContext,
@@ -600,19 +587,6 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				}
 				const { httpServer } = server;
 				if (httpServer) {
-					// As in the Vite plugin, Rsbuild may listen on another port than the
-					// configured one (e.g. port 0), so update Miniflare's public URL once
-					// it listens.
-					httpServer.on("listening", () => {
-						const address = httpServer.address();
-						if (typeof address === "object" && address !== null) {
-							ctx.miniflare.publicUrl = buildPublicUrl({
-								hostname: config.host,
-								port: address.port,
-								secure: config.https,
-							});
-						}
-					});
 					handleWebSocket(toViteHttpServer(httpServer), ctx.miniflare);
 				}
 				// As in the Vite plugin, put the middleware before Rsbuild's so that
@@ -803,11 +777,23 @@ function toViteWorkerOptions<T extends RsbuildEnvironmentOptions>({
 	};
 }
 
-/** Gets the server settings that the Vite plugin's internals read. */
-function getServerConfig({ server }: NormalizedConfig): ServerConfig {
+/**
+ * Gets the server settings that the Vite plugin's internals read.
+ *
+ * @param config Rsbuild's normalized config.
+ * @param server The dev or preview server, if it has been created.
+ * @returns The server settings.
+ */
+function getServerConfig(
+	{ server }: NormalizedConfig,
+	{ port }: { port: number } = server
+): ServerConfig {
 	return {
 		host: server.host,
-		port: server.port,
+		// Unlike Vite, Rsbuild resolves the port that the server listens on (e.g.
+		// when the configured port is 0 or taken) before creating it, so Workers
+		// get the server's URL from the start.
+		port,
 		https: !!server.https,
 		headers: server.headers ?? {},
 	};
