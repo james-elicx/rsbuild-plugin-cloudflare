@@ -7,7 +7,7 @@ import {
 	startDevServer,
 	startPreviewServer,
 } from "./helpers";
-import type { RsbuildConfig } from "@rsbuild/core";
+import type { RsbuildConfig, RsbuildPlugin } from "@rsbuild/core";
 
 // Mirrors the fixture's `rsbuild.config.ts`.
 const config: RsbuildConfig = {
@@ -120,5 +120,37 @@ describe("spa-with-api", () => {
 		const fallback = await fetch(new URL("/some/route", url));
 		expect(fallback.headers.get("x-from-worker")).toBe("true");
 		expect(await fallback.text()).toBe(html);
+	});
+
+	test("doesn't build an `assetsOnly` Worker's environment as a client", async ({
+		expect,
+	}) => {
+		const root = copyFixture("spa-with-api");
+		let environmentNames: string[] = [];
+		const recordEnvironments: RsbuildPlugin = {
+			name: "record-environments",
+			setup(api) {
+				api.onBeforeBuild(({ environments }) => {
+					environmentNames = Object.keys(environments);
+				});
+			},
+		};
+
+		await build(
+			root,
+			{
+				...config,
+				environments: { cloudflare: { output: { minify: true } } },
+				plugins: [recordEnvironments],
+			},
+			{ assetsOnly: true }
+		);
+
+		expect(environmentNames).toEqual(["web"]);
+		const workerDir = path.join(root, ".cloudflare/output/v0/workers/default");
+		expect(fs.existsSync(path.join(workerDir, "assets", "index.html"))).toBe(
+			true
+		);
+		expect(fs.existsSync(path.join(workerDir, "bundle"))).toBe(false);
 	});
 });
