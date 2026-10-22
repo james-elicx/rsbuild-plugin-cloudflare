@@ -35,6 +35,7 @@ import {
 	toMiniflareRequest,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/utils";
 import { handleWebSocket } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/websockets";
+import { resolveExtensions } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/worker-environment-options";
 import { getDevMiniflareOptions } from "./miniflare-options";
 import {
 	createDebugMiddleware,
@@ -848,11 +849,17 @@ function hasDefaultClientEntry(
 	const entry = ["ts", "js", "tsx", "jsx", "mts", "cts", "mjs", "cjs"]
 		.map((extension) => path.join(root, `src/index.${extension}`))
 		.find((file) => fs.statSync(file, { throwIfNoEntry: false })?.isFile());
+	// Relative entrypoints may omit the extension, which Workers resolve with
+	// these extensions.
 	return (
 		entry !== undefined &&
-		[...workers].every(
-			({ config }) => path.resolve(root, config.entrypoint) !== entry
-		)
+		[...workers].every(({ config }) => {
+			const entrypoint = path.resolve(root, config.entrypoint);
+			return ![
+				entrypoint,
+				...resolveExtensions.map((ext) => entrypoint + ext),
+			].includes(entry);
+		})
 	);
 }
 
