@@ -97,6 +97,47 @@ describe("spa-with-api", () => {
 		expect(fs.readdirSync(cssDir)).toEqual([path.basename(stylesheet)]);
 	});
 
+	test("builds and serves the client from Rsbuild's default entry when `index.html` exists", async ({
+		expect,
+	}) => {
+		const root = copyFixture("spa-with-api");
+		fs.writeFileSync(
+			path.join(root, "index.html"),
+			"<!doctype html><html><body></body></html>\n"
+		);
+
+		const url = await startDevServer(root);
+		expect(await (await fetch(url)).text()).toContain(
+			'src="/static/js/index.js"'
+		);
+
+		await build(root);
+		expect(
+			fs.existsSync(
+				path.join(
+					root,
+					".cloudflare/output/v0/workers/default/assets/index.html"
+				)
+			)
+		).toBe(true);
+	});
+
+	test("doesn't build a client from Rsbuild's default entry without `index.html`", async ({
+		expect,
+	}) => {
+		const root = copyFixture("spa-with-api");
+
+		await build(root);
+
+		// The assets directory only has the stylesheet that the Worker imports.
+		const assetsDir = path.join(
+			root,
+			".cloudflare/output/v0/workers/default/assets"
+		);
+		expect(fs.existsSync(path.join(assetsDir, "index.html"))).toBe(false);
+		expect(fs.existsSync(path.join(assetsDir, "static", "js"))).toBe(false);
+	});
+
 	test("previews the Build Output with assets served by workerd", async ({
 		expect,
 	}) => {

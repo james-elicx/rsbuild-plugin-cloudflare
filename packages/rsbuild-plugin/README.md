@@ -132,6 +132,11 @@ Other differences:
   Rsbuild uses an environment's settings over the top-level ones. Set them in
   `environments.<name>` instead. The top-level `output.sourceMap`, and the
   `output.minify` setting for CSS, do apply.
+- Without `source.entry` or client environments, a client is built from
+  Rsbuild's default entry (`src/index.*`) only when `index.html` exists at the
+  project root, where Vite builds one whenever `index.html` exists. The default
+  entry mustn't be a Worker's entrypoint. Rsbuild doesn't use that `index.html`
+  as the page's template unless `html.template` is set to it.
 - `devOnly` and `assetsOnly` functions are called when the config is resolved,
   to choose the Worker environments to build, rather than lazily at build time.
 - Additional modules (e.g. `.wasm` and `.txt` imports) are emitted at the root
