@@ -555,7 +555,8 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 							{ manifests, html: htmlHandlers }
 						);
 					if (containerOptions) {
-						logger.warn(CONTAINERS_WARNING);
+						// As in the Vite plugin, once per dev server rather than on every update.
+						logger.warnOnce(CONTAINERS_WARNING);
 					}
 					await startOrUpdateMiniflare(miniflareOptions);
 					miniflareError = undefined;

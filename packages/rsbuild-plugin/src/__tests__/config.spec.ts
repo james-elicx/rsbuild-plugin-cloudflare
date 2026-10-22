@@ -20,6 +20,47 @@ function createWarningLogger(): {
 	return { logger, warn };
 }
 
+/**
+ * Copies the `worker` fixture with a Container-backed Durable Object.
+ *
+ * @returns The path of the copy.
+ */
+function copyContainersFixture(): string {
+	const root = copyFixture("worker");
+	fs.writeFileSync(path.join(root, "Dockerfile"), "FROM scratch\n");
+	fs.writeFileSync(
+		path.join(root, "src", "container.ts"),
+		[
+			'import { DurableObject } from "cloudflare:workers";',
+			"export class AppContainer extends DurableObject {}",
+			"export default { fetch: () => new Response() } satisfies ExportedHandler;",
+		].join("\n")
+	);
+	fs.writeFileSync(
+		path.join(root, "cloudflare.config.ts"),
+		[
+			'import { defineConfig, defineContainer, exports } from "cf/config";',
+			'import * as entrypoint from "./src/container.ts" with { type: "cf-worker" };',
+			"const container = defineContainer({",
+			'	name: "app",',
+			'	image: { dockerfile: "./Dockerfile" },',
+			"});",
+			"export default defineConfig({",
+			"	worker: {",
+			'		name: "containers",',
+			"		entrypoint,",
+			'		compatibilityDate: "2025-06-01",',
+			"		exports: {",
+			'			AppContainer: exports.durableObject({ storage: "sqlite", container }),',
+			"		},",
+			"	},",
+			"	containers: [container],",
+			"});",
+		].join("\n")
+	);
+	return root;
+}
+
 describe("config", () => {
 	test("rejects a Worker environment named `web`", async ({ expect }) => {
 		await expect(
@@ -30,38 +71,7 @@ describe("config", () => {
 	test("warns in a build that Containers aren't supported", async ({
 		expect,
 	}) => {
-		const root = copyFixture("worker");
-		fs.writeFileSync(path.join(root, "Dockerfile"), "FROM scratch\n");
-		fs.writeFileSync(
-			path.join(root, "src", "container.ts"),
-			[
-				'import { DurableObject } from "cloudflare:workers";',
-				"export class AppContainer extends DurableObject {}",
-				"export default { fetch: () => new Response() } satisfies ExportedHandler;",
-			].join("\n")
-		);
-		fs.writeFileSync(
-			path.join(root, "cloudflare.config.ts"),
-			[
-				'import { defineConfig, defineContainer, exports } from "cf/config";',
-				'import * as entrypoint from "./src/container.ts" with { type: "cf-worker" };',
-				"const container = defineContainer({",
-				'	name: "app",',
-				'	image: { dockerfile: "./Dockerfile" },',
-				"});",
-				"export default defineConfig({",
-				"	worker: {",
-				'		name: "containers",',
-				"		entrypoint,",
-				'		compatibilityDate: "2025-06-01",',
-				"		exports: {",
-				'			AppContainer: exports.durableObject({ storage: "sqlite", container }),',
-				"		},",
-				"	},",
-				"	containers: [container],",
-				"});",
-			].join("\n")
-		);
+		const root = copyContainersFixture();
 		const { logger, warn } = createWarningLogger();
 
 		await build(root, { customLogger: logger });
@@ -69,6 +79,35 @@ describe("config", () => {
 		expect(warn).toHaveBeenCalledWith(
 			expect.stringContaining("Containers aren't supported")
 		);
+	});
+
+	test("warns once in dev that Containers aren't supported", async ({
+		expect,
+	}) => {
+		const root = copyContainersFixture();
+		const { logger, warn } = createWarningLogger();
+		const url = await startDevServer(root, { customLogger: logger });
+		expect(await (await fetch(url)).text()).toBe("");
+
+		const entrypoint = path.join(root, "src", "container.ts");
+		fs.writeFileSync(
+			entrypoint,
+			fs
+				.readFileSync(entrypoint, "utf8")
+				.replace("new Response()", 'new Response("updated")')
+		);
+		await vi.waitFor(
+			async () => {
+				expect(await (await fetch(url)).text()).toBe("updated");
+			},
+			{ timeout: 10_000, interval: 100 }
+		);
+
+		expect(
+			warn.mock.calls.filter(([message]) =>
+				String(message).includes("Containers aren't supported")
+			)
+		).toHaveLength(1);
 	});
 
 	test("fails a build with `assetsOnly` and no client", async ({ expect }) => {
