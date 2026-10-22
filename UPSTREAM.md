@@ -43,7 +43,7 @@ repository stays in sync, and what to do when a sync fails.
   | Upstream declaration                                                            | The plugin's counterpart                                                                                                                                |
   | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
   | `cloudflare` (`index.ts`), which lists the sub-plugins                          | `cloudflare` (`index.ts`), which reproduces their hooks                                                                                                 |
-  | `configPlugin` (`plugins/config.ts`)                                            | `modifyRsbuildConfig` and `modifyEnvironmentConfig` (`index.ts`)                                                                                        |
+  | `configPlugin` (`plugins/config.ts`)                                            | `modifyRsbuildConfig`, `modifyEnvironmentConfig` and `onBeforeBuild` (`index.ts`)                                                                       |
   | `getEnvironmentsConfig`, `forceBuildOutputDirs` (`plugins/config.ts`)           | The `environments` set in `modifyRsbuildConfig`, and the output directories set in `modifyEnvironmentConfig` (`index.ts`)                               |
   | `validateWorkerEnvironmentOptions` (`vite-config.ts`)                           | The `output.externals` warning in `modifyRsbuildConfig` (`index.ts`)                                                                                    |
   | `createCloudflareEnvironmentOptions` (`cloudflare-environment.ts`)              | `getWorkerEnvironmentConfig` (`worker-environment.ts`)                                                                                                  |
@@ -53,7 +53,7 @@ repository stays in sync, and what to do when a sync fails.
   | `nodeJsAlsPlugin` (`plugins/nodejs-compat.ts`)                                  | The `isNodeAls` externals (`worker-environment.ts`)                                                                                                     |
   | `nodeJsCompatPlugin`, `nodeJsCompatWarningsPlugin` (`plugins/nodejs-compat.ts`) | The externals and `nodeJsCompatPlugin` (`worker-environment.ts`)                                                                                        |
   | `previewPlugin` (`plugins/preview.ts`)                                          | `server.setup`, which calls `setUpPreviewServer` (`index.ts`)                                                                                           |
-  | `buildOutputPlugin` (`plugins/build-output.ts`)                                 | `onBeforeBuild`, `onAfterEnvironmentCompile` and `onAfterBuild` (`index.ts`)                                                                            |
+  | `buildOutputPlugin` (`plugins/build-output.ts`)                                 | `onAfterEnvironmentCompile` and `onAfterBuild` (`index.ts`)                                                                                             |
   | `getHasPublicAssets`, `fallbackBuild`, `getImportedAssetPaths` (`build.ts`)     | The copy of the public directory in `onAfterBuild` (`index.ts`), and `getImportedAssetPaths` (`worker-environment.ts`)                                  |
   | `getDevMiniflareOptions` (`miniflare-options.ts`)                               | `getDevMiniflareOptions` (`miniflare-options.ts`), which removes the module runner's bindings from its result, and `createDevServer` (`vite-server.ts`) |
   | `getPreviewMiniflareOptions` (`miniflare-options.ts`)                           | `createPreviewServer` (`vite-server.ts`), which stands in for the Vite preview server that it reads                                                     |
@@ -69,8 +69,8 @@ repository stays in sync, and what to do when a sync fails.
   Node.js and pnpm versions (including CI's Node.js version) are
   workers-sdk's.
 - **Skip lists:** `packages/test-harness/vitest.playground.config.ts` and
-  `vitest.e2e.config.ts` skip the upstream tests of Vite-specific behaviour,
-  each with a reason.
+  `vitest.e2e.config.ts` skip the upstream tests of Vite-specific behaviour
+  and of features that the plugin doesn't support yet, each with a reason.
 
 ## The daily sync
 
@@ -89,7 +89,8 @@ optional ref:
    the ranges are listed in the pull request, to update by hand.
 4. The branch is pushed to a pull request to `main`.
 5. CI (`ci.yml`) runs against the pushed commit: checks, unit tests, the
-   playground suite (serve and build) and the e2e suite.
+   playground suite (serve and build), the e2e suite and this repository's
+   e2e apps (dev and preview).
 6. When CI passes, the pull request is rebase-merged into `main`. Otherwise a
    comment on the pull request links to the failed run, and the pull request
    stays open for fixes.

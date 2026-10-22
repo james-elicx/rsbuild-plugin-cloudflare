@@ -41,7 +41,8 @@ change that exposes what the plugin needs.
   that the glue and adapters still behave like the Vite plugin. After the
   submodule moves, or when changing them, follow the `check-upstream-alignment`
   skill (`.claude/skills/check-upstream-alignment/SKILL.md`).
-- **Skip upstream tests only for Vite-specific behaviour**, with a reason, in
+- **Skip upstream tests only for Vite-specific behaviour**, or for features
+  that the README lists as unsupported, with a reason, in
   `packages/test-harness/vitest.playground.config.ts` or
   `vitest.e2e.config.ts`.
 - **Dependencies follow upstream.** The plugin's runtime dependencies are the
