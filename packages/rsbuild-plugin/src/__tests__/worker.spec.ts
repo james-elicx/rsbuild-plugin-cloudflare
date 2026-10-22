@@ -211,6 +211,20 @@ describe("worker", () => {
 		).toContain("from rsbuild + workerd");
 	});
 
+	test.for([false, { js: false }] as const)(
+		"doesn't emit source maps with the top-level `output.sourceMap: %o`",
+		async (sourceMap, { expect }) => {
+			const root = copyFixture("worker");
+
+			await build(root, { output: { sourceMap } });
+
+			const { workers } = await readBuildOutput(root);
+			expect(
+				Object.keys(workers.default?.config.manifest?.modules ?? {})
+			).toEqual(["index.js"]);
+		}
+	);
+
 	test("writes the Worker to the Build Output whatever its output directory", async ({
 		expect,
 	}) => {
