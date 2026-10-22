@@ -321,6 +321,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 											root,
 											mode,
 											userConfig,
+											name,
 											nodeJsCompatWarnings.get(name)
 										),
 										userConfig.environments?.[name] ?? {}

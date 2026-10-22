@@ -18,6 +18,17 @@ function unsetNodeEnv() {
 	});
 }
 
+/** Changes the entrypoint that the fixture's `cloudflare.config.ts` imports. */
+function setEntrypoint(root: string, entrypoint: string) {
+	const configPath = path.join(root, "cloudflare.config.ts");
+	fs.writeFileSync(
+		configPath,
+		fs
+			.readFileSync(configPath, "utf8")
+			.replace('"./src/index.ts"', JSON.stringify(entrypoint))
+	);
+}
+
 describe("worker", () => {
 	test("runs the Worker in workerd during dev", async ({ expect }) => {
 		unsetNodeEnv();
@@ -37,6 +48,35 @@ describe("worker", () => {
 		expect(await get("/extensions")).toBe(".mts .cjs");
 		expect(await get("/dynamic-import")).toBe("lazy chunk");
 		expect(await get("/secret")).toBe("from-dev-vars");
+	});
+
+	test.for([
+		{ entrypoint: "./src/index", description: "without its extension" },
+		{ entrypoint: "~/index", description: "with an alias" },
+	])(
+		"resolves the Worker's entrypoint $description",
+		async ({ entrypoint }, { expect }) => {
+			const root = copyFixture("worker");
+			setEntrypoint(root, entrypoint);
+			const url = await startDevServer(root, {
+				resolve: { alias: { "~": path.join(root, "src") } },
+			});
+
+			expect(await (await fetch(url)).text()).toBe(
+				"Hello from rsbuild + workerd"
+			);
+		}
+	);
+
+	test("fails to start when the Worker's entrypoint doesn't resolve", async ({
+		expect,
+	}) => {
+		const root = copyFixture("worker");
+		setEntrypoint(root, "./src/missing");
+
+		await expect(startDevServer(root)).rejects.toThrow(
+			/^Failed to resolve Worker entrypoint ".+missing" for environment "cloudflare"$/
+		);
 	});
 
 	test("applies the Worker's environment config once", async ({ expect }) => {

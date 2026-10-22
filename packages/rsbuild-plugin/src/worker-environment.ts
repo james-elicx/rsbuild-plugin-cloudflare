@@ -55,6 +55,7 @@ export const WORKER_ENTRY_NAME = "index";
  * @param root The project root.
  * @param mode The mode, which `process.env.NODE_ENV` falls back to.
  * @param userConfig The user's Rsbuild config.
+ * @param environmentName The Worker environment's name.
  * @param nodeJsCompatWarnings Collects the Worker's Node.js imports when it
  * doesn't have Node.js compat.
  * @returns An Rsbuild environment config.
@@ -64,6 +65,7 @@ export function getWorkerEnvironmentConfig(
 	root: string,
 	mode: string,
 	userConfig: RsbuildConfig,
+	environmentName: string,
 	nodeJsCompatWarnings?: NodeJsCompatWarnings
 ): EnvironmentConfig {
 	const { config, directoryName, nodeJsCompat } = worker;
@@ -201,6 +203,7 @@ export function getWorkerEnvironmentConfig(
 				module: { parser: { javascript: { exportsPresence: "warn" } } },
 				plugins: [
 					...(nodeJsCompat ? [nodeJsCompatPlugin(nodeJsCompat)] : []),
+					entrypointPlugin(config, root, environmentName),
 					wasmInitPlugin(),
 					additionalModulesPlugin(additionalModules),
 				],
@@ -221,33 +224,11 @@ export function getWorkerEntry(
 	{ config, nodeJsCompat }: Worker,
 	root: string
 ): NonNullable<NonNullable<EnvironmentConfig["source"]>["entry"]> {
-	// As in Vite, the entrypoint is a path relative to the root, or else a
-	// module specifier (e.g. a package export).
-	const entrypointPath = path.resolve(root, config.entrypoint);
-	const entrypoint = fs.existsSync(entrypointPath)
-		? entrypointPath
-		: config.entrypoint;
-	// As in the Vite plugin, fail at startup rather than with a build error,
-	// which `rsbuild dev` would report and then keep running.
-	if (
-		entrypoint === config.entrypoint &&
-		new rspack.experiments.resolver.ResolverFactory({
-			conditionNames: [...getConditionNames(), "import"],
-		}).sync(root, entrypoint).error
-	) {
-		throw new Error(
-			`Failed to resolve Worker entrypoint "${entrypoint}" for Worker "${config.name}"`
-		);
-	}
-
 	// As in the Vite plugin, the Worker has a default export even when the
 	// entrypoint doesn't. `Object(mod)` stops Rspack from warning that the
-	// entrypoint has no default export. Data URI modules resolve imports from
-	// the root, and a relative path keeps absolute paths out of the bundle.
+	// entrypoint has no default export.
 	const specifier = JSON.stringify(
-		entrypoint === entrypointPath
-			? `./${path.relative(root, entrypointPath).replaceAll("\\", "/")}`
-			: entrypoint
+		getEntrypointSpecifier(config.entrypoint, root)
 	);
 	const entry = toDataUri(
 		`import * as mod from ${specifier};\n` +
@@ -261,6 +242,52 @@ export function getWorkerEntry(
 				? [toDataUri(nodeJsCompat.injectGlobalCode()), entry]
 				: entry,
 			html: false,
+		},
+	};
+}
+
+/**
+ * Gets the specifier that the Worker's entry imports its entrypoint with. As in
+ * Vite, the entrypoint is a path relative to the root, or else a module
+ * specifier (e.g. a package export). Data URI modules resolve imports from the
+ * root, and a relative path keeps absolute paths out of the bundle.
+ */
+function getEntrypointSpecifier(entrypoint: string, root: string): string {
+	const entrypointPath = path.resolve(root, entrypoint);
+	return fs.existsSync(entrypointPath)
+		? `./${path.relative(root, entrypointPath).replaceAll("\\", "/")}`
+		: entrypoint;
+}
+
+/**
+ * As in the Vite plugin, fails at startup rather than with a build error, which
+ * `rsbuild dev` would report and then keep running, when the Worker's
+ * entrypoint doesn't resolve. It's resolved as the Worker's entry imports it,
+ * with the environment's resolve options (e.g. extensions and aliases).
+ */
+function entrypointPlugin(
+	{ entrypoint }: Worker["config"],
+	root: string,
+	environmentName: string
+): Rspack.RspackPluginInstance {
+	return {
+		apply(compiler) {
+			const resolver = compiler.resolverFactory.get("normal", {
+				dependencyType: "esm",
+			});
+			let resolved: string | false = false;
+			try {
+				resolved = resolver.resolveSync(
+					{},
+					root,
+					getEntrypointSpecifier(entrypoint, root)
+				);
+			} catch {}
+			if (!resolved) {
+				throw new Error(
+					`Failed to resolve Worker entrypoint "${entrypoint}" for environment "${environmentName}"`
+				);
+			}
 		},
 	};
 }
