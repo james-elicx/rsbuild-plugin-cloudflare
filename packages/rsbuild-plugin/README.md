@@ -138,11 +138,12 @@ Other differences:
 - Without `source.entry` or client environments, a client is built from
   Rsbuild's default entry (`src/index.*`) only when `index.html` exists at the
   project root, where Vite builds one whenever `index.html` exists. The default
-  entry mustn't be a Worker's entrypoint. Rsbuild doesn't use that `index.html`
-  as the page's template unless `html.template` is set to it. Otherwise, as in
-  the Vite plugin, the client output has only the public assets (and the assets
-  that the entry Worker imports), and `assetsOnly` requires public assets or a
-  prerender Worker.
+  entry mustn't be a Worker's entrypoint, but an entrypoint that's an alias or a
+  bare specifier isn't recognised as it. Rsbuild doesn't use that `index.html`
+  as the page's template unless `html.template` is set to it. Without a client,
+  as in the Vite plugin, the client output has only the public assets (and the
+  assets that the entry Worker imports), and `assetsOnly` requires public assets
+  or a prerender Worker.
 - `devOnly` and `assetsOnly` functions are called when the config is resolved,
   to choose the Worker environments to build, rather than lazily at build time.
 - Additional modules (e.g. `.wasm` and `.txt` imports) are emitted at the root

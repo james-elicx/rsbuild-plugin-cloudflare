@@ -213,6 +213,22 @@ describe("worker", () => {
 		await expect(build(root)).rejects.toThrow();
 	});
 
+	test("doesn't build the Worker's entrypoint without its extension as a client", async ({
+		expect,
+	}) => {
+		const root = copyFixture("worker");
+		setEntrypoint(root, "./src/index");
+		fs.writeFileSync(path.join(root, "index.html"), "<!doctype html>\n");
+
+		await build(root);
+
+		const workerDir = path.join(root, ".cloudflare/output/v0/workers/default");
+		expect(fs.existsSync(path.join(workerDir, "assets"))).toBe(false);
+		expect(
+			fs.readFileSync(path.join(workerDir, "bundle", "index.js"), "utf8")
+		).toContain("from rsbuild + workerd");
+	});
+
 	test("writes the Build Output Specification", async ({ expect }) => {
 		const root = copyFixture("worker");
 		const outputDir = path.join(root, ".cloudflare", "output", "v0");
