@@ -227,8 +227,15 @@ describe("worker", () => {
 			"{}"
 		);
 
+		// The Worker's entrypoint is Rsbuild's default entry, but not a client's,
+		// even with an `index.html`.
+		fs.writeFileSync(path.join(root, "index.html"), "<!doctype html>\n");
+
 		await build(root);
 
+		expect(fs.readdirSync(path.join(workerDir, "assets"))).toEqual([
+			"script.js",
+		]);
 		const { rootConfig, workers } = await readBuildOutput(root);
 		expect(rootConfig.buildContext).toMatchObject({ mode: "production" });
 		expect(Object.keys(workers)).toEqual(["default"]);

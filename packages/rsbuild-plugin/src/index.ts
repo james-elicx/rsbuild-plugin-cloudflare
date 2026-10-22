@@ -280,10 +280,16 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 							!resolvedPluginConfig.environmentNameToWorkerMap.has(name)
 					)
 				);
+				const hasClientEntry =
+					!!userConfig.source?.entry ||
+					hasDefaultClientEntry(
+						root,
+						resolvedPluginConfig.environmentNameToWorkerMap.values()
+					);
 				const environments =
 					Object.keys(clientEnvironments).length > 0
 						? clientEnvironments
-						: userConfig.source?.entry
+						: hasClientEntry
 							? { web: {} }
 							: {};
 				const resolvedEnvDir = resolveEnvDir(root, envDir);
@@ -775,6 +781,34 @@ function toViteWorkerOptions<T extends RsbuildEnvironmentOptions>({
 			viteEnvironment: { name: rsbuildEnvironment.name },
 		}),
 	};
+}
+
+/**
+ * Whether the project has a client without `source.entry`: Rsbuild's default
+ * entry (`src/index.*`) exists and isn't a Worker's entrypoint, and, as Vite
+ * builds the client when it does, `index.html` exists at the root.
+ *
+ * @param root The project root.
+ * @param workers The Workers, whose entrypoints aren't client entries.
+ * @returns Whether Rsbuild should build a client from its default entry.
+ */
+function hasDefaultClientEntry(
+	root: string,
+	workers: Iterable<Worker>
+): boolean {
+	if (!fs.existsSync(path.join(root, "index.html"))) {
+		return false;
+	}
+	// As Rsbuild's `getDefaultEntry`, which it doesn't export.
+	const entry = ["ts", "js", "tsx", "jsx", "mts", "cts", "mjs", "cjs"]
+		.map((extension) => path.join(root, `src/index.${extension}`))
+		.find((file) => fs.statSync(file, { throwIfNoEntry: false })?.isFile());
+	return (
+		entry !== undefined &&
+		[...workers].every(
+			({ config }) => path.resolve(root, config.entrypoint) !== entry
+		)
+	);
 }
 
 /**
