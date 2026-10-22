@@ -1,5 +1,7 @@
 # rsbuild-plugin-cloudflare
 
+[![npm](https://img.shields.io/npm/v/rsbuild-plugin-cloudflare)](https://www.npmjs.com/package/rsbuild-plugin-cloudflare)
+
 An experimental [Rsbuild](https://rsbuild.rs) plugin that runs Cloudflare
 Workers in workerd during `rsbuild dev` and `rsbuild preview`, and builds them
 with `rsbuild build` into a Cloudflare Build Output that you can deploy with
