@@ -198,9 +198,22 @@ export function getWorkerEnvironmentConfig(
 						commonjs: { conditionNames: [...conditionNames, "require"] },
 					},
 				},
-				// Like Vite, allow ES modules to import names that a CommonJS module
-				// doesn't export (they are `undefined`), as some packages do.
-				module: { parser: { javascript: { exportsPresence: "warn" } } },
+				module: {
+					parser: {
+						javascript: {
+							// Like Vite, allow ES modules to import names that a CommonJS
+							// module doesn't export (they are `undefined`), as some
+							// packages do.
+							exportsPresence: "warn",
+							// `import.meta.url` is undefined in workerd, so give assets that
+							// are imported with `new URL(..., import.meta.url)` URLs relative
+							// to the public path. Otherwise, Rspack resolves them against
+							// `new URL("./", import.meta.url)`, which throws when the Worker
+							// starts.
+							url: "relative",
+						},
+					},
+				},
 				plugins: [
 					...(nodeJsCompat ? [nodeJsCompatPlugin(nodeJsCompat)] : []),
 					entrypointPlugin(config, root, environmentName),
