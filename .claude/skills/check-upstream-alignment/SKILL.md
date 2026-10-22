@@ -45,7 +45,7 @@ the whole plugin when the user asks for a full review.
 
 ## Procedure
 
-1. **Map upstream's behaviour.** Start from `createPlugin` in upstream's
+1. **Map upstream's behaviour.** Start from `cloudflare` in upstream's
    `src/index.ts`, which lists the sub-plugins (`configPlugin`, `devPlugin`,
    `previewPlugin`, `buildOutputPlugin`, `additionalModulesPlugin`,
    `nodeJsCompatPlugin`...). For each sub-plugin in `src/plugins/`, list what
@@ -54,14 +54,14 @@ the whole plugin when the user asks for a full review.
 2. **Find each behaviour's counterpart in the plugin.** The usual counterparts
    are:
 
-   | Upstream (Vite)                                                         | Rsbuild plugin                                                                                    |
-   | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-   | `config`, `configEnvironment`, `configResolved`                         | `modifyRsbuildConfig`, `modifyEnvironmentConfig`, `getWorkerEnvironmentConfig`                    |
-   | `configureServer` (`devPlugin`, `debugPlugin`, `triggerHandlersPlugin`) | `onBeforeStartDevServer` (middleware before Rsbuild's) and its returned callback (after)          |
-   | `configurePreviewServer` (`previewPlugin`)                              | `server.setup`, which calls `setUpPreviewServer` (middleware before Rsbuild's and later plugins') |
-   | `resolveId`, `load`, `transform`, `renderChunk`                         | Rspack rules, externals and plugins in `worker-environment.ts`                                    |
-   | `buildApp`, `writeBundle` (`buildOutputPlugin`)                         | `onAfterEnvironmentCompile`, `onAfterBuild`                                                       |
-   | `hotUpdate`                                                             | `onAfterDevCompile` (Workers are reloaded, not hot-updated)                                       |
+   | Upstream (Vite)                                                         | Rsbuild plugin                                                                                                                      |
+   | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+   | `config`, `configEnvironment`, `configResolved`                         | `modifyRsbuildConfig`, `modifyEnvironmentConfig`, `getWorkerEnvironmentConfig`, and `onBeforeBuild` (which cleans the Build Output) |
+   | `configureServer` (`devPlugin`, `debugPlugin`, `triggerHandlersPlugin`) | `onBeforeStartDevServer` (middleware before Rsbuild's) and its returned callback (after)                                            |
+   | `configurePreviewServer` (`previewPlugin`)                              | `server.setup`, which calls `setUpPreviewServer` (middleware before Rsbuild's and later plugins')                                   |
+   | `resolveId`, `load`, `transform`, `renderChunk`                         | Rspack rules, externals and plugins in `worker-environment.ts`                                                                      |
+   | `buildApp`, `writeBundle` (`buildOutputPlugin`)                         | `onAfterEnvironmentCompile`, `onAfterBuild`                                                                                         |
+   | `hotUpdate`                                                             | `onAfterDevCompile` (Workers are reloaded, not hot-updated)                                                                         |
 
    Each behaviour gets one of these statuses:
    - **aligned:** the plugin gets the same result, ideally by calling the same
