@@ -272,10 +272,12 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 
 				// Without explicit environments (Rsbuild defaults them to `{}`), Rsbuild
 				// builds a single `web` environment from the top-level config, so keep
-				// it when there is a client entry.
+				// it when there is a client entry. As in the Vite plugin, a Worker's
+				// environment is never a client, even when the Worker isn't built.
 				const clientEnvironments = Object.fromEntries(
 					Object.entries(userConfig.environments ?? {}).filter(
-						([name]) => !workerEnvironments.has(name)
+						([name]) =>
+							!resolvedPluginConfig.environmentNameToWorkerMap.has(name)
 					)
 				);
 				const environments =
