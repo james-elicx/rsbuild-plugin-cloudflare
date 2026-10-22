@@ -31,8 +31,6 @@ export default mergeConfig(
 			],
 			exclude: [
 				"**/node_modules/**",
-				// Asserts Vite's dependency optimizer.
-				"dynamic.test.ts",
 				// Asserts the Vite plugin's validation of Vite environment options.
 				"invalid-worker-environment-options.test.ts",
 				// Asserts that the warning names Vite's "ssr" environment (the Rsbuild
