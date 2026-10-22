@@ -297,6 +297,9 @@ function additionalModulesPlugin(
 	return {
 		apply(compiler) {
 			compiler.hooks.thisCompilation.tap(name, (compilation) => {
+				// As in the Vite plugin, which clears them at the start of each
+				// build, so that modules that are no longer imported aren't emitted.
+				additionalModules.clear();
 				compilation.hooks.processAssets.tapPromise(
 					{
 						name,

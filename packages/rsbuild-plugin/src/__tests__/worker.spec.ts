@@ -82,6 +82,51 @@ describe("worker", () => {
 		);
 	});
 
+	test("emits only the additional modules that the Worker imports after a rebuild", async ({
+		expect,
+	}) => {
+		const root = copyFixture("worker");
+		const lazyPath = path.join(root, "src", "lazy.ts");
+		const indexPath = path.join(root, "src", "index.ts");
+		fs.writeFileSync(path.join(root, "src", "message.txt"), "text module");
+		fs.writeFileSync(
+			lazyPath,
+			'import text from "./message.txt";\nexport const message = text;\n'
+		);
+		let assets: string[] = [];
+		const recordWorkerAssets: RsbuildPlugin = {
+			name: "record-worker-assets",
+			setup(api) {
+				api.onAfterEnvironmentCompile(({ stats, environment }) => {
+					if (environment.name === "cloudflare") {
+						assets = Object.keys(stats?.compilation.assets ?? {});
+					}
+				});
+			},
+		};
+		const url = await startDevServer(root, { plugins: [recordWorkerAssets] });
+		const dynamicImportUrl = new URL("/dynamic-import", url);
+		const waitForOptions = { timeout: 10_000, interval: 100 };
+
+		expect(await (await fetch(dynamicImportUrl)).text()).toBe("text module");
+		expect(assets.filter((asset) => asset.endsWith(".txt"))).toHaveLength(1);
+
+		// A rebuild that doesn't involve the importer keeps the module.
+		assets = [];
+		fs.appendFileSync(indexPath, "\n// Changed\n");
+		await vi.waitFor(() => {
+			expect(assets).not.toEqual([]);
+		}, waitForOptions);
+		expect(assets.filter((asset) => asset.endsWith(".txt"))).toHaveLength(1);
+		expect(await (await fetch(dynamicImportUrl)).text()).toBe("text module");
+
+		fs.writeFileSync(lazyPath, 'export const message = "lazy chunk";\n');
+		await vi.waitFor(async () => {
+			expect(await (await fetch(dynamicImportUrl)).text()).toBe("lazy chunk");
+		}, waitForOptions);
+		expect(assets.filter((asset) => asset.endsWith(".txt"))).toEqual([]);
+	});
+
 	test("forwards WebSockets once a broken Worker is fixed", async ({
 		expect,
 	}) => {
