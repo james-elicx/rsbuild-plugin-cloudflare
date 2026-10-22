@@ -9,6 +9,10 @@ It's built on the internals of
 [`@cloudflare/vite-plugin`](https://developers.cloudflare.com/workers/vite-plugin/),
 and accepts the same options.
 
+> **Using TanStack Start?** Follow the [TanStack Start guide](#tanstack-start):
+> the framework's server environment has to be set as the Worker's, or every
+> request fails.
+
 ## Usage
 
 ```ts
@@ -71,14 +75,84 @@ sends requests to the Worker in workerd, so frameworks that serve their server
 bundle through `loadBundle()`, such as
 [TanStack Start](https://tanstack.com/start), run it in workerd.
 
+#### TanStack Start
+
+To run a [TanStack Start](https://tanstack.com/start) app that's built with
+Rsbuild (e.g. one created from TanStack's Rsbuild template) on Workers:
+
+1. Install the plugin, and [`cf`](https://www.npmjs.com/package/cf) for
+   `cf/config` and `cf deploy`:
+
+   ```sh
+   pnpm add -D rsbuild-plugin-cloudflare cf
+   ```
+
+2. Configure the Worker in `cloudflare.config.ts`, with TanStack Start's server
+   entry as its entrypoint. TanStack Start uses Node.js APIs, such as
+   `AsyncLocalStorage`. From compatibility date `2026-08-04`,
+   [Node.js compatibility](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)
+   is on by default; with an earlier date, add the `nodejs_compat` flag.
+
+   ```ts
+   // cloudflare.config.ts
+   import { defineConfig } from "cf/config";
+
+   export default defineConfig({
+   	worker: {
+   		name: "my-tanstack-start-app",
+   		entrypoint: "@tanstack/react-start/server-entry",
+   		compatibilityDate: "2026-10-19",
+   	},
+   });
+   ```
+
+3. Add `cloudflare()` before `tanstackStart()`, with `rsbuildEnvironment.name`
+   set to TanStack Start's server environment, `ssr`. This is required: without
+   it, the plugin builds the entrypoint in its own `cloudflare` environment,
+   without TanStack Start's build setup, and every request fails (e.g. with
+   `tsrStartManifest is not a function`).
+
+   ```ts
+   // rsbuild.config.ts
+   import { defineConfig } from "@rsbuild/core";
+   import { pluginReact } from "@rsbuild/plugin-react";
+   import { tanstackStart } from "@tanstack/react-start/plugin/rsbuild";
+   import { cloudflare } from "rsbuild-plugin-cloudflare";
+
+   export default defineConfig({
+   	plugins: [
+   		pluginReact(),
+   		cloudflare({ rsbuildEnvironment: { name: "ssr" } }),
+   		tanstackStart(),
+   	],
+   });
+   ```
+
+4. Replace the template's scripts. Its `start` script runs the server in
+   Node.js, so it doesn't apply; `rsbuild preview` runs the build in workerd.
+
+   ```json
+   {
+   	"scripts": {
+   		"dev": "rsbuild dev",
+   		"build": "rsbuild build",
+   		"preview": "rsbuild preview",
+   		"deploy": "rsbuild build && cf deploy --prebuilt"
+   	}
+   }
+   ```
+
+5. Add `.cloudflare` to `.gitignore`. It holds the bindings' local state, the
+   Build Output, and the Worker's types, which are generated to
+   `.cloudflare/types`: add that to `tsconfig.json`'s `include` to use them.
+
+Server functions and server routes can then use the Worker's bindings:
+
 ```ts
-export default defineConfig({
-	plugins: [
-		pluginReact(),
-		cloudflare({ rsbuildEnvironment: { name: "ssr" } }),
-		tanstackStart(),
-	],
-});
+import { createServerFn } from "@tanstack/react-start";
+import { env } from "cloudflare:workers";
+
+const getGreeting = createServerFn().handler(() => env.GREETING);
 ```
 
 See [`packages/e2e/fixtures/tanstack-start`](https://github.com/james-elicx/rsbuild-plugin-cloudflare/tree/main/packages/e2e/fixtures/tanstack-start) for
