@@ -161,6 +161,18 @@ describe("worker", () => {
 		expect(await message).toBe("ping");
 	});
 
+	test("fails to build a Worker that imports an unknown `cloudflare:` module", async ({
+		expect,
+	}) => {
+		const root = copyFixture("worker");
+		fs.writeFileSync(
+			path.join(root, "src", "lazy.ts"),
+			'export { message } from "cloudflare:unknown";\n'
+		);
+
+		await expect(build(root)).rejects.toThrow();
+	});
+
 	test("writes the Build Output Specification", async ({ expect }) => {
 		const root = copyFixture("worker");
 		const outputDir = path.join(root, ".cloudflare", "output", "v0");

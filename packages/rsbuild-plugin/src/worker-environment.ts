@@ -16,6 +16,7 @@ import {
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugins/additional-modules";
 import { wasmInitRE } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugins/wasm";
 import {
+	cloudflareBuiltInModules,
 	defaultConditions,
 	getProcessEnvReplacements,
 	resolveExtensions,
@@ -116,7 +117,8 @@ export function getWorkerEnvironmentConfig(
 					const nodeRequest = request.startsWith("node:")
 						? request
 						: `node:${request}`;
-					if (request.startsWith("cloudflare:")) {
+					// As in the Vite plugin, other `cloudflare:` imports fail to build.
+					if (cloudflareBuiltInModules.includes(request)) {
 						return `module ${request}`;
 					}
 					const isNodeAls = hasNodeJsAls(config) && isNodeAlsModule(request);
