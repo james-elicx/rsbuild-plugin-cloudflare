@@ -71,6 +71,29 @@ describe("config", () => {
 		);
 	});
 
+	test("fails a build with `assetsOnly` and no client", async ({ expect }) => {
+		await expect(
+			build(
+				copyFixture("worker"),
+				{},
+				{
+					assetsOnly: true,
+					auxiliaryWorkers: [
+						{
+							config: {
+								name: "auxiliary",
+								entrypoint: "./src/lazy.ts",
+								compatibilityDate: "2025-06-01",
+							},
+						},
+					],
+				}
+			)
+		).rejects.toThrow(
+			"If `assetsOnly` is set to `true`, the client environment must be built"
+		);
+	});
+
 	test("warns about externals in Worker environments", async ({ expect }) => {
 		const { logger, warn } = createWarningLogger();
 
