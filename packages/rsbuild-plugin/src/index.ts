@@ -79,6 +79,7 @@ import type {
 	RsbuildDevServer,
 	RsbuildPlugin,
 	RsbuildPreviewServer,
+	Rspack,
 } from "@rsbuild/core";
 import type { Miniflare, WorkerOptions } from "miniflare";
 import type { IncomingMessage } from "node:http";
@@ -414,6 +415,15 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				) {
 					config.output.distPath.root = getWorkerAssetsDir(root);
 				}
+			});
+
+			// As in the Vite plugin, keep Miniflare's state (and the Build Output)
+			// out of the watcher, e.g. when Tailwind CSS watches the project root.
+			api.modifyRspackConfig((config) => {
+				config.watchOptions = {
+					...config.watchOptions,
+					ignored: withCloudflareStateIgnored(config.watchOptions?.ignored),
+				};
 			});
 
 			api.onBeforeStartDevServer(({ server, environments }) => {
@@ -925,6 +935,32 @@ function getServerConfig(
 		https: !!server.https,
 		headers: server.headers ?? {},
 	};
+}
+
+/**
+ * Adds `.cloudflare` directories to Rspack's `watchOptions.ignored`, like the
+ * Vite plugin's `withCloudflareStateIgnored` does to Vite's. Rspack doesn't
+ * accept arrays that mix globs with regular expressions, so those are matched
+ * with a function.
+ *
+ * @param ignored The configured `watchOptions.ignored`, if any.
+ * @returns The ignored paths, including `.cloudflare` directories.
+ */
+function withCloudflareStateIgnored(
+	ignored: Rspack.WatchOptions["ignored"]
+): NonNullable<Rspack.WatchOptions["ignored"]> {
+	if (ignored === undefined) {
+		return "**/.cloudflare/**";
+	}
+	if (typeof ignored === "string" || Array.isArray(ignored)) {
+		return [ignored, "**/.cloudflare/**"].flat();
+	}
+	const isIgnored =
+		typeof ignored === "function"
+			? ignored
+			: (entry: string) => ignored.test(entry);
+	return (entry) =>
+		isIgnored(entry) || /[\\/]\.cloudflare(?:[\\/]|$)/.test(entry);
 }
 
 /** Resolves Rsbuild's `server.publicDir` option to absolute directories. */
