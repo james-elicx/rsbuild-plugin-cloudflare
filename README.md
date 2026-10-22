@@ -12,7 +12,8 @@ compatibility and build output all come from upstream. This repository holds
 the Rsbuild glue, and runs the Vite plugin's own playground and e2e suites
 against it.
 
-See [`packages/rsbuild-plugin`](packages/rsbuild-plugin/README.md) for usage
+See [`packages/rsbuild-plugin`](packages/rsbuild-plugin/README.md) for usage,
+including [how to set up TanStack Start](packages/rsbuild-plugin/README.md#tanstack-start),
 and the differences from the Vite plugin.
 
 ## Layout
