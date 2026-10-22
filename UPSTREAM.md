@@ -25,6 +25,9 @@ repository stays in sync, and what to do when a sync fails.
     Worker environments' export conditions, resolve extensions and
     `process.env` replacements to a module that doesn't import Vite, so that
     the plugin can import them.
+  - `0006-vite-plugin-share-cloudflare-built-in-modules.patch`: moves
+    `cloudflareBuiltInModules` to the same module, so that the plugin
+    externalizes the same `cloudflare:` built-in modules.
 
   Keep them small, and propose them upstream where they make sense; each one
   that lands upstream can be deleted.
