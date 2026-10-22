@@ -71,6 +71,7 @@ import type {
 import type { DevHtmlHandlers } from "./miniflare-options";
 import type { ServerConfig } from "./vite-server";
 import type {
+	EnvironmentConfig,
 	EnvironmentContext,
 	NormalizedConfig,
 	PublicDir,
@@ -123,6 +124,12 @@ const ENTRY_ENVIRONMENT_NAME = "cloudflare";
 const CONTAINERS_WARNING =
 	"Containers aren't supported by the Rsbuild plugin yet, so Container-backed Durable Objects will fail.";
 
+/** The Rsbuild environment that builds the client, as Rsbuild names it by default. */
+const CLIENT_ENVIRONMENT_NAME = "web";
+
+/** The fallback client's entry, as the Vite plugin's `fallbackBuild` names it. */
+const CLIENT_FALLBACK_ENTRY_NAME = "__cloudflare_fallback_entry__";
+
 type MiniflareManifest = NonNullable<WorkerOptions["config"]["manifest"]>;
 
 // As in the Vite plugin, the warnings that are still pending when the process
@@ -166,6 +173,8 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			let miniflareCreated = false;
 			/** Whether the plugin prints the dev server's URLs, once it listens. */
 			let printUrls = false;
+			/** Whether the fallback client is built, which only copies `public/`. */
+			let hasFallbackClient = false;
 			let devServerListening = false;
 			/** Why Miniflare last failed to start or update, which requests report. */
 			let miniflareError: unknown;
@@ -286,12 +295,19 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 						root,
 						resolvedPluginConfig.environmentNameToWorkerMap.values()
 					);
-				const environments =
-					Object.keys(clientEnvironments).length > 0
+				const hasClient =
+					Object.keys(clientEnvironments).length > 0 || hasClientEntry;
+				// Without client or Worker environments, Rsbuild would build its
+				// default one from `src/index.*`, so build an empty client that
+				// only copies `public/`, as the Vite plugin's `fallbackBuild` does.
+				hasFallbackClient = !hasClient && workerEnvironments.size === 0;
+				const environments = hasClient
+					? Object.keys(clientEnvironments).length > 0
 						? clientEnvironments
-						: hasClientEntry
-							? { web: {} }
-							: {};
+						: { [CLIENT_ENVIRONMENT_NAME]: {} }
+					: hasFallbackClient
+						? { [CLIENT_ENVIRONMENT_NAME]: getFallbackClientConfig() }
+						: {};
 				const resolvedEnvDir = resolveEnvDir(root, envDir);
 				// Rsbuild only prints the server's URLs for client environments.
 				printUrls =
@@ -612,7 +628,21 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					return;
 				}
 				const assetsDir = getWorkerAssetsDir(root);
-				if (!fs.existsSync(assetsDir)) {
+				if (hasFallbackClient) {
+					// As the Vite plugin's `fallbackBuild`, keep only the copied
+					// public assets, and write no client output without any.
+					// Rspack may not emit the chunk again in watch mode.
+					await fsp.rm(
+						path.join(assetsDir, `${CLIENT_FALLBACK_ENTRY_NAME}.js`),
+						{ force: true }
+					);
+					if (
+						fs.existsSync(assetsDir) &&
+						fs.readdirSync(assetsDir).length === 0
+					) {
+						await fsp.rmdir(assetsDir);
+					}
+				} else if (!fs.existsSync(assetsDir)) {
 					// Without a client entry there's no web environment to copy
 					// `public/` into the assets directory, as Vite's client build does.
 					for (const { name, copyOnBuild } of api.getNormalizedConfig().server
@@ -809,6 +839,33 @@ function hasDefaultClientEntry(
 			({ config }) => path.resolve(root, config.entrypoint) !== entry
 		)
 	);
+}
+
+/**
+ * Gets the config of the client that's built without a client entry, as the
+ * Vite plugin's `fallbackBuild` builds one: its empty entry emits a single
+ * chunk, which is removed after the build, so that only `public/` is copied.
+ *
+ * @returns The fallback client's environment config.
+ */
+function getFallbackClientConfig(): EnvironmentConfig {
+	return {
+		source: {
+			entry: {
+				[CLIENT_FALLBACK_ENTRY_NAME]: {
+					import: "data:text/javascript,",
+					html: false,
+				},
+			},
+		},
+		output: {
+			target: "web",
+			distPath: { js: "" },
+			filename: { js: "[name].js" },
+			sourceMap: false,
+		},
+		performance: { printFileSize: false },
+	};
 }
 
 /**

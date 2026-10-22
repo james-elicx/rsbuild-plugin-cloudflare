@@ -133,6 +133,77 @@ describe("config", () => {
 		);
 	});
 
+	test.for([
+		{ name: "without a public directory", publicFiles: undefined },
+		{ name: "with an empty public directory", publicFiles: [] },
+	])(
+		"fails a build with `assetsOnly` and no client, $name",
+		async ({ publicFiles }, { expect }) => {
+			const root = copyFixture("worker");
+			if (publicFiles) {
+				fs.mkdirSync(path.join(root, "public"));
+			}
+
+			await expect(build(root, {}, { assetsOnly: true })).rejects.toThrow(
+				"If `assetsOnly` is set to `true`, the client environment must be built"
+			);
+		}
+	);
+
+	test("builds only the public assets with `assetsOnly` and no client entry", async ({
+		expect,
+	}) => {
+		const root = copyFixture("worker");
+		fs.mkdirSync(path.join(root, "public"));
+		fs.writeFileSync(
+			path.join(root, "public", "robots.txt"),
+			"User-agent: *\n"
+		);
+
+		await build(root, {}, { assetsOnly: true });
+
+		const workerDir = path.join(root, ".cloudflare/output/v0/workers/default");
+		expect(fs.readdirSync(path.join(workerDir, "assets"))).toEqual([
+			"robots.txt",
+		]);
+		expect(fs.existsSync(path.join(workerDir, "bundle"))).toBe(false);
+	});
+
+	test("builds only the public assets when every Worker is `devOnly`", async ({
+		expect,
+	}) => {
+		const root = copyFixture("worker");
+		fs.mkdirSync(path.join(root, "public"));
+		fs.writeFileSync(
+			path.join(root, "public", "robots.txt"),
+			"User-agent: *\n"
+		);
+
+		await build(
+			root,
+			{},
+			{
+				assetsOnly: true,
+				auxiliaryWorkers: [
+					{
+						config: {
+							name: "auxiliary",
+							entrypoint: "./src/lazy.ts",
+							compatibilityDate: "2025-06-01",
+						},
+						devOnly: true,
+					},
+				],
+			}
+		);
+
+		const workersDir = path.join(root, ".cloudflare/output/v0/workers");
+		expect(fs.readdirSync(workersDir)).toEqual(["default"]);
+		expect(fs.readdirSync(path.join(workersDir, "default", "assets"))).toEqual([
+			"robots.txt",
+		]);
+	});
+
 	test("warns about externals in Worker environments", async ({ expect }) => {
 		const { logger, warn } = createWarningLogger();
 
