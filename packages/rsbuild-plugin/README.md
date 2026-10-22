@@ -89,7 +89,9 @@ Rsbuild (e.g. one created from TanStack's Rsbuild template) on Workers:
 
 2. Configure the Worker in `cloudflare.config.ts`, with TanStack Start's server
    entry as its entrypoint. TanStack Start uses Node.js APIs, such as
-   `AsyncLocalStorage`, so the Worker needs the `nodejs_compat` flag.
+   `AsyncLocalStorage`. From compatibility date `2026-08-04`,
+   [Node.js compatibility](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)
+   is on by default; with an earlier date, add the `nodejs_compat` flag.
 
    ```ts
    // cloudflare.config.ts
@@ -99,8 +101,7 @@ Rsbuild (e.g. one created from TanStack's Rsbuild template) on Workers:
    	worker: {
    		name: "my-tanstack-start-app",
    		entrypoint: "@tanstack/react-start/server-entry",
-   		compatibilityDate: "2025-09-24",
-   		compatibilityFlags: ["nodejs_compat"],
+   		compatibilityDate: "2026-10-19",
    	},
    });
    ```
