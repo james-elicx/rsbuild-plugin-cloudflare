@@ -110,37 +110,48 @@ describe("config", () => {
 		).toHaveLength(1);
 	});
 
-	test("fails a build with `assetsOnly` and no client", async ({ expect }) => {
-		await expect(
-			build(
-				copyFixture("worker"),
-				{},
-				{
-					assetsOnly: true,
-					auxiliaryWorkers: [
-						{
-							config: {
-								name: "auxiliary",
-								entrypoint: "./src/lazy.ts",
-								compatibilityDate: "2025-06-01",
+	test.for([
+		{ name: "without a public directory", hasPublicDir: false },
+		{ name: "with an empty public directory", hasPublicDir: true },
+	])(
+		"fails a build with `assetsOnly`, an auxiliary Worker and no client, $name",
+		async ({ hasPublicDir }, { expect }) => {
+			const root = copyFixture("worker");
+			if (hasPublicDir) {
+				fs.mkdirSync(path.join(root, "public"));
+			}
+
+			await expect(
+				build(
+					root,
+					{},
+					{
+						assetsOnly: true,
+						auxiliaryWorkers: [
+							{
+								config: {
+									name: "auxiliary",
+									entrypoint: "./src/lazy.ts",
+									compatibilityDate: "2025-06-01",
+								},
 							},
-						},
-					],
-				}
-			)
-		).rejects.toThrow(
-			"If `assetsOnly` is set to `true`, the client environment must be built"
-		);
-	});
+						],
+					}
+				)
+			).rejects.toThrow(
+				"If `assetsOnly` is set to `true`, the client environment must be built"
+			);
+		}
+	);
 
 	test.for([
-		{ name: "without a public directory", publicFiles: undefined },
-		{ name: "with an empty public directory", publicFiles: [] },
+		{ name: "without a public directory", hasPublicDir: false },
+		{ name: "with an empty public directory", hasPublicDir: true },
 	])(
 		"fails a build with `assetsOnly` and no client, $name",
-		async ({ publicFiles }, { expect }) => {
+		async ({ hasPublicDir }, { expect }) => {
 			const root = copyFixture("worker");
-			if (publicFiles) {
+			if (hasPublicDir) {
 				fs.mkdirSync(path.join(root, "public"));
 			}
 
