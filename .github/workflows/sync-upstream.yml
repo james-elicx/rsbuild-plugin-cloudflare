@@ -89,7 +89,8 @@ jobs:
           after="$(git -C workers-sdk rev-parse HEAD)"
           echo "status=$status" >> "$GITHUB_OUTPUT"
           echo "sha=$after" >> "$GITHUB_OUTPUT"
-          git add workers-sdk package.json pnpm-lock.yaml packages/*/package.json pnpm-workspace.yaml .github/actions/setup/action.yml
+          # The workspace packages are the ones that `pnpm-workspace.yaml` lists.
+          git add workers-sdk package.json pnpm-lock.yaml packages/*/package.json packages/e2e/fixtures/*/package.json pnpm-workspace.yaml .github/actions/setup/action.yml
           if ! git diff --cached --quiet; then
             {
               echo "Bump workers-sdk to ${after:0:9}"
@@ -103,7 +104,7 @@ jobs:
         if: steps.bump.outputs.status == '0'
         run: |
           pnpm update:deps --report "$RUNNER_TEMP/dependencies.md"
-          git add package.json pnpm-lock.yaml packages/*/package.json
+          git add package.json pnpm-lock.yaml packages/*/package.json packages/e2e/fixtures/*/package.json
           if ! git diff --cached --quiet; then
             git commit --message "Update dependencies"
           fi

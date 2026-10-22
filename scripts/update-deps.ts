@@ -61,6 +61,9 @@ for (const directory of [
 	...readdirSync(path.join(root, "packages")).map((name) =>
 		path.join("packages", name)
 	),
+	...readdirSync(path.join(root, "packages/e2e/fixtures")).map((name) =>
+		path.join("packages/e2e/fixtures", name)
+	),
 ]) {
 	const packageJson = JSON.parse(
 		readFileSync(path.join(root, directory, "package.json"), "utf8")
