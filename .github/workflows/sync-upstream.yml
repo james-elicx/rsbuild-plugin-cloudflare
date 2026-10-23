@@ -2,9 +2,9 @@ name: Sync upstream
 
 # Moves the workers-sdk submodule to the latest `main`, and updates the
 # dependencies that don't follow it, in a pull request from the `upstream-sync`
-# branch, then runs CI against it. When CI passes, the pull request is rebased
-# onto `main`. Otherwise it stays open for fixes, which later runs keep (see
-# UPSTREAM.md).
+# branch, then runs CI against it. Auto-merge rebases the pull request onto
+# `main` once CI passes. Otherwise it stays open for fixes, which later runs keep
+# (see UPSTREAM.md).
 
 on:
   schedule:
@@ -32,12 +32,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
+      # To dispatch CI.
+      actions: write
       contents: write
       pull-requests: write
     outputs:
       # Set even when a later step fails, so that the failure can be reported.
       pr: ${{ steps.update-pr.outputs.number || steps.pr.outputs.number }}
-      sha: ${{ steps.push.outputs.sha }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -129,7 +130,7 @@ jobs:
 
           $(cat "$RUNNER_TEMP/dependencies.md" 2>/dev/null)
 
-          The [sync workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/sync-upstream.yml) opened this, and rebases it onto \`main\` once CI passes. If CI fails, push fixes to \`$BRANCH\`. Later syncs rebase the branch onto \`main\` and keep those fixes (see UPSTREAM.md)."
+          The [sync workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/sync-upstream.yml) opened this, and auto-merge rebases it onto \`main\` once CI passes. If CI fails, push fixes to \`$BRANCH\`. Later syncs rebase the branch onto \`main\` and keep those fixes (see UPSTREAM.md)."
           number="${{ steps.pr.outputs.number }}"
           if [[ -n "$number" ]]; then
             gh pr edit "$number" --title "$title" --body "$body"
@@ -139,44 +140,25 @@ jobs:
           fi
           echo "number=$number" >> "$GITHUB_OUTPUT"
 
+      # Pushes made with `GITHUB_TOKEN` don't trigger `pull_request` workflows, but
+      # it can dispatch them. CI then reports the checks that `main`'s ruleset
+      # requires on the pushed commit, and auto-merge rebases the pull request
+      # once they pass, including after fixes are pushed to it.
+      - name: Run CI and merge when it passes
+        if: steps.update-pr.outputs.number && steps.bump.outputs.status == '0'
+        run: |
+          gh workflow run ci.yml --ref "$BRANCH"
+          gh pr merge "${{ steps.update-pr.outputs.number }}" --auto --rebase
+
       - name: Fail if the bump failed
         if: steps.bump.outputs.status != '0'
         run: |
           echo "::error::scripts/bump-upstream.sh failed; see the 'Bump workers-sdk' step."
           exit 1
 
-  test:
-    name: Test
-    needs: bump
-    if: needs.bump.outputs.sha
-    uses: ./.github/workflows/ci.yml
-    with:
-      # The pushed commit, so that what's merged below is exactly what was
-      # tested.
-      ref: ${{ needs.bump.outputs.sha }}
-
-  merge:
-    name: Rebase onto main
-    needs: [bump, test]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-      pull-requests: write
-    env:
-      GH_TOKEN: ${{ github.token }}
-      GH_REPO: ${{ github.repository }}
-    steps:
-      # Fails if the branch has changed since it was tested, in which case the
-      # next run tests it again.
-      - name: Merge the pull request
-        run: |
-          gh pr merge "${{ needs.bump.outputs.pr }}" --rebase --delete-branch \
-            --match-head-commit "${{ needs.bump.outputs.sha }}"
-
   report-failure:
     name: Report failure
-    needs: [bump, test, merge]
+    needs: bump
     if: failure() && needs.bump.outputs.pr
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -190,4 +172,4 @@ jobs:
         run: |
           gh pr comment "${{ needs.bump.outputs.pr }}" --body "Syncing failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          Push fixes to \`$BRANCH\`. The next sync rebases them onto \`main\`, and merges the pull request once CI passes."
+          Push fixes to \`$BRANCH\`. The next sync rebases them onto \`main\`, runs CI, and merges the pull request once it passes."
