@@ -1,0 +1,23 @@
+.github/workflows/ci.yml
+  s_0e83962f6850fb::t_1a8e2e8a7244e0 129,134,145,147
+.github/workflows/sync-upstream.yml
+  s_0e83962f6850fb::t_1155c432e0ace0 35,143-148,152-167
+UPSTREAM.md
+  s_0e83962f6850fb::t_cc190cd8e0ed19 110-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "1368775ff2f2f16bb829e53ad09439bfdb6ce6df",
+  "prompts": {},
+  "sessions": {
+    "s_0e83962f6850fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b8d8506d-326f-4323-9b7f-4e358af20661",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
