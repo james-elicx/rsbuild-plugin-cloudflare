@@ -56,6 +56,7 @@ import {
 	getAdditionalModuleTypes,
 	getImportedAssetPaths,
 	getManifestFromCompilation,
+	getEntryLayer,
 	getWorkerEntry,
 	getWorkerEnvironmentConfig,
 	removeUnemittedFiles,
@@ -402,7 +403,11 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					);
 					// Top-level entries are merged into every environment, so replace
 					// them to keep client entries out of the Worker.
-					config.source.entry = getWorkerEntry(worker, root);
+					config.source.entry = getWorkerEntry(
+						worker,
+						root,
+						getEntryLayer(config.source.entry)
+					);
 					// Frameworks (e.g. TanStack Start) configure their server
 					// environment to run in Node.js, but the Worker runs in workerd as
 					// an ES module.

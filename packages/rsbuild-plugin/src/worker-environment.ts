@@ -28,7 +28,12 @@ import type {
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
 import type { Worker } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
 import type { ModuleType } from "@cloudflare/config";
-import type { EnvironmentConfig, RsbuildConfig, Rspack } from "@rsbuild/core";
+import type {
+	EnvironmentConfig,
+	RsbuildConfig,
+	RsbuildEntry,
+	Rspack,
+} from "@rsbuild/core";
 import type { WorkerOptions } from "miniflare";
 
 /**
@@ -231,32 +236,60 @@ export function getWorkerEnvironmentConfig(
  *
  * @param worker The resolved Worker.
  * @param root The project root.
+ * @param layer The Rspack layer to build the entry in.
  * @returns The Rsbuild entry config.
  */
 export function getWorkerEntry(
 	{ config, nodeJsCompat }: Worker,
-	root: string
-): NonNullable<NonNullable<EnvironmentConfig["source"]>["entry"]> {
+	root: string,
+	layer?: string
+): RsbuildEntry {
 	// As in the Vite plugin, the Worker has a default export even when the
 	// entrypoint doesn't. `Object(mod)` stops Rspack from warning that the
 	// entrypoint has no default export.
 	const specifier = JSON.stringify(
 		getEntrypointSpecifier(config.entrypoint, root)
 	);
-	const entry = toDataUri(
-		`import * as mod from ${specifier};\n` +
-			`export * from ${specifier};\n` +
-			`export default Object(mod).default ?? {};\n`
-	);
 
 	return {
 		[WORKER_ENTRY_NAME]: {
-			import: nodeJsCompat
-				? [toDataUri(nodeJsCompat.injectGlobalCode()), entry]
-				: entry,
+			// One module, as in the Vite plugin: Rspack's React Server Components
+			// support only looks for client components from an entry's first
+			// module.
+			import: toDataUri(
+				`${nodeJsCompat ? `${nodeJsCompat.injectGlobalCode()}\n` : ""}` +
+					`import * as mod from ${specifier};\n` +
+					`export * from ${specifier};\n` +
+					`export default Object(mod).default ?? {};\n`
+			),
 			html: false,
+			...(layer !== undefined && { layer }),
 		},
 	};
+}
+
+/**
+ * Gets the Rspack layer that an environment's entries are built in, which the
+ * Worker's entry keeps when it replaces them. TanStack Start's React Server
+ * Components support, for example, builds its server entry in Rspack's
+ * server-side rendering layer, which client components must be built in for
+ * the server to render them.
+ *
+ * @param entry The environment's entries.
+ * @returns The entries' layer, if they're all in the same one.
+ */
+export function getEntryLayer(
+	entry: RsbuildEntry | undefined
+): string | undefined {
+	const layers = new Set(
+		Object.values(entry ?? {}).map((description) =>
+			typeof description === "object" && !Array.isArray(description)
+				? (description.layer ?? undefined)
+				: undefined
+		)
+	);
+	const [layer] = layers;
+	return layers.size === 1 ? layer : undefined;
 }
 
 /**
