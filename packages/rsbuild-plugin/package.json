@@ -64,6 +64,6 @@
 		"vitest": "5.0.4"
 	},
 	"peerDependencies": {
-		"@rsbuild/core": "^2.0.0"
+		"@rsbuild/core": "^2.2.10"
 	}
 }
