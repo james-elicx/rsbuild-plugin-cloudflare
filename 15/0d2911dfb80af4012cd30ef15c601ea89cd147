@@ -1,0 +1,19 @@
+packages/rsbuild-plugin/package.json
+  s_b5b2118d2971b7::t_69899640e5ad93 67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "150d2911dfb80af4012cd30ef15c601ea89cd147",
+  "prompts": {},
+  "sessions": {
+    "s_b5b2118d2971b7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cf73dbaf-316f-4e68-b433-53b7cd1abd68",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
