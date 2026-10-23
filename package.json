@@ -21,6 +21,7 @@
 		"test:ci": "turbo test:ci",
 		"test:e2e": "turbo build && pnpm -F rsbuild-plugin-cloudflare-test-harness test:e2e",
 		"test:playground": "turbo build && pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground",
+		"test:tanstack-start": "turbo build && pnpm -F rsbuild-plugin-cloudflare-tanstack-start-e2e setup:tanstack-router && pnpm -F rsbuild-plugin-cloudflare-tanstack-start-e2e test:tanstack-start",
 		"changeset:generate": "node --experimental-strip-types scripts/generate-changesets.ts",
 		"release": "turbo build && changeset publish",
 		"version-packages": "changeset version && node --experimental-strip-types scripts/format-changelog.ts",

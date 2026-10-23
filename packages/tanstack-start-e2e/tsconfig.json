@@ -1,0 +1,12 @@
+{
+	"extends": "../../workers-sdk/packages/workers-tsconfig/tsconfig.json",
+	"compilerOptions": {
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"allowImportingTsExtensions": true,
+		"resolveJsonModule": true,
+		"lib": ["esnext", "dom"],
+		"types": ["node"]
+	},
+	"include": ["*.ts", "scripts"]
+}

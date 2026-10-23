@@ -16,3 +16,6 @@ playwright-report
 
 # Written by `scripts/generate-changesets.ts` in CI.
 .changeset/generated-*.md
+
+# The TanStack/router checkout that `packages/tanstack-start-e2e` tests run in.
+/tanstack-router

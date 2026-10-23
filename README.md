@@ -51,22 +51,25 @@ workers-sdk dependencies are linked to the submodule's packages.
 
 ## Commands
 
-| Command                | What                                                                         |
-| ---------------------- | ---------------------------------------------------------------------------- |
-| `pnpm build`           | Build the plugin.                                                            |
-| `pnpm check`           | Upstream checks, lint (oxlint), format (oxfmt) and type checks.              |
-| `pnpm fix`             | Apply lint and formatting fixes.                                             |
-| `pnpm test`            | The plugin's unit tests.                                                     |
-| `pnpm test:playground` | The Vite plugin's playground suite against Rsbuild, in serve and build mode. |
-| `pnpm test:e2e`        | The Vite plugin's e2e suite against Rsbuild (needs npm, pnpm and yarn).      |
-| `pnpm test:apps`       | Playwright tests of real-world apps (e.g. TanStack Start), dev and preview.  |
+| Command                    | What                                                                         |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| `pnpm build`               | Build the plugin.                                                            |
+| `pnpm check`               | Upstream checks, lint (oxlint), format (oxfmt) and type checks.              |
+| `pnpm fix`                 | Apply lint and formatting fixes.                                             |
+| `pnpm test`                | The plugin's unit tests.                                                     |
+| `pnpm test:playground`     | The Vite plugin's playground suite against Rsbuild, in serve and build mode. |
+| `pnpm test:e2e`            | The Vite plugin's e2e suite against Rsbuild (needs npm, pnpm and yarn).      |
+| `pnpm test:apps`           | Playwright tests of real-world apps (e.g. TanStack Start), dev and preview.  |
+| `pnpm test:tanstack-start` | TanStack Start's own e2e suites against the plugin, dev and preview.         |
 
 To run part of a suite, pass a filter, e.g.
 `pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground:serve assets`.
 The playground suite needs Chromium:
 `pnpm -F rsbuild-plugin-cloudflare-test-harness playwright:install`, as does
 `pnpm test:apps`: `pnpm -F rsbuild-plugin-cloudflare-e2e playwright:install`
-(see [`packages/e2e`](packages/e2e/README.md)).
+(see [`packages/e2e`](packages/e2e/README.md)). `pnpm test:tanstack-start`
+runs in a checkout of TanStack/router, and needs its Chromium too (see
+[`packages/tanstack-start-e2e`](packages/tanstack-start-e2e/README.md)).
 
 ## Staying in sync with workers-sdk
 
