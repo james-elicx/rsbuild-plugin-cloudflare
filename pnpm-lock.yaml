@@ -182,6 +182,9 @@ importers:
       '@types/node':
         specifier: 22.15.17
         version: 22.15.17
+      cf:
+        specifier: 1.0.0-beta.17
+        version: 1.0.0-beta.17
       rsbuild-plugin-cloudflare:
         specifier: workspace:*
         version: link:../rsbuild-plugin

@@ -1,24 +1,26 @@
 /**
  * The Playwright config that an app's tests run with, from its directory, with
- * the app's own Playwright (see `scripts/test.ts`): the app's own
+ * TanStack's Playwright (see `scripts/test.ts`): the app's own
  * `playwright.config.ts`, serving the app with the plugin instead of with
  * Node.js, and without the tests skipped in `apps.ts`.
  */
 import * as path from "node:path";
 import { pathToFileURL } from "node:url";
-import { apps, getAppDir } from "./apps.ts";
-import type { Mode } from "./apps.ts";
+import { findSuite, getAppDir } from "./apps.ts";
 import type { PlaywrightTestConfig } from "@playwright/test";
 
-const appDir = process.cwd();
-const app = apps.find((candidate) => getAppDir(candidate) === appDir);
-if (app === undefined) {
-	throw new Error(`${appDir} isn't an app in apps.ts`);
+// oxlint-disable-next-line turbo/no-undeclared-env-vars -- `scripts/test.ts` sets it, outside Turbo.
+const suiteId = process.env.TANSTACK_START_E2E_SUITE ?? "";
+const found = findSuite(suiteId);
+if (found === undefined) {
+	throw new Error(
+		`Unknown suite "${suiteId}"; run the tests with scripts/test.ts`
+	);
 }
-// oxlint-disable-next-line turbo/no-undeclared-env-vars -- `scripts/test.ts` sets it, outside Turbo, as TanStack's configs read it.
-const mode = process.env.MODE as Mode;
-if (!app.modes.includes(mode)) {
-	throw new Error(`${app.name} isn't tested in mode "${mode}"`);
+const { app, suite } = found;
+const appDir = process.cwd();
+if (getAppDir(app) !== appDir) {
+	throw new Error(`Expected to run ${suiteId} in ${getAppDir(app)}`);
 }
 
 const { default: appConfig } = (await import(
@@ -40,31 +42,52 @@ function escapeRegExp(text: string): string {
 	return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-const skips = app.skips?.[mode] ?? [];
+const skips = suite.skips ?? [];
+
+/** Resolves a path in the app's config, which is relative to the app. */
+function resolveAppPath<T extends string | string[] | undefined>(value: T): T {
+	if (value === undefined) {
+		return value;
+	}
+	return (
+		typeof value === "string"
+			? path.resolve(appDir, value)
+			: value.map((file) => path.resolve(appDir, file))
+	) as T;
+}
 
 export default {
 	...appConfig,
 	testDir: path.resolve(appDir, appConfig.testDir ?? "."),
-	outputDir: path.join(import.meta.dirname, "test-results", app.name, mode),
+	globalSetup: resolveAppPath(appConfig.globalSetup),
+	globalTeardown: resolveAppPath(appConfig.globalTeardown),
+	outputDir: path.join(
+		import.meta.dirname,
+		"test-results",
+		suiteId.replaceAll(":", "-")
+	),
 	retries: process.env.CI ? 1 : 0,
 	reporter: process.env.CI ? [["list"], ["github"]] : "list",
 	grepInvert:
 		skips.length > 0
 			? skips.map(
 					({ file, title }) =>
-						new RegExp(`${escapeRegExp(file)}.*${escapeRegExp(title)}`)
+						new RegExp(
+							`${escapeRegExp(file)}${title === undefined ? "" : `.*${escapeRegExp(title)}`}`
+						)
 				)
 			: undefined,
 	webServer: {
 		...appWebServer,
 		command:
-			mode === "dev"
+			suite.serve === "dev"
 				? `${rsbuild} dev ${serveArgs}`
 				: `${rsbuild} build ${rsbuildArgs} && ${rsbuild} preview ${serveArgs}`,
 		cwd: appDir,
 		env: {
 			...appWebServer.env,
-			MODE: mode,
+			...suite.env,
+			MODE: suite.mode,
 			E2E_TOOLCHAIN: "rsbuild",
 			NODE_OPTIONS: `${appWebServer.env?.NODE_OPTIONS ?? ""} --import=${pathToFileURL(path.join(import.meta.dirname, "register-node-hooks.ts")).href}`,
 		},
