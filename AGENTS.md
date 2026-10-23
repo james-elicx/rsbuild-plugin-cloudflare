@@ -44,7 +44,11 @@ change that exposes what the plugin needs.
 - **Skip upstream tests only for Vite-specific behaviour**, or for features
   that the README lists as unsupported, with a reason, in
   `packages/test-harness/vitest.playground.config.ts` or
-  `vitest.e2e.config.ts`.
+  `vitest.e2e.config.ts`. TanStack Start's tests are skipped in
+  `packages/tanstack-start-e2e/apps.ts`, only for reasons unrelated to the
+  plugin.
+- **Never copy TanStack's apps or tests.** `packages/tanstack-start-e2e` runs
+  them in a checkout of TanStack/router, with wrappers for their configs.
 - **Dependencies follow upstream.** The plugin's runtime dependencies are the
   Vite plugin's, and the tooling versions (and CI's Node.js version) are
   workers-sdk's; `scripts/sync-upstream-deps.ts` updates them. Pin those
@@ -73,6 +77,8 @@ The root `package.json` is authoritative for available scripts.
   e2e suites against Rsbuild.
 - `pnpm test:apps` — this repository's own e2e tests: Playwright tests of the
   apps in `packages/e2e/fixtures`, with `rsbuild dev` and `rsbuild preview`.
+- `pnpm test:tanstack-start` — TanStack Start's own e2e suites, run in a
+  checkout of TanStack/router (see `packages/tanstack-start-e2e/README.md`).
 
 Prefer the narrowest relevant test while developing (e.g.
 `pnpm -F rsbuild-plugin-cloudflare-test-harness test:playground:serve assets`),

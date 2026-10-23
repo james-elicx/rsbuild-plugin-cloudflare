@@ -126,11 +126,56 @@ jobs:
           path: packages/e2e/test-results
           retention-days: 7
 
+  tanstack-start:
+    name: ${{ format('TanStack Start e2e ({0})', matrix.mode) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [dev, preview]
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build
+
+      # Nx's cache of TanStack's package builds, which only change with the pin.
+      - name: Cache the TanStack/router build
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tanstack-router/.nx/cache
+          key: tanstack-router-nx-${{ runner.os }}-${{ hashFiles('packages/tanstack-start-e2e/upstream.json') }}
+
+      - name: Prepare TanStack/router
+        run: pnpm -F rsbuild-plugin-cloudflare-tanstack-start-e2e setup:tanstack-router
+
+      - name: Install playwright
+        run: pnpm -F rsbuild-plugin-cloudflare-tanstack-start-e2e playwright:install
+
+      - name: Run TanStack Start's e2e tests
+        run: pnpm -F rsbuild-plugin-cloudflare-tanstack-start-e2e test:${{ matrix.mode }}
+
+      - name: Upload the test results
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ format('tanstack-start-{0}-results', matrix.mode) }}
+          path: packages/tanstack-start-e2e/test-results
+          retention-days: 7
+
   # Nobody is notified of the failed runs that `sync-upstream.yml` approves, so
   # they comment on the sync pull request.
   report-sync-failure:
     name: Report sync failure
-    needs: [check, playground, e2e, apps]
+    needs: [check, playground, e2e, apps, tanstack-start]
     if: failure() && github.event_name == 'pull_request' && github.head_ref == 'upstream-sync' && github.actor == 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5

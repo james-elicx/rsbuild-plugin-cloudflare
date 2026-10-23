@@ -98,6 +98,7 @@
 		"**/*.cjs",
 		"**/*.mjs",
 		"workers-sdk/**",
+		"tanstack-router/**",
 		"packages/rsbuild-plugin/src/__tests__/fixtures/**",
 		// Copied from their templates, which have their own lint rules.
 		"packages/e2e/fixtures/**",

@@ -171,6 +171,24 @@ importers:
         specifier: 5.0.4
         version: 5.0.4(@types/node@22.15.17)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))
 
+  packages/tanstack-start-e2e:
+    devDependencies:
+      '@playwright/test':
+        specifier: 1.60.0
+        version: 1.60.0
+      '@rsbuild/core':
+        specifier: ^2.2.14
+        version: 2.2.14
+      '@types/node':
+        specifier: 22.15.17
+        version: 22.15.17
+      rsbuild-plugin-cloudflare:
+        specifier: workspace:*
+        version: link:../rsbuild-plugin
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+
   packages/test-harness:
     devDependencies:
       '@cloudflare/workers-utils':

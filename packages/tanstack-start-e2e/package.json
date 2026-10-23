@@ -1,0 +1,22 @@
+{
+	"name": "rsbuild-plugin-cloudflare-tanstack-start-e2e",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Runs TanStack Start's e2e suites against the Rsbuild plugin",
+	"type": "module",
+	"scripts": {
+		"check:type": "tsc",
+		"playwright:install": "../../tanstack-router/e2e/react-start/basic/node_modules/.bin/playwright install chromium",
+		"setup:tanstack-router": "node --experimental-strip-types scripts/setup.ts",
+		"test:dev": "node --experimental-strip-types scripts/test.ts dev",
+		"test:preview": "node --experimental-strip-types scripts/test.ts preview",
+		"test:tanstack-start": "pnpm test:dev && pnpm test:preview"
+	},
+	"devDependencies": {
+		"@playwright/test": "1.60.0",
+		"@rsbuild/core": "^2.2.14",
+		"@types/node": "22.15.17",
+		"rsbuild-plugin-cloudflare": "workspace:*",
+		"typescript": "5.8.3"
+	}
+}
