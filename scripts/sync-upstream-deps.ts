@@ -155,6 +155,7 @@ const packageJsonPaths = [
 	"packages/rsbuild-plugin",
 	"packages/test-harness",
 	"packages/e2e",
+	"packages/tanstack-start-e2e",
 	...readdirSync(path.join(root, "packages/e2e/fixtures")).map(
 		(name) => `packages/e2e/fixtures/${name}`
 	),

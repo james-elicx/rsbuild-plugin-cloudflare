@@ -6,16 +6,17 @@
 	"type": "module",
 	"scripts": {
 		"check:type": "tsc",
-		"playwright:install": "../../tanstack-router/e2e/react-start/basic/node_modules/.bin/playwright install chromium",
+		"playwright:install": "../../tanstack-router/node_modules/.bin/playwright install chromium",
 		"setup:tanstack-router": "node --experimental-strip-types scripts/setup.ts",
-		"test:dev": "node --experimental-strip-types scripts/test.ts dev",
-		"test:preview": "node --experimental-strip-types scripts/test.ts preview",
-		"test:tanstack-start": "pnpm test:dev && pnpm test:preview"
+		"test:dev": "node --experimental-strip-types scripts/test.ts --serve dev",
+		"test:preview": "node --experimental-strip-types scripts/test.ts --serve preview",
+		"test:tanstack-start": "node --experimental-strip-types scripts/test.ts"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.60.0",
 		"@rsbuild/core": "^2.2.14",
 		"@types/node": "22.15.17",
+		"cf": "1.0.0-beta.17",
 		"rsbuild-plugin-cloudflare": "workspace:*",
 		"typescript": "5.8.3"
 	}

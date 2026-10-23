@@ -5,7 +5,9 @@
  * use from source, so that the apps' tests run against the code that they were
  * written for.
  *
- * Usage: node --experimental-strip-types scripts/setup.ts
+ * Usage: node --experimental-strip-types scripts/setup.ts [app...]
+ *
+ * By default, every app in `apps.ts` is prepared.
  */
 import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
@@ -62,7 +64,15 @@ if (getHead() !== upstream.commit) {
 	run("git", ["checkout", "--force", "--detach", "FETCH_HEAD"]);
 }
 
-const appPackages = apps.map((app) => readPackageJson(getAppDir(app)));
+const names = process.argv.slice(2);
+for (const name of names) {
+	if (!apps.some((app) => app.name === name)) {
+		throw new Error(`Unknown app "${name}"`);
+	}
+}
+const appPackages = apps
+	.filter((app) => names.length === 0 || names.includes(app.name))
+	.map((app) => readPackageJson(getAppDir(app)));
 
 // TanStack's own pnpm, whose major version may differ from this repository's.
 const { packageManager } = readPackageJson(tanstackRouterDir);

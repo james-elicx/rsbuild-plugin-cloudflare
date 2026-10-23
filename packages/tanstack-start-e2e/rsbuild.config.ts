@@ -1,8 +1,7 @@
 /**
  * The Rsbuild config that the apps are served with, from their directories
  * (e.g. `rsbuild dev --config <this file>`): the app's own `rsbuild.config.ts`,
- * with the plugin added as TanStack's Cloudflare example adds the Vite plugin
- * (`e2e/react-start/basic-cloudflare`), and the API mock.
+ * with the plugin added as its README describes, and the API mock.
  */
 import * as path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -50,15 +49,10 @@ export default defineConfig(async (params) => {
 	return {
 		...appConfig,
 		plugins: [
+			// The Worker's config is in `cloudflare.config.ts`.
 			cloudflare({
 				rsbuildEnvironment: { name: workerEnvironmentName },
 				inspectorPort: false,
-				// As `basic-cloudflare/wrangler.jsonc` does.
-				config: {
-					entrypoint: "@tanstack/react-start/server-entry",
-					compatibilityDate: "2025-09-24",
-					compatibilityFlags: ["nodejs_compat"],
-				},
 			}),
 			workerApiMock,
 			...(appConfig.plugins ?? []),

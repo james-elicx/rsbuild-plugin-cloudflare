@@ -126,14 +126,38 @@ jobs:
           path: packages/e2e/test-results
           retention-days: 7
 
+  tanstack-start-apps:
+    name: List the TanStack Start e2e apps
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      apps: ${{ steps.list.outputs.apps }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.23.4
+
+      - name: List the apps
+        id: list
+        run: echo "apps=$(node --experimental-strip-types packages/tanstack-start-e2e/scripts/list-apps.ts)" >> "$GITHUB_OUTPUT"
+
+  # One job per app in `packages/tanstack-start-e2e/apps.ts`, which runs all of
+  # the app's suites.
   tanstack-start:
-    name: ${{ format('TanStack Start e2e ({0})', matrix.mode) }}
+    name: ${{ format('TanStack Start e2e ({0})', matrix.app) }}
+    needs: tanstack-start-apps
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        mode: [dev, preview]
+        app: ${{ fromJSON(needs.tanstack-start-apps.outputs.apps) }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -148,26 +172,29 @@ jobs:
         run: pnpm build
 
       # Nx's cache of TanStack's package builds, which only change with the pin.
+      # Its entries are content-addressed, so the apps can share them.
       - name: Cache the TanStack/router build
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: tanstack-router/.nx/cache
-          key: tanstack-router-nx-${{ runner.os }}-${{ hashFiles('packages/tanstack-start-e2e/upstream.json') }}
+          key: tanstack-router-nx-${{ runner.os }}-${{ hashFiles('packages/tanstack-start-e2e/upstream.json') }}-${{ matrix.app }}
+          restore-keys: |
+            tanstack-router-nx-${{ runner.os }}-${{ hashFiles('packages/tanstack-start-e2e/upstream.json') }}-
 
       - name: Prepare TanStack/router
-        run: pnpm -F rsbuild-plugin-cloudflare-tanstack-start-e2e setup:tanstack-router
+        run: pnpm -F rsbuild-plugin-cloudflare-tanstack-start-e2e setup:tanstack-router ${{ matrix.app }}
 
       - name: Install playwright
         run: pnpm -F rsbuild-plugin-cloudflare-tanstack-start-e2e playwright:install
 
-      - name: Run TanStack Start's e2e tests
-        run: pnpm -F rsbuild-plugin-cloudflare-tanstack-start-e2e test:${{ matrix.mode }}
+      - name: Run the app's suites
+        run: pnpm -F rsbuild-plugin-cloudflare-tanstack-start-e2e test:tanstack-start ${{ matrix.app }}
 
       - name: Upload the test results
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ format('tanstack-start-{0}-results', matrix.mode) }}
+          name: ${{ format('tanstack-start-{0}-results', matrix.app) }}
           path: packages/tanstack-start-e2e/test-results
           retention-days: 7
 
