@@ -94,9 +94,9 @@ optional ref:
 5. CI (`ci.yml`) runs against the pushed commit: checks, unit tests, the
    playground suite (serve and build), the e2e suite and this repository's
    e2e apps (dev and preview).
-6. When CI passes, the pull request is rebase-merged into `main`. Otherwise a
-   comment on the pull request links to the failed run, and the pull request
-   stays open for fixes.
+6. Auto-merge rebase-merges the pull request into `main` once CI passes.
+   Otherwise a comment on the pull request links to the failed run, and the
+   pull request stays open for fixes.
 
 Each upstream commit that the sync brings in and that changes the Vite plugin
 (other than its tests) becomes a release note in the next release (see
@@ -106,8 +106,10 @@ Dependabot updates the pinned GitHub Actions weekly (`.github/dependabot.yml`).
 
 The workflow opens the pull request with `GITHUB_TOKEN`, so the repository must
 allow it: enable **Settings → Actions → General → Allow GitHub Actions to create
-and approve pull requests**. Pull requests opened with `GITHUB_TOKEN` don't
-trigger other workflows, which is why the sync workflow runs `ci.yml` itself.
+and approve pull requests**, and **Settings → General → Allow auto-merge**.
+Pushes made with `GITHUB_TOKEN` don't trigger `pull_request` workflows, so the
+sync workflow dispatches `ci.yml` on the branch, which reports the status checks
+that `main`'s ruleset requires on the pushed commit.
 
 ## Fixing a failed sync
 
@@ -138,10 +140,12 @@ Then, depending on what failed:
   `node --experimental-strip-types scripts/sync-upstream-deps.ts`, then
   `pnpm install`.
 
-Push the fixes to `upstream-sync`. The next sync (or a manual run of the
-workflow) rebases them onto `main`, runs CI, and merges the pull request when it
-passes. If the branch no longer rebases cleanly, rebase it onto `main` yourself
-and force-push it.
+Push the fixes to `upstream-sync`. CI runs on them, and if auto-merge is
+enabled on the pull request (it isn't when the bump itself failed), the pull
+request is merged when it passes. Otherwise, the next sync (or a manual run of
+the workflow) rebases them onto `main`, runs CI, and enables auto-merge. If the
+branch no longer rebases cleanly, rebase it onto `main` yourself and force-push
+it.
 
 Passing CI doesn't mean the plugin still behaves like the Vite plugin: only
 the copied and mirrored declarations are checked mechanically, and only for

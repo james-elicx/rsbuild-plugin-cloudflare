@@ -4,20 +4,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  # `sync-upstream.yml` dispatches this on the branch that bumps workers-sdk.
   workflow_dispatch:
-  # `sync-upstream.yml` runs this against the branch that bumps workers-sdk.
-  workflow_call:
-    inputs:
-      ref:
-        description: the ref to test
-        type: string
-        required: true
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ inputs.ref || github.event.number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -34,7 +28,6 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.ref }}
           submodules: true
           persist-credentials: false
 
@@ -59,7 +52,6 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.ref }}
           submodules: true
           persist-credentials: false
 
@@ -85,7 +77,6 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.ref }}
           submodules: true
           persist-credentials: false
 
@@ -113,7 +104,6 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
-          ref: ${{ inputs.ref }}
           submodules: true
           persist-credentials: false
 
@@ -136,3 +126,23 @@ jobs:
           name: ${{ format('e2e-apps-{0}-results', matrix.mode) }}
           path: packages/e2e/test-results
           retention-days: 7
+
+  # Nobody is notified of failed runs that `sync-upstream.yml` dispatches, so
+  # they comment on the sync pull request.
+  report-sync-failure:
+    name: Report sync failure
+    needs: [check, playground, e2e, apps]
+    if: failure() && github.event_name == 'workflow_dispatch' && github.ref_name == 'upstream-sync'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Comment on the pull request
+        run: |
+          gh pr comment "$GITHUB_REF_NAME" --body "CI failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Push fixes to \`$GITHUB_REF_NAME\`. Auto-merge rebases the pull request onto \`main\` once CI passes."
