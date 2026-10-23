@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      # To dispatch CI.
+      # To approve CI's runs.
       actions: write
       contents: write
       pull-requests: write
@@ -140,14 +140,31 @@ jobs:
           fi
           echo "number=$number" >> "$GITHUB_OUTPUT"
 
-      # Pushes made with `GITHUB_TOKEN` don't trigger `pull_request` workflows, but
-      # it can dispatch them. CI then reports the checks that `main`'s ruleset
-      # requires on the pushed commit, and auto-merge rebases the pull request
-      # once they pass, including after fixes are pushed to it.
+      # The `pull_request` runs of pull requests that `GITHUB_TOKEN` creates or
+      # updates wait for approval
+      # (https://github.blog/changelog/2026-06-11-bot-created-pull-requests-can-run-workflows-if-approved/).
+      # Approved, CI reports the checks that `main`'s ruleset requires, and
+      # auto-merge rebases the pull request once they pass, including after
+      # fixes are pushed to it.
       - name: Run CI and merge when it passes
         if: steps.update-pr.outputs.number && steps.bump.outputs.status == '0'
         run: |
-          gh workflow run ci.yml --ref "$BRANCH"
+          sha="$(git rev-parse HEAD)"
+          ci_runs() {
+            gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$sha&event=pull_request" --jq '.workflow_runs[].id'
+          }
+          # The runs are created shortly after the push.
+          for _ in $(seq 30); do
+            [[ -n "$(ci_runs)" ]] && break
+            sleep 10
+          done
+          if [[ -z "$(ci_runs)" ]]; then
+            echo "::error::CI didn't start on the pull request."
+            exit 1
+          fi
+          for run in $(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$sha&status=action_required" --jq '.workflow_runs[].id'); do
+            gh api --method POST "repos/$GITHUB_REPOSITORY/actions/runs/$run/approve"
+          done
           gh pr merge "${{ steps.update-pr.outputs.number }}" --auto --rebase
 
       - name: Fail if the bump failed

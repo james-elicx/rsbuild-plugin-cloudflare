@@ -107,9 +107,11 @@ Dependabot updates the pinned GitHub Actions weekly (`.github/dependabot.yml`).
 The workflow opens the pull request with `GITHUB_TOKEN`, so the repository must
 allow it: enable **Settings → Actions → General → Allow GitHub Actions to create
 and approve pull requests**, and **Settings → General → Allow auto-merge**.
-Pushes made with `GITHUB_TOKEN` don't trigger `pull_request` workflows, so the
-sync workflow dispatches `ci.yml` on the branch, which reports the status checks
-that `main`'s ruleset requires on the pushed commit.
+The `pull_request` runs of pull requests that `GITHUB_TOKEN` creates or updates
+[wait for approval](https://github.blog/changelog/2026-06-11-bot-created-pull-requests-can-run-workflows-if-approved/),
+so the sync workflow approves them. CI then reports the status checks that
+`main`'s ruleset requires. Running CI some other way, such as dispatching it,
+doesn't help: the pull request shows the waiting runs' checks instead.
 
 ## Fixing a failed sync
 

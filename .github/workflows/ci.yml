@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-  # `sync-upstream.yml` dispatches this on the branch that bumps workers-sdk.
   workflow_dispatch:
 
 permissions:
@@ -127,12 +126,12 @@ jobs:
           path: packages/e2e/test-results
           retention-days: 7
 
-  # Nobody is notified of failed runs that `sync-upstream.yml` dispatches, so
+  # Nobody is notified of the failed runs that `sync-upstream.yml` approves, so
   # they comment on the sync pull request.
   report-sync-failure:
     name: Report sync failure
     needs: [check, playground, e2e, apps]
-    if: failure() && github.event_name == 'workflow_dispatch' && github.ref_name == 'upstream-sync'
+    if: failure() && github.event_name == 'pull_request' && github.head_ref == 'upstream-sync' && github.actor == 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -143,6 +142,6 @@ jobs:
     steps:
       - name: Comment on the pull request
         run: |
-          gh pr comment "$GITHUB_REF_NAME" --body "CI failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          gh pr comment "$GITHUB_HEAD_REF" --body "CI failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          Push fixes to \`$GITHUB_REF_NAME\`. Auto-merge rebases the pull request onto \`main\` once CI passes."
+          Push fixes to \`$GITHUB_HEAD_REF\`. Auto-merge rebases the pull request onto \`main\` once CI passes."
