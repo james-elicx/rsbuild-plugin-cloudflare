@@ -1,0 +1,33 @@
+{
+  "name": "tanstack-start-example-basic-rsbuild-cloudflare-rsc",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
+  "scripts": {
+    "dev": "rsbuild dev --port 3000",
+    "build": "rsbuild build && tsc --noEmit",
+    "preview": "rsbuild preview"
+  },
+  "dependencies": {
+    "@tanstack/react-router": "^1.170.46",
+    "@tanstack/react-router-devtools": "^1.167.2",
+    "@tanstack/react-start": "^1.169.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-server-dom-rspack": "^0.0.2",
+    "tailwind-merge": "^3.7.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "^2.2.14",
+    "@rsbuild/plugin-react": "^2.1.1",
+    "@rsbuild/plugin-tailwindcss": "^2.0.3",
+    "@types/node": "22.15.17",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "cf": "1.0.0-beta.17",
+    "rsbuild-plugin-cloudflare": "workspace:*",
+    "tailwindcss": "^4.3.3",
+    "typescript": "5.8.3"
+  }
+}

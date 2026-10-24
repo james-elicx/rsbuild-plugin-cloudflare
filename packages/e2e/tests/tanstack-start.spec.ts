@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import { collectPageErrors, waitForHydration } from "./helpers";
 
 const fixtureRoot = path.join(
 	import.meta.dirname,
@@ -99,19 +99,7 @@ test.describe("hydration and client-side navigation", () => {
 	});
 
 	test("loads the page without errors", async ({ page }) => {
-		const errors: string[] = [];
-		page.on("pageerror", (error) => errors.push(error.message));
-		page.on("console", (message) => {
-			if (message.type() === "error") {
-				errors.push(message.text());
-			}
-		});
-		const failedRequests: string[] = [];
-		page.on("response", (response) => {
-			if (!response.ok()) {
-				failedRequests.push(`${response.status()} ${response.url()}`);
-			}
-		});
+		const { errors, failedRequests } = collectPageErrors(page);
 
 		await page.goto("/");
 		await waitForHydration(page);
@@ -174,11 +162,3 @@ test.describe("static assets", () => {
 		);
 	});
 });
-
-/**
- * Waits until the router has hydrated the page, after which TanStack Start
- * removes its `$_TSR` global.
- */
-async function waitForHydration(page: Page) {
-	await page.waitForFunction(() => !("$_TSR" in window));
-}
