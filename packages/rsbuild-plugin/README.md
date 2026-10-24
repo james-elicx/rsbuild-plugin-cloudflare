@@ -111,6 +111,12 @@ Rsbuild (e.g. one created from TanStack's Rsbuild template) on Workers:
    });
    ```
 
+   If the app has its own
+   [server entry](https://tanstack.com/start/latest/docs/framework/react/guide/server-entry-point)
+   (e.g. `src/server.ts`), make that the entrypoint instead (e.g.
+   `entrypoint: "./src/server.ts"`). The Worker runs its entrypoint, so with
+   TanStack Start's it would bypass the app's.
+
 3. Add `cloudflare()` before `tanstackStart()`, with `rsbuildEnvironment.name`
    set to TanStack Start's server environment, `ssr`. This is required: without
    it, the plugin builds the entrypoint in its own `cloudflare` environment,
@@ -162,6 +168,12 @@ const getGreeting = createServerFn().handler(() => env.GREETING);
 
 See [`packages/e2e/fixtures/tanstack-start`](https://github.com/james-elicx/rsbuild-plugin-cloudflare/tree/main/packages/e2e/fixtures/tanstack-start) for
 a complete app.
+
+[React Server Components](https://tanstack.com/start/latest/docs/framework/react/guide/server-components)
+run in the Worker too, once they're enabled with `rsc: { enabled: true }` in
+`tanstackStart()`'s options. TanStack Start resolves `react-server-dom-rspack`
+from the app's root, so add it as a dependency. See
+[`packages/e2e/fixtures/tanstack-start-rsc`](https://github.com/james-elicx/rsbuild-plugin-cloudflare/tree/main/packages/e2e/fixtures/tanstack-start-rsc).
 
 ## Differences from the Vite plugin
 

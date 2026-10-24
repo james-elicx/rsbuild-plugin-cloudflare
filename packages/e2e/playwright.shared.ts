@@ -9,7 +9,10 @@ export type Mode = "dev" | "preview";
  * The apps in `fixtures/`. Each one is served on its own port, and tested by
  * `tests/<name>.spec.ts`.
  */
-const apps = [{ name: "tanstack-start", port: 4310 }];
+const apps = [
+	{ name: "tanstack-start", port: 4310 },
+	{ name: "tanstack-start-rsc", port: 4311 },
+];
 
 /**
  * Creates the Playwright config that serves and tests every app in one mode.

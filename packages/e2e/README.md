@@ -36,6 +36,24 @@ applied:
   Rsbuild packages.
 - `README.md` describes the Cloudflare setup.
 
+### `tanstack-start-rsc`
+
+TanStack has no template that uses React Server Components with Rsbuild, so
+this is `tanstack-start`, with them enabled as TanStack Start's
+[Server Components guide](https://tanstack.com/start/latest/docs/framework/react/guide/server-components)
+describes:
+
+- `rsbuild.config.ts` enables them with `rsc: { enabled: true }`.
+- `package.json` depends on `react-server-dom-rspack`, which TanStack Start
+  resolves from the app's root, at the version that TanStack Start's own
+  packages test with. The guide doesn't list it.
+- `src/routes/rsc.tsx`, linked from `src/routes/__root.tsx`, is the guide's
+  quick start: a server component, and a composite component with a slot.
+  Both render `src/components/Counter.tsx`, a client component, and the
+  server component reads `navigator.userAgent` and the `vars` binding, as
+  `src/routes/index.tsx` does.
+- `README.md` describes the React Server Components setup.
+
 ## Running the tests
 
 ```sh
