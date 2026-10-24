@@ -1,0 +1,19 @@
+packages/rsbuild-plugin/README.md
+  s_7e727e6ef5a9dc::t_f2c491843cdc5e 114-119,172-177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b1cb3f9f616dd5e956be718ce446738d539467ce",
+  "prompts": {},
+  "sessions": {
+    "s_7e727e6ef5a9dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "05512eec-389d-428f-8c4f-2ef826ec3df9",
+        "model": "unknown"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
