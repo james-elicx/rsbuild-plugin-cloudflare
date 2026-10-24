@@ -4,7 +4,6 @@
 
 ### Patch Changes
 
-- Add an npm badge to the READMEs (#31)
 - Require `@rsbuild/core` 2.2.10 or later, which builds Workers as ES modules (#38)
 - Support React Server Components (#40)
 - Document React Server Components and custom server entries with TanStack Start (#44)
