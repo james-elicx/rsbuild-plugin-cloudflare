@@ -1,5 +1,13 @@
 # rsbuild-plugin-cloudflare
 
+## 0.0.2
+
+### Patch Changes
+
+- Require `@rsbuild/core` 2.2.10 or later, which builds Workers as ES modules (#38)
+- Support React Server Components (#40)
+- Document React Server Components and custom server entries with TanStack Start (#44)
+
 ## 0.0.1
 
 ### Patch Changes
