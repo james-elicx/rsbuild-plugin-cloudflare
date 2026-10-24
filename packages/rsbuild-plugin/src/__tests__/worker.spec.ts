@@ -99,6 +99,52 @@ describe("worker", () => {
 		).toHaveLength(1);
 	});
 
+	test("builds the Worker's entry as one module", async ({ expect }) => {
+		const rspackConfig = vi.fn();
+		await build(copyFixture("worker"), {
+			environments: { cloudflare: { tools: { rspack: rspackConfig } } },
+		});
+
+		// Rspack's React Server Components support only looks for client
+		// components from an entry's first module, so the Node.js compat globals
+		// are imported by the Worker's entry module rather than before it.
+		const [config] = rspackConfig.mock.calls[0] ?? [];
+		const entries = Object.values(config.entry) as { import: string[] }[];
+		expect(entries.map((entry) => entry.import.length)).toEqual([1]);
+		const [entry = ""] = entries[0]?.import ?? [];
+		expect(decodeURIComponent(entry)).toMatch(
+			/^data:text\/javascript,import "virtual:cloudflare\/nodejs-global-inject\/.*import \* as mod from /s
+		);
+	});
+
+	test("builds the Worker's entry in its environment's entry's layer", async ({
+		expect,
+	}) => {
+		const rspackConfig = vi.fn();
+		// As TanStack Start's React Server Components support configures its
+		// server environment.
+		await build(copyFixture("worker"), {
+			environments: {
+				cloudflare: {
+					source: {
+						entry: {
+							index: {
+								import: "./src/index.ts",
+								layer: "server-side-rendering",
+							},
+						},
+					},
+					tools: { rspack: rspackConfig },
+				},
+			},
+		});
+
+		const [config] = rspackConfig.mock.calls[0] ?? [];
+		expect(Object.values(config.entry)).toEqual([
+			expect.objectContaining({ layer: "server-side-rendering" }),
+		]);
+	});
+
 	test("reloads the Worker when its source changes", async ({ expect }) => {
 		const root = copyFixture("worker");
 		const url = await startDevServer(root);

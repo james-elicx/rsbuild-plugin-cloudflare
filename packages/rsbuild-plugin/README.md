@@ -55,7 +55,10 @@ To change how a Worker is built, configure its environment in Rsbuild's
 precedence, apart from `source.entry`, `output.target` and `output.module`,
 which the plugin always sets so that the Worker runs in workerd, and
 `output.distPath.root`, which it sets to the Worker's Build Output location, as
-the Vite plugin does.
+the Vite plugin does. The Worker's entry keeps the
+[layer](https://rspack.rs/config/entry#entrydescriptionlayer) of the entries
+that it replaces, if they're all in the same one (e.g. TanStack Start's server
+entry, with React Server Components).
 
 ```ts
 export default defineConfig({
