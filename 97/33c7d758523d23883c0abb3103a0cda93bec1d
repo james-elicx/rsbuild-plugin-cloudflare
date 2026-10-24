@@ -1,0 +1,109 @@
+packages/e2e/README.md
+  s_7e727e6ef5a9dc::t_8e18e1e1304937 39-56
+packages/e2e/fixtures/tanstack-start-rsc/.gitignore
+  s_7e727e6ef5a9dc::t_be5f5ca7989f86 1-20
+packages/e2e/fixtures/tanstack-start-rsc/.prettierignore
+  s_7e727e6ef5a9dc::t_26c1f3382c62fe 1-4
+packages/e2e/fixtures/tanstack-start-rsc/README.md
+  s_7e727e6ef5a9dc::t_16851958d7fd72 1-53
+packages/e2e/fixtures/tanstack-start-rsc/cloudflare.config.ts
+  s_7e727e6ef5a9dc::t_8c10519aac5ba1 1-13
+packages/e2e/fixtures/tanstack-start-rsc/package.json
+  s_7e727e6ef5a9dc::t_f5966f3587de80 1-33
+packages/e2e/fixtures/tanstack-start-rsc/public/site.webmanifest
+  s_7e727e6ef5a9dc::t_7a43415c6ca28f 1-19
+packages/e2e/fixtures/tanstack-start-rsc/rsbuild.config.ts
+  s_7e727e6ef5a9dc::t_5e34a982da3ae4 1-22
+packages/e2e/fixtures/tanstack-start-rsc/src/components/Counter.tsx
+  s_7e727e6ef5a9dc::t_1cb2477ac9837e 1-17
+packages/e2e/fixtures/tanstack-start-rsc/src/components/DefaultCatchBoundary.tsx
+  s_7e727e6ef5a9dc::t_e50b182b8cf047 1-51
+packages/e2e/fixtures/tanstack-start-rsc/src/components/NotFound.tsx
+  s_7e727e6ef5a9dc::t_b2e1946f0ed966 1-25
+packages/e2e/fixtures/tanstack-start-rsc/src/components/PostError.tsx
+  s_7e727e6ef5a9dc::t_f74c5644745cc0 1-6
+packages/e2e/fixtures/tanstack-start-rsc/src/components/UserError.tsx
+  s_7e727e6ef5a9dc::t_ba1b5ab9af3b60 1-6
+packages/e2e/fixtures/tanstack-start-rsc/src/env.d.ts
+  s_7e727e6ef5a9dc::t_249cc02c0f5b5a 1
+packages/e2e/fixtures/tanstack-start-rsc/src/routeTree.gen.ts
+  s_7e727e6ef5a9dc::t_837ce04edf0f9d 1-468
+packages/e2e/fixtures/tanstack-start-rsc/src/router.tsx
+  s_7e727e6ef5a9dc::t_4d5b59f134774a 1-15
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/__root.tsx
+  s_7e727e6ef5a9dc::t_43a50239913e01 1-138
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/_pathlessLayout.tsx
+  s_7e727e6ef5a9dc::t_49b957b230add4 1-16
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/_pathlessLayout/_nested-layout.tsx
+  s_7e727e6ef5a9dc::t_f4ae45f4589b26 1-34
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/_pathlessLayout/_nested-layout/route-a.tsx
+  s_7e727e6ef5a9dc::t_938485bf7c3384 1-11
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/_pathlessLayout/_nested-layout/route-b.tsx
+  s_7e727e6ef5a9dc::t_551458453e751e 1-11
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/api/users.$userId.ts
+  s_7e727e6ef5a9dc::t_2e22563b0306c6 1-31
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/api/users.ts
+  s_7e727e6ef5a9dc::t_cf861cb1ea0d05 1-63
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/customScript[.]js.ts
+  s_7e727e6ef5a9dc::t_ca44acf85e3ae2 1-15
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/deferred.tsx
+  s_7e727e6ef5a9dc::t_e9b4bf54b7c3cc 1-62
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/index.tsx
+  s_7e727e6ef5a9dc::t_d801b2ef567b68 1-27
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/posts.$postId.tsx
+  s_7e727e6ef5a9dc::t_e5b46209e48770 1-34
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/posts.index.tsx
+  s_7e727e6ef5a9dc::t_8c83e4ddb9207d 1-9
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/posts.tsx
+  s_7e727e6ef5a9dc::t_a1ed34580d4cc7 1-38
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/posts_.$postId.deep.tsx
+  s_7e727e6ef5a9dc::t_59a33ff563d8ca 1-29
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/redirect.tsx
+  s_7e727e6ef5a9dc::t_f1ebf108dddf44 1-9
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/rsc.tsx
+  s_7e727e6ef5a9dc::t_a8d09e0e9cb776 1-58
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/users.$userId.tsx
+  s_7e727e6ef5a9dc::t_4d53e4e3c2d3b1 1-45
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/users.index.tsx
+  s_7e727e6ef5a9dc::t_59685764395d7d 1-19
+packages/e2e/fixtures/tanstack-start-rsc/src/routes/users.tsx
+  s_7e727e6ef5a9dc::t_7d30e08fe3cd07 1-49
+packages/e2e/fixtures/tanstack-start-rsc/src/styles/app.css
+  s_7e727e6ef5a9dc::t_0339d5dc97e845 1-30
+packages/e2e/fixtures/tanstack-start-rsc/src/utils/loggingMiddleware.tsx
+  s_7e727e6ef5a9dc::t_2c77067a2ea7f5 1-41
+packages/e2e/fixtures/tanstack-start-rsc/src/utils/posts.tsx
+  s_7e727e6ef5a9dc::t_9943ab16590e82 1-40
+packages/e2e/fixtures/tanstack-start-rsc/src/utils/seo.ts
+  s_7e727e6ef5a9dc::t_5a3bcda17cbf55 1-33
+packages/e2e/fixtures/tanstack-start-rsc/src/utils/users.tsx
+  s_7e727e6ef5a9dc::t_c5ff8b63f4725e 1-5
+packages/e2e/fixtures/tanstack-start-rsc/tsconfig.json
+  s_7e727e6ef5a9dc::t_f6a96ed58095bd 1-21
+packages/e2e/playwright.shared.ts
+  s_7e727e6ef5a9dc::t_86a98d3576f1dd 12-15
+packages/e2e/tests/helpers.ts
+  s_7e727e6ef5a9dc::t_20803e48e1fecc 1-37
+packages/e2e/tests/tanstack-start-rsc.spec.ts
+  s_7e727e6ef5a9dc::t_fe3fe64e93979d 1-63
+packages/e2e/tests/tanstack-start.spec.ts
+  s_7e727e6ef5a9dc::t_adef13428e2e19 4,102
+pnpm-lock.yaml
+  s_7e727e6ef5a9dc::t_133cb84b088da7 71,116-173,2497-2504,4016,4030,4052,4056,5007-5012
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9733c7d758523d23883c0abb3103a0cda93bec1d",
+  "prompts": {},
+  "sessions": {
+    "s_7e727e6ef5a9dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "05512eec-389d-428f-8c4f-2ef826ec3df9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
