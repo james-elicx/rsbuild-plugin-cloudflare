@@ -1,0 +1,27 @@
+packages/tanstack-start-e2e/README.md
+  s_7e727e6ef5a9dc::t_921860582ee490 30-33,39-43
+packages/tanstack-start-e2e/apps.ts
+  s_7e727e6ef5a9dc::t_7acf5e9d44ddd7 44-50,163-170
+packages/tanstack-start-e2e/cloudflare.config.ts
+  s_7e727e6ef5a9dc::t_0fd6d22060c082 4-5,8,16
+packages/tanstack-start-e2e/rsbuild.config.ts
+  s_7e727e6ef5a9dc::t_2903c666390366 4-5,16
+packages/tanstack-start-e2e/scripts/test.ts
+  s_7e727e6ef5a9dc::t_6f14ec8deb240f 15-21,70-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f41b5b78007236d27a3adb45978112c063be5916",
+  "prompts": {},
+  "sessions": {
+    "s_7e727e6ef5a9dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "05512eec-389d-428f-8c4f-2ef826ec3df9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
