@@ -12,7 +12,13 @@ import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { parseArgs } from "node:util";
-import { apps, getAppDir, getSuiteId, tanstackRouterDir } from "../apps.ts";
+import {
+	apps,
+	getAppDir,
+	getSuiteId,
+	tanstackRouterDir,
+	workerEntrypointFile,
+} from "../apps.ts";
 
 const separator = process.argv.indexOf("--");
 const { values, positionals: filters } = parseArgs({
@@ -60,6 +66,19 @@ for (const { app, suite, id } of suites) {
 	fs.writeFileSync(
 		path.join(appDir, "cloudflare.config.ts"),
 		`export { default } from ${JSON.stringify(path.join(import.meta.dirname, "../cloudflare.config.ts"))};\n`
+	);
+	// The mock is imported by the Worker's entrypoint, rather than added to its
+	// entry before the plugin's module: Rspack's React Server Components support
+	// only looks for client components from an entry's first module, and an
+	// entry's exports are its last module's.
+	const entrypoint = JSON.stringify(
+		suite.entrypoint ?? "@tanstack/react-start/server-entry"
+	);
+	fs.writeFileSync(
+		path.join(appDir, workerEntrypointFile),
+		`import ${JSON.stringify(path.join(import.meta.dirname, "../worker-api-mock.ts"))};\n` +
+			`export * from ${entrypoint};\n` +
+			`export { default } from ${entrypoint};\n`
 	);
 	// TanStack's root Playwright: not every app depends on it itself.
 	const { status, error } = spawnSync(

@@ -41,6 +41,13 @@ export interface App {
 	suites: Suite[];
 }
 
+/**
+ * The Worker's entrypoint, which `scripts/test.ts` writes to the app's
+ * directory: it imports `worker-api-mock.ts`, then re-exports the suite's
+ * entrypoint.
+ */
+export const workerEntrypointFile = "tanstack-start-e2e-worker.ts";
+
 /** The checkout of TanStack/router, prepared by `scripts/setup.ts`. */
 export const tanstackRouterDir = path.resolve(
 	import.meta.dirname,
@@ -96,9 +103,6 @@ const responseReconciliationSkips = customStatusText(
  *   `pnpm exec rsbuild dev` and the app's own config, and reads the log of
  *   TanStack's Nx build.
  * - `rsbuild`: its tests serve the app themselves, with `pnpm exec rsbuild dev`.
- * - `rsc` and `rsc-rsbuild`: React Server Components don't work with the plugin
- *   yet. The Worker's render fails because client references are missing from
- *   React's client manifest.
  * - Dev runs of the apps that TanStack only tests in production, apart from
  *   `basic`: some of their tests expect production builds (e.g.
  *   `server-functions`' explicit server function IDs).
@@ -155,6 +159,14 @@ export const apps: App[] = [
 				skips: responseReconciliationSkips,
 			},
 		],
+	},
+	{
+		name: "rsc",
+		suites: [{ serve: "preview", mode: "ssr" }],
+	},
+	{
+		name: "rsc-rsbuild",
+		suites: [{ serve: "preview", mode: "ssr" }],
 	},
 	{
 		name: "server-functions",

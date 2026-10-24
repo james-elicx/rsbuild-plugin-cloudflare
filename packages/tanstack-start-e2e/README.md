@@ -27,16 +27,20 @@ package only holds wrappers for the apps' configs.
   plugin as its README describes. The Worker is configured in this package's
   `cloudflare.config.ts`, which `scripts/test.ts` re-exports from a
   `cloudflare.config.ts` in the app's directory: TanStack's Cloudflare example's
-  config (`e2e/react-start/basic-cloudflare`), with the suite's entrypoint, for
-  apps with their own server entry, and its variables, which some apps read at
-  runtime.
+  config (`e2e/react-start/basic-cloudflare`), with the suite's variables,
+  which some apps read at runtime. Its entrypoint is a module that
+  `scripts/test.ts` writes to the app's directory, which imports the API mock
+  (see below), then re-exports TanStack Start's server entry, or the app's own.
 - `node-hooks.ts` resolves `@rsbuild/core` from this package for the app and
   TanStack's packages as well as for the plugin, because the plugin needs a
   newer version than TanStack's lockfile has.
 - TanStack's tests mock the JSONPlaceholder API that the apps fetch from with
   MSW, in the app's Node.js server, which doesn't reach the Worker.
-  `worker-api-mock.ts`, added before the Worker's entry, passes the Worker's
-  requests to the same MSW handlers.
+  `worker-api-mock.ts`, imported by the Worker's entrypoint, passes the
+  Worker's requests to the same MSW handlers. It isn't added to the Worker's
+  entry as a module of its own: Rspack's React Server Components support only
+  looks for client components from an entry's first module, and an entry's
+  exports are its last module's.
 
 ## Running the tests
 
