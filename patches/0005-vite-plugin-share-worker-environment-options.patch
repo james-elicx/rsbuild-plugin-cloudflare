@@ -1,5 +1,5 @@
 diff --git a/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts b/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts
-index e99e5f58e..1144813db 100644
+index af42f2dd3..1144813db 100644
 --- a/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts
 +++ b/packages/vite-plugin-cloudflare/src/cloudflare-environment.ts
 @@ -15,6 +15,12 @@ import {
@@ -15,11 +15,12 @@ index e99e5f58e..1144813db 100644
  import type { ExportTypes } from "./export-types";
  import type {
  	ResolvedWorkerConfig,
-@@ -187,16 +193,6 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
+@@ -187,17 +193,6 @@ export class CloudflareDevEnvironment extends vite.DevEnvironment {
  	}
  }
  
 -export const cloudflareBuiltInModules = [
+-	"cloudflare:durable-objects",
 -	"cloudflare:email",
 -	"cloudflare:node",
 -	"cloudflare:sockets",
@@ -32,7 +33,7 @@ index e99e5f58e..1144813db 100644
  // workerd runs every es2026 feature natively, including `using` and `await using`.
  // Oxc (Vite 8) accepts an es2026 target, so it leaves them as written instead of
  // lowering them to `_usingCtx` helpers. esbuild (Vite 6 and 7) has no es2026
-@@ -213,20 +209,6 @@ const cssTarget = "es2024";
+@@ -214,20 +209,6 @@ const cssTarget = "es2024";
  // it as written. Kept in step with Wrangler's COMMON_ESBUILD_OPTIONS.
  const esbuildSupported = { using: true };
  
@@ -53,7 +54,7 @@ index e99e5f58e..1144813db 100644
  /**
   * Worker source maps are written to the Worker's build output rather than its
   * public assets, so emit them by default for readable stack traces. Users can
-@@ -376,35 +358,6 @@ export function createCloudflareEnvironmentOptions({
+@@ -377,35 +358,6 @@ export function createCloudflareEnvironmentOptions({
  	};
  }
  
@@ -111,14 +112,15 @@ index 47d6575ce..3ff3024cf 100644
  import type { EnvironmentOptions, UserConfig } from "vite";
 diff --git a/packages/vite-plugin-cloudflare/src/worker-environment-options.ts b/packages/vite-plugin-cloudflare/src/worker-environment-options.ts
 new file mode 100644
-index 000000000..520c3ebfe
+index 000000000..ef85dd7cb
 --- /dev/null
 +++ b/packages/vite-plugin-cloudflare/src/worker-environment-options.ts
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,56 @@
 +// The Worker environments' resolve and `define` options, which don't depend on
 +// Vite so that other bundler integrations can share them.
 +
 +export const cloudflareBuiltInModules = [
++	"cloudflare:durable-objects",
 +	"cloudflare:email",
 +	"cloudflare:node",
 +	"cloudflare:sockets",
