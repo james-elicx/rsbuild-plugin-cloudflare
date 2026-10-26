@@ -1,0 +1,19 @@
+.github/workflows/sync-upstream.yml
+  s_13a7ca6528bc9a::t_9c04e80239170b 129-132,135
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0dd30722e6772d6c76fe2b9d74fae847a857c5f9",
+  "prompts": {},
+  "sessions": {
+    "s_13a7ca6528bc9a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4edb9e55-676e-478b-b936-c46717c54527",
+        "model": "unknown"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
