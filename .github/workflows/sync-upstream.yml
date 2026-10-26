@@ -126,9 +126,13 @@ jobs:
         run: |
           sha="${{ steps.bump.outputs.sha }}"
           title="Sync with workers-sdk ${sha:0:9}"
+          # There's no report when the dependencies weren't updated (e.g. the
+          # bump failed). An assignment takes the exit status of its command
+          # substitution, so a failing `cat` in it would end the step.
+          dependencies="$(cat "$RUNNER_TEMP/dependencies.md" 2>/dev/null || true)"
           body="Moves the workers-sdk submodule to cloudflare/workers-sdk@$sha, and updates the dependencies that don't follow workers-sdk within their ranges.
 
-          $(cat "$RUNNER_TEMP/dependencies.md" 2>/dev/null)
+          $dependencies
 
           The [sync workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/sync-upstream.yml) opened this, and auto-merge rebases it onto \`main\` once CI passes. If CI fails, push fixes to \`$BRANCH\`. Later syncs rebase the branch onto \`main\` and keep those fixes (see UPSTREAM.md)."
           number="${{ steps.pr.outputs.number }}"
