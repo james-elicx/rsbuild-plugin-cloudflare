@@ -1,0 +1,19 @@
+patches/0005-vite-plugin-share-worker-environment-options.patch
+  s_13a7ca6528bc9a::t_663687414c7bf6 2,18,23,36,57,115,118,123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b05d3f2ec1bbf496dff0a55393196ab66369457f",
+  "prompts": {},
+  "sessions": {
+    "s_13a7ca6528bc9a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4edb9e55-676e-478b-b936-c46717c54527",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
