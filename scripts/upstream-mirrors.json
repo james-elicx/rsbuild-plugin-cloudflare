@@ -37,7 +37,7 @@
 		"getImportedAssetPaths": "69781fb402a58e1486a3f9f22f5d6d41e8ab61e918384e72ea1fd1ca9e4a838f"
 	},
 	"packages/vite-plugin-cloudflare/src/miniflare-options.ts": {
-		"getDevMiniflareOptions": "89f14f2a3116fb9e7fc39ee83fec548baa7e24460ea269c264172868b91cbc05",
-		"getPreviewMiniflareOptions": "73ff0be75fb7b2ca100b4147231fcd1a65a2a3335835bb217f6dc512e2898557"
+		"getDevMiniflareOptions": "dd02c5babefe337e1d8c12c0882d97b50d811ef44014efbb1e88eca46092c00a",
+		"getPreviewMiniflareOptions": "2c8d9cbacf1a4b6e136064d3ae49bbb9bdf04dee1ff6cedb54b8e9b8be7e1ab8"
 	}
 }
