@@ -1,0 +1,25 @@
+packages/rsbuild-plugin/src/index.ts
+  s_d99a027cf69679::t_48a243c85b229d 67,144-149,167,478-480
+packages/rsbuild-plugin/src/upstream/upstream-copies.json
+  s_d99a027cf69679::t_5ba3d97c6ba2f9 6
+packages/rsbuild-plugin/src/vite-server.ts
+  s_d99a027cf69679::t_08f0b32462bd44 136-137
+scripts/upstream-mirrors.json
+  s_d99a027cf69679::t_61c0a242b0100c 40-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "617b6ca8071fa3d359bce0efb38d15421b2612f5",
+  "prompts": {},
+  "sessions": {
+    "s_d99a027cf69679": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e4ff7162-2520-44a5-8ea0-9f661e319fe8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
