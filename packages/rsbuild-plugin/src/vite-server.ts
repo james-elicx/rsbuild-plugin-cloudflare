@@ -133,7 +133,8 @@ function toServerOptions({
 
 /**
  * Wraps Rsbuild's HTTP server for `handleWebSocket`, which forwards WebSockets
- * to the Workers. It only skips Vite's HMR WebSocket, so this hides Rsbuild's.
+ * to the Workers. It only skips Vite's HMR and DevTools WebSockets, so this
+ * hides Rsbuild's HMR WebSocket.
  *
  * @param httpServer Rsbuild's HTTP server.
  * @param hmrPath The path of Rsbuild's HMR WebSocket, if any.
