@@ -44,9 +44,9 @@
 	"dependencies": {
 		"@cloudflare/build-output-utils": "0.9.6",
 		"@cloudflare/config": "0.29.0",
-		"@cloudflare/runtime-types": "0.1.18",
+		"@cloudflare/runtime-types": "0.1.19",
 		"@cloudflare/unenv-preset": "2.16.2",
-		"miniflare": "5.20261023.2-beta",
+		"miniflare": "5.20261023.3-beta",
 		"unenv": "2.0.0-rc.24",
 		"ws": "8.21.0"
 	},
