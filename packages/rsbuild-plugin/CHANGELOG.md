@@ -1,5 +1,26 @@
 # rsbuild-plugin-cloudflare
 
+## 0.0.3
+
+### Patch Changes
+
+- Keep remote bindings' proxy sessions running when the dev server restarts, as the Vite plugin does
+
+### Upstream Changes (`@cloudflare/vite-plugin`)
+
+- Treat cloudflare:durable-objects as a built-in module (cloudflare/workers-sdk#16452)
+- Preserve Worker response statusText in dev and preview (cloudflare/workers-sdk#16453)
+- Preserve repeated Set-Cookie request headers (cloudflare/workers-sdk#16486)
+- Simplify WebSocket header forwarding (cloudflare/workers-sdk#16488)
+- Clear Worker export types when the dev server closes (cloudflare/workers-sdk#16457)
+- Use cf credentials for remote bindings (cloudflare/workers-sdk#16428)
+- fix(vite-plugin): don't destroy WebSockets owned by other upgrade listeners (cloudflare/workers-sdk#15659)
+- Route DevTools WebSocket upgrades explicitly (cloudflare/workers-sdk#16519)
+- Close disabled HMR WebSocket upgrades (cloudflare/workers-sdk#15290)
+- Support remote Analytics Engine bindings in local dev (cloudflare/workers-sdk#16536)
+- Revert "Version Packages" (cloudflare/workers-sdk#16554)
+- Customize the full parsed configuration (cloudflare/workers-sdk#16573)
+
 ## 0.0.2
 
 ### Patch Changes
