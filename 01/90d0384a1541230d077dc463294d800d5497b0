@@ -1,0 +1,41 @@
+packages/rsbuild-plugin/src/__tests__/additional-modules.spec.ts
+  s_00e7bc0b684911::t_5dd92b1c46f7c7 1-124
+packages/rsbuild-plugin/src/__tests__/fixtures/additional-modules/cloudflare.config.ts
+  s_00e7bc0b684911::t_72eac51b2b1130 1-10
+packages/rsbuild-plugin/src/__tests__/fixtures/additional-modules/rsbuild.config.ts
+  s_00e7bc0b684911::t_72c80eac28a9e5 1-6
+packages/rsbuild-plugin/src/__tests__/fixtures/additional-modules/src/index.ts
+  s_00e7bc0b684911::t_dc46c50ec28858 1-22
+packages/rsbuild-plugin/src/__tests__/fixtures/additional-modules/src/modules.d.ts
+  s_00e7bc0b684911::t_986ed12018ea24 1-19
+packages/rsbuild-plugin/src/__tests__/fixtures/additional-modules/src/modules/index.ts
+  s_00e7bc0b684911::t_c91dc3e870dfdd 1-23
+packages/rsbuild-plugin/src/__tests__/fixtures/additional-modules/src/modules/message.txt
+  s_00e7bc0b684911::t_7081bc8df07579 1
+packages/rsbuild-plugin/src/__tests__/fixtures/additional-modules/tsconfig.json
+  s_00e7bc0b684911::t_fd9fef7a714dde 1-7
+packages/rsbuild-plugin/src/__tests__/helpers.ts
+  s_00e7bc0b684911::t_7e402d090d0c5d 8,31-42,67-68,80
+packages/rsbuild-plugin/src/__tests__/worker.spec.ts
+  s_00e7bc0b684911::t_d056dd2642896a 10
+packages/rsbuild-plugin/src/worker-environment.ts
+  s_00e7bc0b684911::t_b3891c8d8aec81 13-15,161-166,171-174,221,371-376,378,389-390,393-396,403-427,449
+patches/0004-vite-plugin-export-internals.patch
+  s_00e7bc0b684911::t_4fa7f708c1e658 2,5-12,36-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0190d0384a1541230d077dc463294d800d5497b0",
+  "prompts": {},
+  "sessions": {
+    "s_00e7bc0b684911": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "86c65c18-5c1c-4270-9bbb-103e10a29564",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
