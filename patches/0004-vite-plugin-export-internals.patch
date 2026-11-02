@@ -1,8 +1,15 @@
 diff --git a/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts b/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts
-index 77bc42d55..4fd4cbd1e 100644
+index 77bc42d55..551bf529c 100644
 --- a/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts
 +++ b/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts
-@@ -138,7 +138,7 @@ function isAdditionalModuleType(
+@@ -132,13 +132,13 @@ export const additionalModulesPlugin = createPlugin(
+ const ADDITIONAL_MODULE_TYPES = ["CompiledWasm", "Data", "Text"] as const;
+ type AdditionalModuleType = (typeof ADDITIONAL_MODULE_TYPES)[number];
+ 
+-function isAdditionalModuleType(
++export function isAdditionalModuleType(
+ 	type: string | undefined
+ ): type is AdditionalModuleType {
  	return ADDITIONAL_MODULE_TYPES.some((moduleType) => moduleType === type);
  }
  
@@ -26,6 +33,14 @@ index 77bc42d55..4fd4cbd1e 100644
  	for (const rule of moduleRules) {
  		if (rule.pattern.test(source)) {
  			return rule.type;
+@@ -180,6 +180,6 @@ function matchAdditionalModule(source: string) {
+ 	return null;
+ }
+ 
+-function createModuleReference(type: AdditionalModuleType, id: string) {
++export function createModuleReference(type: AdditionalModuleType, id: string) {
+ 	return `__CLOUDFLARE_MODULE__${type}__${id}__CLOUDFLARE_MODULE__`;
+ }
 diff --git a/packages/vite-plugin-cloudflare/src/plugins/wasm.ts b/packages/vite-plugin-cloudflare/src/plugins/wasm.ts
 index df2d8485a..343d8dfd2 100644
 --- a/packages/vite-plugin-cloudflare/src/plugins/wasm.ts

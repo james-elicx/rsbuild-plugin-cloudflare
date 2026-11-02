@@ -5,7 +5,7 @@ import { createRsbuild } from "@rsbuild/core";
 import getPort from "get-port";
 // The built plugin, which reads the internal Workers bundled alongside it.
 import { cloudflare } from "rsbuild-plugin-cloudflare";
-import { onTestFinished } from "vitest";
+import { onTestFinished, vi } from "vitest";
 import type { RsbuildConfig } from "@rsbuild/core";
 import type { PluginConfig } from "rsbuild-plugin-cloudflare";
 
@@ -26,6 +26,18 @@ export function copyFixture(name: string): string {
 	});
 	onTestFinished(() => removeDirSync(root));
 	return root;
+}
+
+/**
+ * Lets Rsbuild set `NODE_ENV` for its command, as when it runs from its CLI,
+ * rather than Vitest's `test`. Otherwise, Rsbuild builds with Rspack's `none`
+ * mode, which disables the cache that makes dev rebuilds incremental.
+ */
+export function unsetNodeEnv(): void {
+	vi.stubEnv("NODE_ENV", undefined);
+	onTestFinished(() => {
+		vi.unstubAllEnvs();
+	});
 }
 
 function createFixtureRsbuild(
@@ -52,7 +64,8 @@ function createFixtureRsbuild(
 }
 
 /**
- * Starts an Rsbuild dev server for a fixture copy with the Cloudflare plugin.
+ * Starts an Rsbuild dev server for a fixture copy with the Cloudflare plugin,
+ * in development mode, as `rsbuild dev` does.
  *
  * @param root The fixture root.
  * @param config Additional Rsbuild config from the fixture's `rsbuild.config.ts`.
@@ -64,6 +77,7 @@ export async function startDevServer(
 	config: RsbuildConfig = {},
 	pluginConfig: PluginConfig = {}
 ): Promise<string> {
+	unsetNodeEnv();
 	const rsbuild = await createFixtureRsbuild(
 		root,
 		{
