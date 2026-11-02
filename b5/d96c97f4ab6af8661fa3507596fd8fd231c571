@@ -1,0 +1,25 @@
+scripts/upstream-mirrors.json
+  s_a0d71d94abb509::t_9319c72a117dc8 40-41
+packages/e2e/package.json
+  s_a0d71d94abb509::t_bea9f997f48421 15
+packages/tanstack-start-e2e/package.json
+  s_a0d71d94abb509::t_4b3cbafabd13d6 16
+pnpm-lock.yaml
+  s_a0d71d94abb509::t_c2009affc627d1 52-53,235-236,910-911,2436-2437,2441-2442,3651,3653,4962,4964,4966
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b5d96c97f4ab6af8661fa3507596fd8fd231c571",
+  "prompts": {},
+  "sessions": {
+    "s_a0d71d94abb509": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "accf9771-d651-4339-86a9-05b9439fe7e8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
