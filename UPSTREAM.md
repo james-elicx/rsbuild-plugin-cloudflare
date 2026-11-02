@@ -28,6 +28,9 @@ repository stays in sync, and what to do when a sync fails.
     (`cloudflareBuiltInModules`) to a module that doesn't import Vite
     (`worker-environment-options.ts`), so that the plugin resolves, defines
     and externalizes the same way as the Vite plugin.
+  - `0006-update-playwright.patch`: updates the pinned Playwright catalog and
+    lockfile to 1.64.1, which supports Ubuntu 26.04. Keep this until the
+    submodule itself pins a supported version.
 
   Keep them small, and propose them upstream where they make sense; each one
   that lands upstream can be deleted.
