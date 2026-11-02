@@ -1,0 +1,23 @@
+packages/e2e/package.json
+  s_a0d71d94abb509::t_610a94d2c7aa4d 15
+packages/tanstack-start-e2e/package.json
+  s_a0d71d94abb509::t_480c4935b94fd7 16
+pnpm-lock.yaml
+  s_a0d71d94abb509::t_27841d7f97848d 52-53,235-236,910-912,1980-1984,2436-2438,2441-2443,3651,3653,4582-4584,4962,4964,4966-4968
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "8ead30d21efcf16ca3b1ec537f2fbc48164a2f6d",
+  "prompts": {},
+  "sessions": {
+    "s_a0d71d94abb509": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "accf9771-d651-4339-86a9-05b9439fe7e8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "James <james@eli.cx>"
+    }
+  }
+}
