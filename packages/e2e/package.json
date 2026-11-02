@@ -12,7 +12,7 @@
 		"test:apps:preview": "playwright test -c playwright.preview.config.ts"
 	},
 	"devDependencies": {
-		"@playwright/test": "1.60.0",
+		"@playwright/test": "1.61.0",
 		"@types/node": "22.15.17",
 		"typescript": "5.8.3"
 	}
