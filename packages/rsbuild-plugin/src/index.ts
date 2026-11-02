@@ -64,7 +64,6 @@ import {
 import type {
 	AssetsOnlyPluginContext,
 	PreviewPluginContext,
-	SharedContext,
 	WorkersPluginContext,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
 import type {
@@ -141,12 +140,6 @@ type MiniflareManifest = NonNullable<WorkerOptions["config"]["manifest"]>;
 let renderNodeJsCompatWarnings = () => {};
 process.on("exit", () => renderNodeJsCompatWarnings());
 
-// The Vite plugin's context outlives dev server restarts, but the plugin's
-// doesn't, so keep the remote bindings' auth hooks here: the remote proxy
-// sessions restart whenever they receive a different hook.
-const remoteBindingsAuthHooks: SharedContext["remoteBindingsAuthHooks"] =
-	new Map();
-
 /**
  * Rsbuild plugin that builds the Workers defined in `cloudflare.config.ts` and
  * the plugin options with rspack and runs them in workerd (via Miniflare)
@@ -164,7 +157,6 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			const ctx = new PluginContext({
 				restartingDevServerCount: 0,
 				tunnelHostnames: new Set(),
-				remoteBindingsAuthHooks,
 			});
 			const logger = createLogger(api.logger);
 			/** The Workers to bundle, keyed by Rsbuild environment name. */
