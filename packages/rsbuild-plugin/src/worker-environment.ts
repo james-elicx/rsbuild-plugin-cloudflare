@@ -10,6 +10,9 @@ import {
 	nodeBuiltinsRE,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
 import {
+	additionalModuleRE,
+	createModuleReference,
+	isAdditionalModuleType,
 	matchAdditionalModule,
 	moduleRuleFilters,
 	toModuleType,
@@ -76,11 +79,6 @@ export function getWorkerEnvironmentConfig(
 	const { config, directoryName, nodeJsCompat } = worker;
 	const { minify, sourceMap } = userConfig.output ?? {};
 	const conditionNames = getConditionNames();
-	/** The additional modules to emit, keyed by output file name. */
-	const additionalModules = new Map<
-		string,
-		{ filePath: string; type: ModuleType }
-	>();
 
 	return {
 		source: {
@@ -160,23 +158,20 @@ export function getWorkerEnvironmentConfig(
 							: `module ${nodeRequest}`;
 					}
 					// As in the Vite plugin, imports that resolve to `.wasm`, `.bin`,
-					// `.txt`, `.html` or `.sql` files become Worker modules.
+					// `.txt`, `.html` or `.sql` files become Worker modules. The
+					// reference records the module's type and path, from which
+					// `additionalModulesPlugin` emits it: Rspack doesn't call this again
+					// for the importer's dependencies when a rebuild doesn't change the
+					// importer. The path is relative to the root, which keeps absolute
+					// paths out of the bundle.
 					if (getResolve && moduleRuleFilters.some((re) => re.test(request))) {
 						const resolved = await getResolve()(context, request);
 						const type = resolved && matchAdditionalModule(resolved);
 						if (resolved && type) {
-							const filePath = resolved.replace(/\?.*$/, "");
-							const { name, ext } = path.parse(filePath);
-							const hash = createHash("sha256")
-								.update(await fsp.readFile(filePath))
-								.digest("hex")
-								.slice(0, 8);
-							const fileName = `${name}-${hash}${ext}`;
-							additionalModules.set(fileName, {
-								filePath,
-								type: toModuleType(type),
-							});
-							return `module ${createModuleReference(fileName)}`;
+							const filePath = path
+								.relative(root, resolved.replace(/\?.*$/, ""))
+								.replaceAll("\\", "/");
+							return `module ${createModuleReference(type, filePath)}`;
 						}
 					}
 				},
@@ -223,7 +218,7 @@ export function getWorkerEnvironmentConfig(
 					...(nodeJsCompat ? [nodeJsCompatPlugin(nodeJsCompat)] : []),
 					entrypointPlugin(config, root, environmentName),
 					wasmInitPlugin(),
-					additionalModulesPlugin(additionalModules),
+					additionalModulesPlugin(root),
 				],
 			},
 		},
@@ -373,46 +368,63 @@ function wasmInitPlugin(): Rspack.RspackPluginInstance {
 }
 
 /**
- * Emits the additional modules that were externalized, and points the chunks'
- * imports of them at their paths relative to each chunk.
+ * Emits the additional modules that the chunks reference, and points the
+ * references at the modules' paths relative to each chunk. As in the Vite
+ * plugin, which emits them as it renders the chunks, modules that are no longer
+ * imported after a rebuild aren't emitted.
+ *
+ * @param root The project root, which the references' paths are relative to.
  */
-function additionalModulesPlugin(
-	additionalModules: Map<string, { filePath: string; type: ModuleType }>
-): Rspack.RspackPluginInstance {
+function additionalModulesPlugin(root: string): Rspack.RspackPluginInstance {
 	const name = "rsbuild:cloudflare-additional-modules";
 	return {
 		apply(compiler) {
 			compiler.hooks.thisCompilation.tap(name, (compilation) => {
-				// As in the Vite plugin, which clears them at the start of each
-				// build, so that modules that are no longer imported aren't emitted.
-				additionalModules.clear();
 				compilation.hooks.processAssets.tapPromise(
 					{
 						name,
 						stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
 					},
 					async () => {
-						for (const [fileName, { filePath, type }] of additionalModules) {
-							compilation.emitAsset(
-								fileName,
-								new compiler.webpack.sources.RawSource(
-									await fsp.readFile(filePath)
-								),
-								{ [MODULE_TYPE_KEY]: type }
-							);
-							compilation.fileDependencies.add(filePath);
-						}
+						/** The emitted modules' file names, keyed by their references' paths. */
+						const fileNames = new Map<string, string>();
 						for (const { name: chunkName, source } of compilation.getAssets()) {
 							const code = source.source().toString();
-							if (!/\.m?js$/.test(chunkName) || !moduleReferenceRE.test(code)) {
+							if (
+								!/\.m?js$/.test(chunkName) ||
+								!additionalModuleRE.test(code)
+							) {
 								continue;
 							}
 							// Keeps the chunk's source map, which is generated later.
 							const replaced = new compiler.webpack.sources.ReplaceSource(
 								source
 							);
-							for (const match of code.matchAll(moduleReferenceGlobalRE)) {
-								const [reference, fileName = ""] = match;
+							for (const match of code.matchAll(additionalModuleGlobalRE)) {
+								const [reference, type, modulePath = ""] = match;
+								if (!isAdditionalModuleType(type)) {
+									throw new Error(
+										`Unexpected error: invalid additional module type in reference ${reference}.`
+									);
+								}
+								let fileName = fileNames.get(modulePath);
+								if (fileName === undefined) {
+									const filePath = path.resolve(root, modulePath);
+									const contents = await fsp.readFile(filePath);
+									const { name: baseName, ext } = path.parse(filePath);
+									const hash = createHash("sha256")
+										.update(contents)
+										.digest("hex")
+										.slice(0, 8);
+									fileName = `${baseName}-${hash}${ext}`;
+									compilation.emitAsset(
+										fileName,
+										new compiler.webpack.sources.RawSource(contents),
+										{ [MODULE_TYPE_KEY]: toModuleType(type) }
+									);
+									compilation.fileDependencies.add(filePath);
+									fileNames.set(modulePath, fileName);
+								}
 								const relativePath = path.posix.relative(
 									path.posix.dirname(chunkName),
 									fileName
@@ -434,15 +446,7 @@ function additionalModulesPlugin(
 	};
 }
 
-const MODULE_REFERENCE_PATTERN =
-	"__CLOUDFLARE_MODULE__(.*?)__CLOUDFLARE_MODULE__";
-const moduleReferenceRE = new RegExp(MODULE_REFERENCE_PATTERN);
-const moduleReferenceGlobalRE = new RegExp(MODULE_REFERENCE_PATTERN, "g");
-
-/** A placeholder for an additional module's path, as chunk paths aren't known yet. */
-function createModuleReference(fileName: string): string {
-	return `__CLOUDFLARE_MODULE__${fileName}__CLOUDFLARE_MODULE__`;
-}
+const additionalModuleGlobalRE = new RegExp(additionalModuleRE.source, "g");
 
 function toDataUri(code: string): string {
 	return `data:text/javascript,${encodeURIComponent(code)}`;

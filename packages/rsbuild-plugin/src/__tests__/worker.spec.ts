@@ -7,16 +7,9 @@ import {
 	copyFixture,
 	startDevServer,
 	startPreviewServer,
+	unsetNodeEnv,
 } from "./helpers";
 import type { RsbuildPlugin } from "@rsbuild/core";
-
-/** Lets Rsbuild set `NODE_ENV` for its command, as when run from its CLI. */
-function unsetNodeEnv() {
-	vi.stubEnv("NODE_ENV", undefined);
-	onTestFinished(() => {
-		vi.unstubAllEnvs();
-	});
-}
 
 /** Changes the entrypoint that the fixture's `cloudflare.config.ts` imports. */
 function setEntrypoint(root: string, entrypoint: string) {
@@ -31,7 +24,6 @@ function setEntrypoint(root: string, entrypoint: string) {
 
 describe("worker", () => {
 	test("runs the Worker in workerd during dev", async ({ expect }) => {
-		unsetNodeEnv();
 		const url = await startDevServer(copyFixture("worker"));
 
 		async function get(pathname: string): Promise<string> {
