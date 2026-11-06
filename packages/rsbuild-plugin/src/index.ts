@@ -85,6 +85,11 @@ import type {
 import type { Miniflare, WorkerOptions } from "miniflare";
 import type { IncomingMessage } from "node:http";
 
+// The Vite plugin's public types, apart from the deprecated
+// `ParsedInputConfigWithWorker`, which this plugin never exported.
+export type { CloudflareConfig } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
+export type { WorkerConfig } from "@cloudflare/config";
+
 /** Options for the Rsbuild environment that builds a Worker. */
 interface RsbuildEnvironmentOptions {
 	/**
