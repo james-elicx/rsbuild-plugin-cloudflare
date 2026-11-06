@@ -3,9 +3,9 @@
 		"cloudflare": "163e9476be32121b6608cf2cf0270811f1d623264ed4bd87dcd32f89210510ec"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/config.ts": {
-		"configPlugin": "3fc19eb7aea070ba31adbcfc917ac28f4ed4f85c0b6e0dd00d23a47960146c25",
+		"configPlugin": "2e3fdf76cef5e94ff5651971d2410b420ae527ea660d1f65367c5f78c4c51c36",
 		"getEnvironmentsConfig": "fc3433ea98750f75ff6e1af5d6b1297e6c7b0dc7f3b6a68aa7201b5715134c63",
-		"forceBuildOutputDirs": "3df6b6b9b5451142fb748829c6c1db9a145685b60ab5c53b8493a4a53aa24390"
+		"getEnvironmentBuildOutputDir": "842c6cd4253a228ca7cc40919c59d6c2e9e040d0001d4766f0f6c54efaa1daef"
 	},
 	"packages/vite-plugin-cloudflare/src/vite-config.ts": {
 		"validateWorkerEnvironmentOptions": "f963851ee6a0d920e0ab39fa3f3e3bc96016d58d38db4feb7d36d5018eb195d5"
@@ -37,7 +37,7 @@
 		"getImportedAssetPaths": "69781fb402a58e1486a3f9f22f5d6d41e8ab61e918384e72ea1fd1ca9e4a838f"
 	},
 	"packages/vite-plugin-cloudflare/src/miniflare-options.ts": {
-		"getDevMiniflareOptions": "f9b93ef716be37df344972fdb1eae6398b39da5423fea6a0cea5cbda60e181f2",
-		"getPreviewMiniflareOptions": "549a8bedf3a1512366d63c6884b0cefbb04c622055a54d5d32f6fbc2dad0ffe8"
+		"getDevMiniflareOptions": "19f8f09b30d488df8b8f73f61b260189153821277f01e6040d01eacdb112134e",
+		"getPreviewMiniflareOptions": "ca56e8ae9dc9745f586f483f462bcbe7eac7f6779cc4c7f857d51539dbbc1d66"
 	}
 }

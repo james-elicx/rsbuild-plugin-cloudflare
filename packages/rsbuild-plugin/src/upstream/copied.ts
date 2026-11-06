@@ -16,7 +16,10 @@ import {
 } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/constants";
 import { getDebugPathHtml } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/debug";
 import { UNKNOWN_HOST } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/shared";
-import { createRequestHandler } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/utils";
+import {
+	createRequestHandler,
+	resolveRequestTarget,
+} from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/utils";
 import { generateStaticRoutingRuleMatcher } from "../../../../workers-sdk/packages/workers-shared/asset-worker/src/utils/rules-engine";
 import type {
 	AssetsOnlyResolvedConfig,
@@ -96,7 +99,9 @@ export function createStaticRoutingMiddleware(
 	return function cloudflarePreMiddleware(req, res, next) {
 		const request = req as IncomingMessage & { [kRequestType]?: string };
 		// Only the URL pathname is used to match rules
-		const rulesRequest = new Request(new URL(req.url ?? "/", UNKNOWN_HOST));
+		const rulesRequest = new Request(
+			resolveRequestTarget(req.url ?? "/", UNKNOWN_HOST)
+		);
 
 		if (request[kRequestType] === "asset") {
 			next();
