@@ -1,5 +1,24 @@
 # rsbuild-plugin-cloudflare
 
+## 0.0.4
+
+### Patch Changes
+
+- Document that Workers' CSS is compiled for Rsbuild's browserslist (#57)
+- Export the `CloudflareConfig` and `WorkerConfig` types, as the Vite plugin does (#58)
+
+### Upstream Changes (`@cloudflare/vite-plugin`)
+
+- Support cloudflare.config.ts with the new config option (cloudflare/workers-sdk#16424)
+- Move shared tooling helpers to workers-utils (cloudflare/workers-sdk#16623)
+- Export CloudflareConfig and deprecate the old type name (cloudflare/workers-sdk#16656)
+- fix: respect user build.cssTarget in Worker environments (cloudflare/workers-sdk#16698)
+- Enable local Artifacts in development tools [3/3] (cloudflare/workers-sdk#16186)
+- Support CLOUDFLARE_AUTH_PROFILE (cloudflare/workers-sdk#16599)
+- Preserve request origin for incoming paths (cloudflare/workers-sdk#16608)
+- Set the Build Output directories in configEnvironment (cloudflare/workers-sdk#16736)
+- Stop persisting account selections made by `cf` (cloudflare/workers-sdk#16683)
+
 ## 0.0.3
 
 ### Patch Changes
