@@ -1,8 +1,8 @@
 diff --git a/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts b/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts
-index 77bc42d55..551bf529c 100644
+index a0832b353..30d319904 100644
 --- a/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts
 +++ b/packages/vite-plugin-cloudflare/src/plugins/additional-modules.ts
-@@ -132,13 +132,13 @@ export const additionalModulesPlugin = createPlugin(
+@@ -134,13 +134,13 @@ export const additionalModulesPlugin = createPlugin(
  const ADDITIONAL_MODULE_TYPES = ["CompiledWasm", "Data", "Text"] as const;
  type AdditionalModuleType = (typeof ADDITIONAL_MODULE_TYPES)[number];
  
@@ -18,8 +18,8 @@ index 77bc42d55..551bf529c 100644
  	switch (type) {
  		case "CompiledWasm":
  			return "wasm";
-@@ -165,12 +165,12 @@ const moduleRules: ModuleRules = [
- ];
+@@ -172,12 +172,12 @@ const moduleRules: ModuleRules = DEFAULT_MODULE_RULES.flatMap(
+ );
  
  const subpathImportRE = /^#/;
 -const moduleRuleFilters = [
@@ -33,7 +33,7 @@ index 77bc42d55..551bf529c 100644
  	for (const rule of moduleRules) {
  		if (rule.pattern.test(source)) {
  			return rule.type;
-@@ -180,6 +180,6 @@ function matchAdditionalModule(source: string) {
+@@ -187,6 +187,6 @@ function matchAdditionalModule(source: string) {
  	return null;
  }
  

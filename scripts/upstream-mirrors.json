@@ -11,7 +11,7 @@
 		"validateWorkerEnvironmentOptions": "f963851ee6a0d920e0ab39fa3f3e3bc96016d58d38db4feb7d36d5018eb195d5"
 	},
 	"packages/vite-plugin-cloudflare/src/cloudflare-environment.ts": {
-		"createCloudflareEnvironmentOptions": "d760f13b85e520b8f3e1d475e426c7e47686ce53a4849e0db6aec4ac0d00b2c3",
+		"createCloudflareEnvironmentOptions": "7e695b325b6ff08e3d837e59ec5dc0ff94c0987f1cdfc4cf01f4a8392cfbecf8",
 		"getWorkerSourcemap": "1d4e4adc957ab193afb800ac7ebce79bb52fe4de3d7c8d40ea5c675ce6ff5892"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/virtual-modules.ts": {
