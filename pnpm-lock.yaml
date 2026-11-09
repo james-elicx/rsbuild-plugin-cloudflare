@@ -199,8 +199,8 @@ importers:
         specifier: link:../../workers-sdk/packages/workers-tsconfig
         version: link:../../workers-sdk/packages/workers-tsconfig
       '@cloudflare/workers-types':
-        specifier: 5.20261106.1
-        version: 5.20261106.1
+        specifier: 5.20261109.1
+        version: 5.20261109.1
       '@cloudflare/workers-utils':
         specifier: link:../../workers-sdk/packages/workers-utils
         version: link:../../workers-sdk/packages/workers-utils
@@ -421,8 +421,8 @@ packages:
   '@changesets/write@0.4.0':
     resolution: {integrity: sha512-CdTLvIOPiCNuH71pyDu3rA+Q0n65cmAbXnwWH84rKGiFumFzkmHNT8KHTMEchcxN+Kl8I54xGUhJ7l3E7X396Q==}
 
-  '@cloudflare/workers-types@5.20261106.1':
-    resolution: {integrity: sha512-uQtZyYehF0hwImaFi0/z/BWeTC/DMKpEo+nCySs5WZwoMhnIqLnN3sVjS7GCBc222EWf+F6khsHPWIvPEaP6JA==}
+  '@cloudflare/workers-types@5.20261109.1':
+    resolution: {integrity: sha512-TH937ZS17uWVSrIGFjBTA7L8NSpJzQIv5VKBcLBMg+TGs38ON+VBNVUghUWoHDvNmS3YWMwktd1MSWES/C0QnQ==}
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -3159,7 +3159,7 @@ snapshots:
       human-id: 4.2.2
       prettier: 2.8.8
 
-  '@cloudflare/workers-types@5.20261106.1': {}
+  '@cloudflare/workers-types@5.20261109.1': {}
 
   '@emnapi/core@1.10.0':
     dependencies:
