@@ -1,6 +1,6 @@
 {
 	"packages/vite-plugin-cloudflare/src/index.ts": {
-		"cloudflare": "163e9476be32121b6608cf2cf0270811f1d623264ed4bd87dcd32f89210510ec"
+		"cloudflare": "80b88d3e0641e9a9816a45e104cea5c1bc846c5f809af2ed438048892f1ca76a"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/config.ts": {
 		"configPlugin": "2e3fdf76cef5e94ff5651971d2410b420ae527ea660d1f65367c5f78c4c51c36",
