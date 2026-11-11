@@ -197,37 +197,41 @@ export function createDebugMiddleware(
 // From `build.ts`.
 
 /**
- * Moves assets imported in the entry Worker to the client build, and logs how
- * many were moved.
+ * Transfers the assets that a Worker imports to the client build, and logs how
+ * many were transferred. As in the Vite plugin's `buildApp`, they're moved,
+ * unless the Worker's originals must be kept (the prerender Worker's), when
+ * they're copied.
  *
  * @param options The assets and build directories.
  * @param options.importedAssetPaths The assets' paths relative to both directories.
- * @param options.entryWorkerBuildDirectory The entry Worker's build directory.
+ * @param options.workerBuildDirectory The Worker's build directory.
  * @param options.clientBuildDirectory The client build directory.
- * @param options.entryWorkerEnvironmentName The entry Worker's environment name.
+ * @param options.environmentName The Worker's environment name.
+ * @param options.preserveOriginalAssets Whether to copy rather than move the assets.
  * @param options.root The project root.
- * @param options.logger Logs the moved assets.
+ * @param options.logger Logs the transferred assets.
  */
-export function moveImportedAssets({
+export function transferImportedAssets({
 	importedAssetPaths,
-	entryWorkerBuildDirectory,
+	workerBuildDirectory,
 	clientBuildDirectory,
-	entryWorkerEnvironmentName,
+	environmentName,
+	preserveOriginalAssets,
 	root,
 	logger,
 }: {
 	importedAssetPaths: Iterable<string>;
-	entryWorkerBuildDirectory: string;
+	workerBuildDirectory: string;
 	clientBuildDirectory: string;
-	entryWorkerEnvironmentName: string;
+	environmentName: string;
+	preserveOriginalAssets: boolean;
 	root: string;
 	logger: { info: (message: string) => void };
 }): void {
-	const movedAssetPaths: string[] = [];
+	const transferredAssetPaths: string[] = [];
 
-	// Move assets imported in the entry Worker to the client build
 	for (const assetPath of importedAssetPaths) {
-		const src = path.join(entryWorkerBuildDirectory, assetPath);
+		const src = path.join(workerBuildDirectory, assetPath);
 		const dest = path.join(clientBuildDirectory, assetPath);
 
 		if (!fs.existsSync(src)) {
@@ -235,22 +239,28 @@ export function moveImportedAssets({
 		}
 
 		if (fs.existsSync(dest)) {
-			fs.unlinkSync(src);
+			if (!preserveOriginalAssets) {
+				fs.unlinkSync(src);
+			}
 		} else {
 			const destDir = path.dirname(dest);
 			fs.mkdirSync(destDir, { recursive: true });
-			fs.renameSync(src, dest);
-			movedAssetPaths.push(dest);
+			if (preserveOriginalAssets) {
+				fs.copyFileSync(src, dest);
+			} else {
+				fs.renameSync(src, dest);
+			}
+			transferredAssetPaths.push(dest);
 		}
 	}
 
-	if (movedAssetPaths.length) {
+	if (transferredAssetPaths.length) {
 		logger.info(
 			[
-				`${colors.green("✓")} ${movedAssetPaths.length} asset${
-					movedAssetPaths.length > 1 ? "s" : ""
-				} moved from "${entryWorkerEnvironmentName}" to "client" build output.`,
-				...movedAssetPaths.map((assetPath) =>
+				`${colors.green("✓")} ${transferredAssetPaths.length} asset${
+					transferredAssetPaths.length > 1 ? "s" : ""
+				} ${preserveOriginalAssets ? "copied" : "moved"} from "${environmentName}" to "client" build output.`,
+				...transferredAssetPaths.map((assetPath) =>
 					colors.dim(path.relative(root, assetPath))
 				),
 			].join("\n")

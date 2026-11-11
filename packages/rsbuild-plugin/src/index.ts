@@ -43,7 +43,7 @@ import {
 	createStaticRoutingMiddleware,
 	createUserWorkerHandler,
 	getDevDebugWorkerNames,
-	moveImportedAssets,
+	transferImportedAssets,
 } from "./upstream/copied";
 import {
 	createDevServer,
@@ -169,10 +169,14 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			/** The latest bundles, keyed by Worker name. */
 			const manifests = new Map<string, MiniflareManifest>();
 			let manifestsChanged = false;
-			/** The assets that the entry Worker imports, which a build moves to the client output. */
-			let importedAssets:
-				| { environmentName: string; distPath: string; paths: string[] }
-				| undefined;
+			/**
+			 * The assets that the entry and prerender Workers import, keyed by
+			 * environment name, which a build transfers to the client output.
+			 */
+			const importedAssets = new Map<
+				string,
+				{ distPath: string; paths: string[] }
+			>();
 			/** The Worker environments whose latest dev build failed. */
 			const failedEnvironments = new Set<string>();
 			let devServer: RsbuildDevServer | undefined;
@@ -549,12 +553,11 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					// Record the imported assets before awaiting anything: Rsbuild calls
 					// `onAfterBuild` as soon as the last environment finishes, which
 					// may be while this hook is still running for an earlier one.
-					if (worker.directoryName === DEFAULT_WORKER_DIRECTORY_NAME) {
-						importedAssets = {
-							environmentName: environment.name,
+					if (isAssetEnvironment(environment.name)) {
+						importedAssets.set(environment.name, {
 							distPath: environment.distPath,
 							paths: getImportedAssetPaths(stats.compilation),
-						};
+						});
 					}
 					await removeUnemittedFiles(environment.distPath, stats.compilation);
 				}
@@ -685,16 +688,25 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 						await fsp.mkdir(assetsDir, { recursive: true });
 					}
 				}
-				if (importedAssets) {
-					// As in the Vite plugin, serve assets that the entry Worker imports.
-					moveImportedAssets({
-						importedAssetPaths: importedAssets.paths,
-						entryWorkerBuildDirectory: importedAssets.distPath,
-						clientBuildDirectory: assetsDir,
-						entryWorkerEnvironmentName: importedAssets.environmentName,
-						root,
-						logger,
-					});
+				// As in the Vite plugin, serve assets that the entry and prerender
+				// Workers import, in the order of their environments.
+				for (const environmentName of resolvedPluginConfig.environmentNameToWorkerMap.keys()) {
+					const assets = importedAssets.get(environmentName);
+					if (assets) {
+						transferImportedAssets({
+							importedAssetPaths: assets.paths,
+							workerBuildDirectory: assets.distPath,
+							clientBuildDirectory: assetsDir,
+							environmentName,
+							// The Vite plugin keeps the prerender Worker's originals, which
+							// Astro needs in the prerender build output.
+							preserveOriginalAssets:
+								environmentName ===
+								resolvedPluginConfig.prerenderWorkerEnvironmentName,
+							root,
+							logger,
+						});
+					}
 				}
 				if (resolvedPluginConfig.type === "assets-only") {
 					await writeWorkerConfig({
@@ -748,6 +760,22 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					mode: ctx.resolvedViteConfig.mode,
 				});
 			});
+
+			/**
+			 * Whether a build transfers the assets that an environment's Worker
+			 * imports to the client output: the entry Worker's and the prerender
+			 * Worker's, as in the Vite plugin's `buildApp`.
+			 */
+			function isAssetEnvironment(environmentName: string): boolean {
+				assertIsNotPreview(ctx);
+				const { resolvedPluginConfig } = ctx;
+				return (
+					environmentName ===
+						resolvedPluginConfig.prerenderWorkerEnvironmentName ||
+					(resolvedPluginConfig.type === "workers" &&
+						environmentName === resolvedPluginConfig.entryWorkerEnvironmentName)
+				);
+			}
 
 			async function startOrUpdateMiniflare(
 				miniflareOptions: Parameters<PluginContext["startOrUpdateMiniflare"]>[0]
