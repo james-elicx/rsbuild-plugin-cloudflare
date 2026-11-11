@@ -3,7 +3,7 @@
 		"wasmHelperPlugin": "a8a22c4fd5447347df1ecb65a8c67e4abfcf0d336bf0c994963595b644d5dea7"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/dev.ts": {
-		"devPlugin": "01adc1ec6559404fc0c8efc5d23abb097eeb4cf1323481e79f2ea7bc66700d32"
+		"devPlugin": "de54701265695b780e7987f83e1f68a0bcd460dfb57e2d76e806f62bcd2bf48e"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/trigger-handlers.ts": {
 		"triggerHandlersPlugin": "e5f0acff76127e99745608bdbf4a69a4fa1e44096edc866d5115da6348b36b8b"
@@ -12,6 +12,6 @@
 		"debugPlugin": "cddb5119f3496780d704c43fd8ce3b5396770706721f5f7e884f16c91940c67e"
 	},
 	"packages/vite-plugin-cloudflare/src/build.ts": {
-		"createBuildApp": "e2078437e1170744da1e22c203d746a274f2007a26703d34892ad0af5fd4ea74"
+		"buildApp": "2c80fc09876c46c8aabe6c95e6a4dc061418f8b31c669c0510f78444771fbd46"
 	}
 }

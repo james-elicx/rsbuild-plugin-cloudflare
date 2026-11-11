@@ -56,13 +56,13 @@ repository stays in sync, and what to do when a sync fails.
   | `nodeJsAlsPlugin` (`plugins/nodejs-compat.ts`)                                  | The `isNodeAls` externals (`worker-environment.ts`)                                                                                                     |
   | `nodeJsCompatPlugin`, `nodeJsCompatWarningsPlugin` (`plugins/nodejs-compat.ts`) | The externals and `nodeJsCompatPlugin` (`worker-environment.ts`)                                                                                        |
   | `previewPlugin` (`plugins/preview.ts`)                                          | `server.setup`, which calls `setUpPreviewServer` (`index.ts`)                                                                                           |
-  | `buildOutputPlugin` (`plugins/build-output.ts`)                                 | `onAfterEnvironmentCompile` and `onAfterBuild` (`index.ts`)                                                                                             |
-  | `getHasPublicAssets`, `fallbackBuild`, `getImportedAssetPaths` (`build.ts`)     | `getFallbackClientConfig`, `getHasPublicAssets` and `onAfterBuild` (`index.ts`), and `getImportedAssetPaths` (`worker-environment.ts`)                  |
+  | `buildOutputPlugin` (`plugins/build-output.ts`)                                 | `onAfterEnvironmentCompile` and `onAfterBuild` (`index.ts`), and `getImportedAssetPaths` (`worker-environment.ts`)                                      |
+  | `getHasPublicAssets`, `fallbackBuild` (`build.ts`)                              | `getFallbackClientConfig`, `getHasPublicAssets` and `onAfterBuild` (`index.ts`)                                                                         |
   | `getDevMiniflareOptions` (`miniflare-options.ts`)                               | `getDevMiniflareOptions` (`miniflare-options.ts`), which removes the module runner's bindings from its result, and `createDevServer` (`vite-server.ts`) |
   | `getPreviewMiniflareOptions` (`miniflare-options.ts`)                           | `createPreviewServer` (`vite-server.ts`), which stands in for the Vite preview server that it reads                                                     |
 
   `devPlugin`, which also holds the static routing selection that
-  `onBeforeStartDevServer` reproduces, and `createBuildApp` (`build.ts`) are
+  `onBeforeStartDevServer` reproduces, and `buildApp` (`build.ts`) are
   already tracked as copies' sources.
   The hashes are of the patched submodule, as `pnpm setup:upstream` leaves it.
 
