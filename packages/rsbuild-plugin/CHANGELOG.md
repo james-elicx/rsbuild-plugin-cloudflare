@@ -1,5 +1,19 @@
 # rsbuild-plugin-cloudflare
 
+## 0.0.5
+
+### Patch Changes
+
+- Update the copied and mirrored declarations' hashes for upstream's Container cleanup move
+- Copy the assets that the prerender Worker imports to the client's build output, as the Vite plugin does
+
+### Upstream Changes (`@cloudflare/vite-plugin`)
+
+- Delegate Container cleanup to Miniflare (cloudflare/workers-sdk#16413)
+- Support Container tests with cloudflare.config.ts (cloudflare/workers-sdk#16682)
+- Remove `builder.buildApp` and consolidate logic in `buildApp` hook (cloudflare/workers-sdk#16761)
+- Always name `cf` in actionable messages (cloudflare/workers-sdk#16830)
+
 ## 0.0.4
 
 ### Patch Changes
