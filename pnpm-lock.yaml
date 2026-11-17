@@ -68,7 +68,7 @@ importers:
         version: 1.167.3(@tanstack/react-router@1.170.46(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@tanstack/router-core@1.171.39)(csstype@3.2.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@tanstack/react-start':
         specifier: ^1.169.5
-        version: 1.169.5(@rsbuild/core@2.3.2)(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react-server-dom-rspack@0.0.2(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)(rolldown@1.2.19)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))
+        version: 1.169.5(@rsbuild/core@2.3.2)(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react-server-dom-rspack@0.1.1(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)(rolldown@1.2.19)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))
       react:
         specifier: ^19.3.1
         version: 19.3.1
@@ -123,7 +123,7 @@ importers:
         version: 1.167.3(@tanstack/react-router@1.170.46(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@tanstack/router-core@1.171.39)(csstype@3.2.3)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@tanstack/react-start':
         specifier: ^1.169.5
-        version: 1.169.5(@rsbuild/core@2.3.2)(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react-server-dom-rspack@0.0.2(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)(rolldown@1.2.19)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))
+        version: 1.169.5(@rsbuild/core@2.3.2)(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react-server-dom-rspack@0.1.1(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)(rolldown@1.2.19)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))
       react:
         specifier: ^19.3.1
         version: 19.3.1
@@ -131,8 +131,8 @@ importers:
         specifier: ^19.3.1
         version: 19.3.1(react@19.3.1)
       react-server-dom-rspack:
-        specifier: ^0.0.2
-        version: 0.0.2(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: ^0.1.1
+        version: 0.1.1(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       tailwind-merge:
         specifier: ^3.7.0
         version: 3.7.0
@@ -2438,11 +2438,11 @@ packages:
     resolution: {integrity: sha512-5HdstYgoJBbBofjapO5qCPcovECJCBfvjLb+iTcsmqDFVMRdqy0qs7iiInBJTUXmIFc2bjoc5b2HVLp2zRtYhQ==}
     engines: {node: '>=0.10.0'}
 
-  react-server-dom-rspack@0.0.2:
-    resolution: {integrity: sha512-PowIm+Z65LkvC3yk4t3YrH2nMejwL361jiBT0BMW2bQCDUaNQknDHMPH0aTgMtJ9ZZ1Gc7KFgBvwB0itSzzELQ==}
+  react-server-dom-rspack@0.1.1:
+    resolution: {integrity: sha512-pgL4M/D3jFzn/2Dv8ppgFPrauyJjP29sFCV5EjSCLI29+NHIhumkhxnkiK8x0h5SQLPqUVVZfiAu3dn7Bl1RNg==}
     engines: {node: '>=0.10.0'}
     peerDependencies:
-      '@rspack/core': ^2.0.0-0
+      '@rspack/core': ^2.2.0-0
       react: ^19.1.0
       react-dom: ^19.1.0
 
@@ -3975,7 +3975,7 @@ snapshots:
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  '@tanstack/react-start-rsc@0.1.66(@rsbuild/core@2.3.2)(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react-server-dom-rspack@0.0.2(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)(rolldown@1.2.19)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))':
+  '@tanstack/react-start-rsc@0.1.66(@rsbuild/core@2.3.2)(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react-server-dom-rspack@0.1.1(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)(rolldown@1.2.19)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))':
     dependencies:
       '@tanstack/react-router': 1.170.46(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@tanstack/router-core': 1.171.39
@@ -3989,7 +3989,7 @@ snapshots:
       react-dom: 19.3.1(react@19.3.1)
     optionalDependencies:
       '@rspack/core': 2.3.2(@swc/helpers@0.5.24)
-      react-server-dom-rspack: 0.0.2(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      react-server-dom-rspack: 0.1.1(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
     transitivePeerDependencies:
       - '@farmfe/core'
       - '@rsbuild/core'
@@ -4011,11 +4011,11 @@ snapshots:
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  '@tanstack/react-start@1.169.5(@rsbuild/core@2.3.2)(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react-server-dom-rspack@0.0.2(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)(rolldown@1.2.19)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))':
+  '@tanstack/react-start@1.169.5(@rsbuild/core@2.3.2)(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react-server-dom-rspack@0.1.1(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)(rolldown@1.2.19)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))':
     dependencies:
       '@tanstack/react-router': 1.170.46(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@tanstack/react-start-client': 1.168.45(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      '@tanstack/react-start-rsc': 0.1.66(@rsbuild/core@2.3.2)(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react-server-dom-rspack@0.0.2(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)(rolldown@1.2.19)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))
+      '@tanstack/react-start-rsc': 0.1.66(@rsbuild/core@2.3.2)(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react-server-dom-rspack@0.1.1(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)(rolldown@1.2.19)(vite@8.3.4(@types/node@22.15.17)(jiti@2.7.0))
       '@tanstack/react-start-server': 1.167.52(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@tanstack/router-utils': 1.163.0
       '@tanstack/start-client-core': 1.170.39
@@ -4922,7 +4922,7 @@ snapshots:
 
   react-refresh@0.19.0: {}
 
-  react-server-dom-rspack@0.0.2(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  react-server-dom-rspack@0.1.1(@rspack/core@2.3.2(@swc/helpers@0.5.24))(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       '@rspack/core': 2.3.2(@swc/helpers@0.5.24)
       react: 19.3.1
