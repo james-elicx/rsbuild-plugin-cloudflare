@@ -85,7 +85,7 @@ one that finds the sync's pull request (`find-upstream-sync-pr`). Each sync
 bumps workers-sdk, then aligns the plugin with upstream's changes, so it
 leaves the repository up to date with upstream, not only bumped:
 
-1. Every day at 06:17 UTC, or on **Sync now** (for testing; unlike the old
+1. Every day at 14:00 UTC, or on **Sync now** (for testing; unlike the old
    Actions workflow, it takes no workers-sdk ref: a sync always moves to
    upstream's `main`), it looks for the open pull request from a branch
    `alcora/<run>/<step>/upstream-sync`.

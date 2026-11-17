@@ -11,7 +11,7 @@ turn it on.
 ## The day's sync
 
 ```
-Every day (06:17 UTC) ─┐
+Every day (14:00 UTC) ─┐
 Sync now ──────────────┴─▶ Find the sync's pull request ─▶ Sync pull request open?
    yes ─▶ Hold off merging ─▶ Rebase and sync again (continue its sandbox) ─┐
    no  ─▶ Sync with workers-sdk (snapshot, sandbox kept) ───────────────────┤
