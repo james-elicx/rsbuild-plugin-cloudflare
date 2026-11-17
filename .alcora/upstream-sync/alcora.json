@@ -1,0 +1,394 @@
+{
+	"schemaVersion": 2,
+	"type": "workflow",
+	"name": "rsbuild-plugin-cloudflare/upstream-sync",
+	"title": "Upstream sync",
+	"version": "1.0.0",
+	"description": "Keeps rsbuild-plugin-cloudflare in line with workers-sdk. Every day, a sandbox bumps the workers-sdk submodule to upstream's main and updates the dependencies that don't follow it, then an agent finishes the bump and aligns the plugin with the Vite plugin until the checks and tests pass, and pushes it in one pull request, which later days rebase and sync again in the same sandbox. When CI fails on it, the agent fixes it, or re-runs flaky jobs. A ready pull request is labelled for the repository's GitHub Actions to merge once CI passes; one that needs a person says why.",
+	"readme": "README.md",
+	"license": "MIT",
+	"homepage": "https://github.com/james-elicx/rsbuild-plugin-cloudflare/blob/main/UPSTREAM.md",
+	"workflow": {
+		"category": "Maintenance",
+		"icon": "pullRequest",
+		"nodes": [
+			{
+				"id": "daily",
+				"kind": "trigger.schedule",
+				"name": "Every day",
+				"at": [0, 0],
+				"config": {
+					"every": "day",
+					"minute": 0,
+					"time": "06:17",
+					"weekday": "1",
+					"branch": ""
+				}
+			},
+			{
+				"id": "manual",
+				"kind": "trigger.manual",
+				"name": "Sync now",
+				"at": [0, 1],
+				"config": {
+					"event": "commit"
+				}
+			},
+			{
+				"id": "find",
+				"kind": "sandbox.skill",
+				"name": "Find the sync's pull request",
+				"at": [1, 0.5],
+				"config": {
+					"skill": "rsbuild-plugin-cloudflare/find-upstream-sync-pr",
+					"image": "node24",
+					"instance": "basic",
+					"harness": "claude-code",
+					"model": "claude-haiku-5-5",
+					"effort": "low",
+					"start": "empty",
+					"memory": false,
+					"github": {
+						"read": true
+					},
+					"prompt": ""
+				}
+			},
+			{
+				"id": "open",
+				"kind": "logic.if",
+				"name": "Sync pull request open?",
+				"at": [2, 0.5],
+				"config": {
+					"mode": "all",
+					"conditions": [
+						{
+							"path": "steps.find.outputs.pr",
+							"op": "not_empty",
+							"value": ""
+						}
+					]
+				}
+			},
+			{
+				"id": "hold",
+				"kind": "github.label",
+				"name": "Hold off merging",
+				"at": [3, 0],
+				"config": {
+					"target": "number",
+					"number": "{{steps.find.outputs.pr}}",
+					"labels": [],
+					"remove": ["sync: merge on green"]
+				}
+			},
+			{
+				"id": "resync",
+				"kind": "sandbox.skill",
+				"name": "Rebase and sync again",
+				"at": [4, 0],
+				"config": {
+					"skill": "rsbuild-plugin-cloudflare/check-upstream-alignment",
+					"image": "node24",
+					"instance": "standard-4",
+					"harness": "claude-code",
+					"model": "claude-opus-5-5",
+					"effort": "high",
+					"start": "continue",
+					"pull": "{{steps.find.outputs.pr}}",
+					"memory": false,
+					"guidance": "",
+					"inputs": {
+						"bump": "on"
+					},
+					"github": {
+						"read": true,
+						"push": true,
+						"pullRequests": true
+					},
+					"prompt": "This is the day's sync, on the sync's pull request #{{steps.find.outputs.pr}}: its branch was rebased onto main and workers-sdk bumped again, as \"This round\" says. Finish the bump, align the plugin with upstream's changes since the last sync, and get the checks and tests passing."
+				}
+			},
+			{
+				"id": "sync",
+				"kind": "sandbox.skill",
+				"name": "Sync with workers-sdk",
+				"at": [4, 1.5],
+				"config": {
+					"skill": "rsbuild-plugin-cloudflare/check-upstream-alignment",
+					"image": "node24",
+					"instance": "standard-4",
+					"harness": "claude-code",
+					"model": "claude-opus-5-5",
+					"effort": "high",
+					"start": "snapshot",
+					"ref": "{{trigger.commit.sha}}",
+					"memory": false,
+					"guidance": "",
+					"inputs": {
+						"bump": "on"
+					},
+					"github": {
+						"read": true,
+						"push": true,
+						"pullRequests": true,
+						"base": ""
+					},
+					"keep": true,
+					"prompt": "This is a new sync with workers-sdk. Finish the bump in \"This round\", align the plugin with upstream's changes, and get the checks and tests passing."
+				}
+			},
+			{
+				"id": "was_ready",
+				"kind": "logic.if",
+				"name": "Was it ready?",
+				"at": [5, 0],
+				"config": {
+					"mode": "all",
+					"conditions": [
+						{
+							"path": "steps.find.outputs.labelled",
+							"op": "==",
+							"value": "true"
+						}
+					]
+				}
+			},
+			{
+				"id": "ready",
+				"kind": "github.label",
+				"name": "Merge on green",
+				"at": [6, 0.5],
+				"config": {
+					"target": "number",
+					"number": "{{steps.find.outputs.pr}}{{steps.sync.outputs.pull_request | number}}",
+					"labels": ["sync: merge on green"],
+					"remove": []
+				}
+			},
+			{
+				"id": "say_why",
+				"kind": "github.comment",
+				"name": "Say what it needs",
+				"at": [6, 1.5],
+				"config": {
+					"target": "number",
+					"number": "{{steps.find.outputs.pr}}{{steps.sync.outputs.pull_request | number}}",
+					"body": "### The sync needs a person\n\n{{steps.sync.outputs.reason}}{{steps.resync.outputs.reason}}\n\nThe pull request stays open without the `sync: merge on green` label, so it isn't merged. Push fixes to its branch: later syncs rebase them onto `main` and keep them, and label it again once their checks pass in the sandbox.\n\n<sub>Written by an AI agent; it may be wrong. \u00b7 [Run #{{run.number}}]({{run.url}})</sub>",
+					"mode": "news",
+					"news": "{{steps.sync.outputs.upstream}}{{steps.resync.outputs.upstream}}"
+				}
+			},
+			{
+				"id": "checks",
+				"kind": "trigger.checks",
+				"name": "CI failed",
+				"at": [0, 3.5],
+				"config": {
+					"on": "failure",
+					"ignore": [],
+					"only": [],
+					"workflows": ["CI"],
+					"oneAtATime": true,
+					"openedBy": []
+				}
+			},
+			{
+				"id": "current",
+				"kind": "logic.if",
+				"name": "On the head?",
+				"at": [1, 3.5],
+				"config": {
+					"mode": "all",
+					"conditions": [
+						{
+							"path": "trigger.checks.current",
+							"op": "==",
+							"value": "true"
+						}
+					]
+				}
+			},
+			{
+				"id": "ours",
+				"kind": "logic.if",
+				"name": "The sync's pull request?",
+				"at": [2, 3.5],
+				"config": {
+					"mode": "all",
+					"conditions": [
+						{
+							"path": "trigger.pull_request.head_ref",
+							"op": "matches",
+							"value": "^alcora/[^/]+/[^/]+/upstream-sync$"
+						}
+					]
+				}
+			},
+			{
+				"id": "unlabel",
+				"kind": "github.label",
+				"name": "Hold off merging",
+				"at": [3, 3.5],
+				"config": {
+					"target": "pull_request",
+					"labels": [],
+					"remove": ["sync: merge on green"]
+				}
+			},
+			{
+				"id": "rounds",
+				"kind": "logic.if",
+				"name": "Under 20 rounds?",
+				"at": [4, 3.5],
+				"config": {
+					"mode": "all",
+					"conditions": [
+						{
+							"path": "trigger.session.rounds",
+							"op": "<",
+							"value": "20"
+						}
+					]
+				}
+			},
+			{
+				"id": "fix",
+				"kind": "sandbox.skill",
+				"name": "Fix the checks",
+				"at": [5, 3.5],
+				"config": {
+					"skill": "rsbuild-plugin-cloudflare/check-upstream-alignment",
+					"image": "node24",
+					"instance": "standard-4",
+					"harness": "claude-code",
+					"model": "claude-opus-5-5",
+					"effort": "high",
+					"start": "continue",
+					"pull": "{{trigger.pull_request.number}}",
+					"memory": false,
+					"guidance": "",
+					"inputs": {
+						"bump": "off"
+					},
+					"github": {
+						"read": true,
+						"push": true,
+						"pullRequests": true
+					},
+					"prompt": "CI failed on the sync's pull request #{{trigger.pull_request.number}} at {{trigger.checks.commit}}: {{trigger.checks.failed}}. Nothing was rebased or bumped this round. Fix what the sync broke. Flaky checks can be re-run: when every failure is a flake or the infrastructure's, answer `flaky`, and the workflow re-runs them.\n\n{{trigger.checks.details}}"
+				}
+			},
+			{
+				"id": "fix_ready",
+				"kind": "github.label",
+				"name": "Merge on green",
+				"at": [6, 3],
+				"config": {
+					"target": "pull_request",
+					"labels": ["sync: merge on green"],
+					"remove": []
+				}
+			},
+			{
+				"id": "rerun",
+				"kind": "github.rerun",
+				"name": "Re-run them",
+				"at": [6, 4],
+				"config": {}
+			},
+			{
+				"id": "fix_why",
+				"kind": "github.comment",
+				"name": "Say what it needs",
+				"at": [7, 4.5],
+				"config": {
+					"target": "pull_request",
+					"body": "### The sync needs a person\n\nCI failed at {{trigger.checks.commit}}: {{trigger.checks.failed}}.\n\n{{#if steps.fix.outputs.reason}}{{steps.fix.outputs.reason}}{{else}}The agent found the failures flaky, but their jobs were re-run twice already ({{steps.rerun.outputs.spent}}).{{/if}}\n\nThe pull request stays open without the `sync: merge on green` label, so it isn't merged. Push fixes to its branch: later syncs rebase them onto `main` and keep them.\n\n<sub>Written by an AI agent; it may be wrong. \u00b7 [Run #{{run.number}}]({{run.url}})</sub>",
+					"mode": "news",
+					"news": "{{trigger.checks.commit}}"
+				}
+			},
+			{
+				"id": "too_many",
+				"kind": "github.comment",
+				"name": "Say it took too many rounds",
+				"at": [5, 5],
+				"config": {
+					"target": "pull_request",
+					"body": "### The sync needs a person\n\nCI failed at {{trigger.checks.commit}}: {{trigger.checks.failed}}.\n\nThe sync's sandbox has had {{trigger.session.rounds}} rounds on this pull request, so the workflow stops trying to fix it. The pull request stays open without the `sync: merge on green` label: push fixes to its branch, or close it for the next sync to start afresh.\n\n<sub>[Run #{{run.number}}]({{run.url}})</sub>",
+					"mode": "news",
+					"news": "{{trigger.checks.commit}}"
+				}
+			}
+		],
+		"edges": [
+			["daily", "find"],
+			["manual", "find"],
+			["find", "open"],
+			["open", "hold", "yes"],
+			["hold", "resync"],
+			["open", "sync", "no"],
+			["sync", "ready", "ready"],
+			["resync", "ready", "ready"],
+			["resync", "was_ready", "rebased"],
+			["resync", "was_ready", "up_to_date"],
+			["was_ready", "ready", "yes"],
+			["sync", "say_why", "needs_human"],
+			["resync", "say_why", "needs_human"],
+			["checks", "current"],
+			["current", "ours", "yes"],
+			["ours", "unlabel", "yes"],
+			["unlabel", "rounds"],
+			["rounds", "fix", "yes"],
+			["rounds", "too_many", "no"],
+			["fix", "fix_ready", "ready"],
+			["fix", "rerun", "flaky"],
+			["rerun", "fix_ready", "rerun"],
+			["rerun", "fix_why", "none"],
+			["fix", "fix_why", "needs_human"]
+		],
+		"knobs": [
+			{
+				"key": "time",
+				"label": "Sync every day at (UTC)",
+				"help": "When the day's sync starts: a new pull request, or the open one rebased and synced again.",
+				"targets": [["daily", "time"]]
+			},
+			{
+				"key": "model",
+				"label": "Model",
+				"help": "The agent that aligns the plugin and fixes the checks.",
+				"targets": [
+					["sync", "model"],
+					["resync", "model"],
+					["fix", "model"]
+				]
+			},
+			{
+				"key": "effort",
+				"label": "Effort",
+				"targets": [
+					["sync", "effort"],
+					["resync", "effort"],
+					["fix", "effort"]
+				]
+			},
+			{
+				"key": "instance",
+				"label": "Instance",
+				"help": "workers-sdk's setup and the playground tests want the largest.",
+				"targets": [
+					["sync", "instance"],
+					["resync", "instance"],
+					["fix", "instance"]
+				]
+			}
+		],
+		"single": true,
+		"dependencies": {
+			"rsbuild-plugin-cloudflare/check-upstream-alignment": "^1.0.0",
+			"rsbuild-plugin-cloudflare/find-upstream-sync-pr": "^1.0.0"
+		}
+	}
+}

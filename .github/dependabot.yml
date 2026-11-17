@@ -1,5 +1,5 @@
-# The npm dependencies are updated by `.github/workflows/sync-upstream.yml`
-# (see `scripts/update-deps.ts`), which keeps the ones that follow workers-sdk
+# The npm dependencies are updated by the daily Alcora sync (see UPSTREAM.md
+# and `scripts/update-deps.ts`), which keeps the ones that follow workers-sdk
 # in line with it. Dependabot updates the pinned GitHub Actions.
 version: 2
 updates:

@@ -40,7 +40,10 @@ change that exposes what the plugin needs.
   upstream changes to the copied and mirrored declarations, but nothing checks
   that the glue and adapters still behave like the Vite plugin. After the
   submodule moves, or when changing them, follow the `check-upstream-alignment`
-  skill (`.claude/skills/check-upstream-alignment/SKILL.md`).
+  skill (`.alcora/check-upstream-alignment/SKILL.md`, linked from
+  `.claude/skills/`). The daily Alcora sync runs it too (see
+  [UPSTREAM.md](UPSTREAM.md)); keep `.alcora/` packages' `SKILL.md` the only
+  copy, and raise a package's `version` in its `alcora.json` to release it.
 - **Skip upstream tests only for Vite-specific behaviour**, or for features
   that the README lists as unsupported, with a reason, in
   `packages/test-harness/vitest.playground.config.ts` or
