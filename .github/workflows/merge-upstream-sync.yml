@@ -16,10 +16,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
-
 env:
   LABEL: "sync: merge on green"
 
@@ -38,6 +34,12 @@ jobs:
         && github.event.pull_request.head.repo.full_name == github.repository
         && startsWith(github.event.pull_request.head.ref, 'alcora/')
         && endsWith(github.event.pull_request.head.ref, '/upstream-sync'))
+    # On the job, not the workflow: every CI run in the repository starts this
+    # workflow, and a skipped run waiting in the group would cancel a pending
+    # merge.
+    concurrency:
+      group: ${{ github.workflow }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
