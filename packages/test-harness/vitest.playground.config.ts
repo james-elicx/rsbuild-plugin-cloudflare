@@ -36,6 +36,10 @@ export default mergeConfig(
 					"keeps using declarations in the Worker build",
 					// Reads the client entry from Vite's `assets/` output directory.
 					"lowers using declarations in the client build",
+					// Expects `@cloudflare/vite-plugin` as the Build Output's producer,
+					// where the Rsbuild plugin records itself (the plugin's unit tests
+					// check its root config).
+					"emits a root config.json recording the producer and build context",
 				].join("|")}))`
 			),
 			exclude: [

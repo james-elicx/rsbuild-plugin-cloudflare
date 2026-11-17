@@ -52,7 +52,7 @@ describe("spa-with-api", () => {
 			root,
 			".cloudflare",
 			"output",
-			"v0",
+			"v1",
 			"workers",
 			"default"
 		);
@@ -92,7 +92,7 @@ describe("spa-with-api", () => {
 		// The Worker's copy of the stylesheet isn't added to the client's.
 		const cssDir = path.join(
 			root,
-			".cloudflare/output/v0/workers/default/assets/static/css"
+			".cloudflare/output/v1/workers/default/assets/static/css"
 		);
 		expect(fs.readdirSync(cssDir)).toEqual([path.basename(stylesheet)]);
 	});
@@ -116,7 +116,7 @@ describe("spa-with-api", () => {
 			fs.existsSync(
 				path.join(
 					root,
-					".cloudflare/output/v0/workers/default/assets/index.html"
+					".cloudflare/output/v1/workers/default/assets/index.html"
 				)
 			)
 		).toBe(true);
@@ -132,7 +132,7 @@ describe("spa-with-api", () => {
 		// The assets directory only has the stylesheet that the Worker imports.
 		const assetsDir = path.join(
 			root,
-			".cloudflare/output/v0/workers/default/assets"
+			".cloudflare/output/v1/workers/default/assets"
 		);
 		expect(fs.existsSync(path.join(assetsDir, "index.html"))).toBe(false);
 		expect(fs.existsSync(path.join(assetsDir, "static", "js"))).toBe(false);
@@ -188,7 +188,7 @@ describe("spa-with-api", () => {
 		);
 
 		expect(environmentNames).toEqual(["web"]);
-		const workerDir = path.join(root, ".cloudflare/output/v0/workers/default");
+		const workerDir = path.join(root, ".cloudflare/output/v1/workers/default");
 		expect(fs.existsSync(path.join(workerDir, "assets", "index.html"))).toBe(
 			true
 		);

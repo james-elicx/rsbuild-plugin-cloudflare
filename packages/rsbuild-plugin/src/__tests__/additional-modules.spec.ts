@@ -115,7 +115,7 @@ describe("additional-modules", () => {
 		// The bundle imports the modules by their file names, rather than by the
 		// paths that their references record.
 		const bundle = fs.readFileSync(
-			path.join(root, ".cloudflare/output/v0/workers/default/bundle/index.js"),
+			path.join(root, ".cloudflare/output/v1/workers/default/bundle/index.js"),
 			"utf8"
 		);
 		expect(bundle).not.toContain("__CLOUDFLARE_MODULE__");

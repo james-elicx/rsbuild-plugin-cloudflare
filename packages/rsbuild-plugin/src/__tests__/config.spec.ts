@@ -173,7 +173,7 @@ describe("config", () => {
 
 		await build(root, {}, { assetsOnly: true });
 
-		const workerDir = path.join(root, ".cloudflare/output/v0/workers/default");
+		const workerDir = path.join(root, ".cloudflare/output/v1/workers/default");
 		expect(fs.readdirSync(path.join(workerDir, "assets"))).toEqual([
 			"robots.txt",
 		]);
@@ -208,7 +208,7 @@ describe("config", () => {
 			}
 		);
 
-		const workersDir = path.join(root, ".cloudflare/output/v0/workers");
+		const workersDir = path.join(root, ".cloudflare/output/v1/workers");
 		expect(fs.readdirSync(workersDir)).toEqual(["default"]);
 		expect(fs.readdirSync(path.join(workersDir, "default", "assets"))).toEqual([
 			"robots.txt",
