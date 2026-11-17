@@ -1,0 +1,627 @@
+{
+	"schemaVersion": 2,
+	"type": "skill",
+	"name": "rsbuild-plugin-cloudflare/check-upstream-alignment",
+	"title": "Sync with workers-sdk",
+	"version": "1.0.0",
+	"description": "Bumps rsbuild-plugin-cloudflare's workers-sdk submodule to upstream's main and updates the dependencies that don't follow it, then has an agent finish the bump and align the plugin with the Vite plugin, following the check-upstream-alignment skill, until the checks and tests pass. Pushes the sync to a branch of its own and opens its pull request. A later step continues its sandbox to rebase and sync again, or to fix failed checks.",
+	"readme": "README.md",
+	"license": "MIT",
+	"homepage": "https://github.com/james-elicx/rsbuild-plugin-cloudflare/blob/main/UPSTREAM.md",
+	"skill": {
+		"modelAccess": "agent-executes",
+		"needsBase": false,
+		"starts": ["setup", "snapshot", "continue"],
+		"defaults": {
+			"instance": "standard-4",
+			"model": "claude-opus-5-5",
+			"effort": "high",
+			"start": "snapshot",
+			"prompt": "Sync with workers-sdk: finish what \"This round\" says, align the plugin with upstream's changes, and get the checks and tests passing."
+		},
+		"promptHelp": "The task the agent gets after the skill's instructions and what this round's commands did.",
+		"github": {
+			"uses": ["read", "push", "pull_request"],
+			"help": "Grant Read, Push branches of its own and Open pull requests into main, and keep the sandbox: it pushes the sync to alcora/<run>/<step>/upstream-sync and opens its pull request, and later steps continue that sandbox, pushing to the same branch. It never merges."
+		},
+		"inputs": [
+			{
+				"key": "bump",
+				"label": "Rebase and bump",
+				"help": "For a step that continues the sync's sandbox: rebase its branch onto main and bump workers-sdk again first (the day's sync), or fix the pull request as it is (failed checks). A new sync always bumps.",
+				"options": [
+					{
+						"value": "on",
+						"label": "Rebase onto main, and bump workers-sdk"
+					},
+					{
+						"value": "off",
+						"label": "Fix the pull request as it is"
+					}
+				],
+				"default": "on"
+			}
+		],
+		"phases": [
+			{
+				"id": "setup",
+				"label": "Setup",
+				"builtin": "setup"
+			},
+			{
+				"id": "bump",
+				"label": "Bump",
+				"message": "Bumping workers-sdk and the dependencies",
+				"github": true,
+				"run": [
+					"bash",
+					"{{skill}}/sync.sh",
+					"bump",
+					"--repo",
+					"{{repo}}",
+					"--out",
+					"{{out}}"
+				],
+				"log": "bump.log",
+				"exit": {
+					"0": "continue",
+					"3": "skip"
+				},
+				"otherwise": "fail",
+				"failure": "Bumping workers-sdk failed",
+				"reportLastLine": true
+			},
+			{
+				"id": "align",
+				"label": "Align",
+				"github": true,
+				"agent": {
+					"input": [
+						"{{run}}/sandbox.md",
+						"{{skill}}/alcora.md",
+						"{{skill}}/SKILL.md",
+						"{{out}}/sync.md",
+						"@prompt"
+					],
+					"output": "{{out}}/align-output.jsonl",
+					"log": "align.log",
+					"tools": [
+						"Bash",
+						"Read",
+						"Grep",
+						"Glob",
+						"Write",
+						"Edit",
+						"TodoWrite"
+					],
+					"runsCode": true
+				}
+			},
+			{
+				"id": "report",
+				"label": "Report",
+				"message": "Reading the agent's answer",
+				"run": [
+					"node",
+					"{{skill}}/report.cjs",
+					"answer",
+					"--transcript",
+					"{{out}}/align-output.jsonl",
+					"--out",
+					"{{out}}"
+				],
+				"log": "report.log",
+				"exit": {
+					"0": "continue"
+				},
+				"otherwise": "fail",
+				"failure": "The agent did not answer",
+				"reportLastLine": true
+			},
+			{
+				"id": "publish",
+				"label": "Publish",
+				"message": "Pushing the branch and opening the pull request",
+				"github": true,
+				"run": [
+					"bash",
+					"{{skill}}/sync.sh",
+					"publish",
+					"--repo",
+					"{{repo}}",
+					"--out",
+					"{{out}}"
+				],
+				"log": "publish.log",
+				"exit": {
+					"0": "done",
+					"4": "blocked"
+				},
+				"otherwise": "fail",
+				"failure": "Publishing the sync failed",
+				"reportLastLine": true
+			}
+		],
+		"continue": {
+			"prompt": "Sync with workers-sdk again: finish what \"This round\" says, align the plugin with upstream's changes since the last sync, and get the checks and tests passing.",
+			"promptHelp": "Why this round runs, after the instructions and what this round's commands did: the day's sync, or the checks that failed, with their details.",
+			"phases": [
+				{
+					"id": "rebase",
+					"label": "Rebase",
+					"message": "Rebasing the branch onto main",
+					"github": true,
+					"run": [
+						"bash",
+						"{{skill}}/sync.sh",
+						"rebase",
+						"--repo",
+						"{{repo}}",
+						"--out",
+						"{{out}}",
+						{
+							"when": "bump",
+							"args": ["--bump"]
+						}
+					],
+					"log": "rebase.log",
+					"exit": {
+						"0": "continue",
+						"2": "goto:resolve",
+						"6": "skip"
+					},
+					"otherwise": "fail",
+					"failure": "Rebasing the branch failed",
+					"reportLastLine": true
+				},
+				{
+					"id": "resolve",
+					"label": "Rebase",
+					"gotoOnly": true,
+					"github": true,
+					"agent": {
+						"input": [
+							"{{run}}/sandbox.md",
+							"{{skill}}/resolve.md",
+							"{{out}}/conflicts.md"
+						],
+						"output": "{{out}}/resolve-output.jsonl",
+						"log": "resolve.log",
+						"tools": ["Bash", "Read", "Grep", "Glob", "Write", "Edit"],
+						"runsCode": true
+					}
+				},
+				{
+					"id": "prepare",
+					"label": "Bump",
+					"message": "Setting up and bumping workers-sdk",
+					"github": true,
+					"run": [
+						"bash",
+						"{{skill}}/sync.sh",
+						"prepare",
+						"--repo",
+						"{{repo}}",
+						"--out",
+						"{{out}}",
+						{
+							"when": "bump",
+							"args": ["--bump"]
+						}
+					],
+					"log": "prepare.log",
+					"exit": {
+						"0": "continue",
+						"3": "skip",
+						"4": "blocked",
+						"5": "goto:publish"
+					},
+					"otherwise": "fail",
+					"failure": "Setting up or bumping workers-sdk failed",
+					"reportLastLine": true
+				},
+				{
+					"id": "address",
+					"label": "Align",
+					"github": true,
+					"agent": {
+						"input": [
+							"{{run}}/sandbox.md",
+							"{{skill}}/alcora.md",
+							"{{skill}}/SKILL.md",
+							"{{out}}/sync.md",
+							"@prompt"
+						],
+						"output": "{{out}}/address-output.jsonl",
+						"log": "address.log",
+						"tools": [
+							"Bash",
+							"Read",
+							"Grep",
+							"Glob",
+							"Write",
+							"Edit",
+							"TodoWrite"
+						],
+						"runsCode": true,
+						"resume": true
+					}
+				},
+				{
+					"id": "report",
+					"label": "Report",
+					"message": "Reading the agent's answer",
+					"run": [
+						"node",
+						"{{skill}}/report.cjs",
+						"answer",
+						"--transcript",
+						"{{out}}/address-output.jsonl",
+						"--out",
+						"{{out}}"
+					],
+					"log": "report.log",
+					"exit": {
+						"0": "continue"
+					},
+					"otherwise": "fail",
+					"failure": "The agent did not answer",
+					"reportLastLine": true
+				},
+				{
+					"id": "publish",
+					"label": "Publish",
+					"message": "Pushing the branch and updating the pull request",
+					"github": true,
+					"run": [
+						"bash",
+						"{{skill}}/sync.sh",
+						"publish",
+						"--repo",
+						"{{repo}}",
+						"--out",
+						"{{out}}"
+					],
+					"log": "publish.log",
+					"exit": {
+						"0": "done",
+						"4": "blocked"
+					},
+					"otherwise": "fail",
+					"failure": "Publishing the sync failed",
+					"reportLastLine": true
+				}
+			],
+			"outputs": [
+				{
+					"name": "result",
+					"label": "Result (ready, needs_human, flaky, rebased, up_to_date, closed)",
+					"type": "enum",
+					"values": [
+						{
+							"value": "ready",
+							"label": "Ready"
+						},
+						{
+							"value": "needs_human",
+							"label": "Needs a person"
+						},
+						{
+							"value": "flaky",
+							"label": "Flaky checks"
+						},
+						{
+							"value": "rebased",
+							"label": "Only rebased"
+						},
+						{
+							"value": "up_to_date",
+							"label": "Up to date"
+						},
+						{
+							"value": "closed",
+							"label": "Pull request closed"
+						}
+					],
+					"default": "needs_human",
+					"from": {
+						"artifact": "sync-report.json",
+						"path": "result"
+					}
+				},
+				{
+					"name": "explanation",
+					"label": "What the agent changed",
+					"type": "text",
+					"default": "",
+					"truncate": 4000,
+					"report": true,
+					"from": {
+						"artifact": "sync-report.json",
+						"path": "summary"
+					}
+				},
+				{
+					"name": "tests",
+					"label": "What it ran",
+					"type": "text",
+					"default": "",
+					"truncate": 4000,
+					"report": true,
+					"from": {
+						"artifact": "sync-report.json",
+						"path": "tests"
+					}
+				},
+				{
+					"name": "reason",
+					"label": "Why it needs a person (markdown)",
+					"type": "text",
+					"default": "",
+					"truncate": 4000,
+					"report": true,
+					"from": {
+						"artifact": "sync-report.json",
+						"path": "reason"
+					}
+				},
+				{
+					"name": "upstream",
+					"label": "The workers-sdk commit it pins",
+					"type": "text",
+					"default": "",
+					"from": {
+						"artifact": "sync-report.json",
+						"path": "upstream"
+					}
+				}
+			],
+			"branchOutput": "result",
+			"branches": [
+				{
+					"id": "ready",
+					"label": "Ready"
+				},
+				{
+					"id": "needs_human",
+					"label": "Needs a person"
+				},
+				{
+					"id": "flaky",
+					"label": "Flaky checks"
+				},
+				{
+					"id": "rebased",
+					"label": "Only rebased"
+				},
+				{
+					"id": "up_to_date",
+					"label": "Up to date"
+				},
+				{
+					"id": "closed",
+					"label": "Pull request closed"
+				}
+			],
+			"verdict": [
+				{
+					"when": {
+						"path": "outputs.result",
+						"op": "==",
+						"value": "ready"
+					},
+					"tone": "pass",
+					"summary": "In line with workers-sdk: ready to merge once CI passes"
+				},
+				{
+					"when": {
+						"path": "outputs.result",
+						"op": "==",
+						"value": "flaky"
+					},
+					"tone": "info",
+					"summary": "The checks failed by chance: re-run them"
+				},
+				{
+					"when": {
+						"path": "outputs.result",
+						"op": "==",
+						"value": "rebased"
+					},
+					"tone": "info",
+					"summary": "Rebased onto main"
+				},
+				{
+					"when": {
+						"path": "outputs.result",
+						"op": "==",
+						"value": "up_to_date"
+					},
+					"tone": "skipped",
+					"summary": "Up to date"
+				},
+				{
+					"when": {
+						"path": "outputs.result",
+						"op": "==",
+						"value": "closed"
+					},
+					"tone": "skipped",
+					"summary": "The pull request is no longer open"
+				},
+				{
+					"tone": "blocked",
+					"summary": "Needs a person"
+				}
+			]
+		},
+		"artifacts": [
+			{
+				"name": "sync-report.json",
+				"path": "{{out}}/sync-report.json",
+				"type": "application/json",
+				"label": "Report"
+			},
+			{
+				"name": "sync.md",
+				"path": "{{out}}/sync.md",
+				"type": "text/markdown",
+				"label": "What the round's commands did"
+			},
+			{
+				"name": "pr-body.md",
+				"path": "{{out}}/pr-body.md",
+				"type": "text/markdown",
+				"label": "Pull request description"
+			},
+			{
+				"name": "dependencies.md",
+				"path": "{{out}}/dependencies.md",
+				"type": "text/markdown",
+				"label": "Dependency updates"
+			},
+			{
+				"name": "conflicts.md",
+				"path": "{{out}}/conflicts.md",
+				"type": "text/markdown",
+				"label": "Rebase conflicts"
+			},
+			{
+				"name": "bump-output.log",
+				"path": "{{out}}/bump.log",
+				"type": "text/plain",
+				"label": "scripts/bump-upstream.sh"
+			},
+			{
+				"name": "setup-upstream.log",
+				"path": "{{out}}/setup-upstream.log",
+				"type": "text/plain",
+				"label": "Setting up workers-sdk"
+			},
+			{
+				"name": "update-deps.log",
+				"path": "{{out}}/update-deps.log",
+				"type": "text/plain",
+				"label": "pnpm update:deps"
+			},
+			{
+				"name": "setup.log",
+				"path": "{{logs}}/setup.log",
+				"type": "text/plain",
+				"label": "Setup log"
+			}
+		],
+		"outputs": [
+			{
+				"name": "result",
+				"label": "Result (ready, needs_human, up_to_date)",
+				"type": "enum",
+				"values": [
+					{
+						"value": "ready",
+						"label": "Ready"
+					},
+					{
+						"value": "needs_human",
+						"label": "Needs a person"
+					},
+					{
+						"value": "up_to_date",
+						"label": "Up to date"
+					}
+				],
+				"default": "needs_human",
+				"from": {
+					"artifact": "sync-report.json",
+					"path": "result"
+				}
+			},
+			{
+				"name": "explanation",
+				"label": "What the agent changed",
+				"type": "text",
+				"default": "",
+				"truncate": 4000,
+				"report": true,
+				"from": {
+					"artifact": "sync-report.json",
+					"path": "summary"
+				}
+			},
+			{
+				"name": "tests",
+				"label": "What it ran",
+				"type": "text",
+				"default": "",
+				"truncate": 4000,
+				"report": true,
+				"from": {
+					"artifact": "sync-report.json",
+					"path": "tests"
+				}
+			},
+			{
+				"name": "reason",
+				"label": "Why it needs a person (markdown)",
+				"type": "text",
+				"default": "",
+				"truncate": 4000,
+				"report": true,
+				"from": {
+					"artifact": "sync-report.json",
+					"path": "reason"
+				}
+			},
+			{
+				"name": "upstream",
+				"label": "The workers-sdk commit it pins",
+				"type": "text",
+				"default": "",
+				"from": {
+					"artifact": "sync-report.json",
+					"path": "upstream"
+				}
+			}
+		],
+		"branchOutput": "result",
+		"branches": [
+			{
+				"id": "ready",
+				"label": "Ready"
+			},
+			{
+				"id": "needs_human",
+				"label": "Needs a person"
+			},
+			{
+				"id": "up_to_date",
+				"label": "Up to date"
+			}
+		],
+		"verdict": [
+			{
+				"when": {
+					"path": "outputs.result",
+					"op": "==",
+					"value": "ready"
+				},
+				"tone": "pass",
+				"summary": "In line with workers-sdk: ready to merge once CI passes"
+			},
+			{
+				"when": {
+					"path": "outputs.result",
+					"op": "==",
+					"value": "up_to_date"
+				},
+				"tone": "skipped",
+				"summary": "Up to date"
+			},
+			{
+				"tone": "blocked",
+				"summary": "Needs a person"
+			}
+		],
+		"datasets": {}
+	}
+}

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Moves the workers-sdk submodule to a ref (default: origin/main), then
 # re-applies the patches, rebuilds upstream and syncs the plugin's
-# dependencies. Review and commit the result.
+# dependencies. Review and commit the result. A workers-sdk laid out from an
+# archive (scripts/fetch-upstream.sh) is laid out at the ref instead, and the
+# new pin is staged.
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -13,9 +15,13 @@ if [[ -n "$(git -C "$upstream" status --porcelain --untracked-files=no)" ]]; the
 	echo "The workers-sdk submodule has changes that aren't from patches/." >&2
 	exit 1
 fi
-git -C "$upstream" fetch origin
-git -C "$upstream" checkout --detach "$ref"
-echo "workers-sdk is now at $(git -C "$upstream" rev-parse HEAD)"
+if [[ -d "$upstream/.git" ]]; then
+	"$root/scripts/fetch-upstream.sh" "${ref#origin/}"
+else
+	git -C "$upstream" fetch origin
+	git -C "$upstream" checkout --detach "$ref"
+	echo "workers-sdk is now at $(git -C "$upstream" rev-parse HEAD)"
+fi
 
 "$root/scripts/apply-patches.sh"
 pnpm -C "$upstream" install --frozen-lockfile

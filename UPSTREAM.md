@@ -77,47 +77,110 @@ repository stays in sync, and what to do when a sync fails.
 
 ## The daily sync
 
-`.github/workflows/sync-upstream.yml` runs daily, and on demand with an
-optional ref:
+An [Alcora](https://alcora.dev) workflow, **Upstream sync**, syncs the
+repository with workers-sdk in a sandbox. Its packages are in
+[`.alcora/`](.alcora): the workflow (`upstream-sync`), the skill that syncs
+(`check-upstream-alignment`, whose `SKILL.md` is the Claude Code skill's) and
+one that finds the sync's pull request (`find-upstream-sync-pr`). Each sync
+bumps workers-sdk, then aligns the plugin with upstream's changes, so it
+leaves the repository up to date with upstream, not only bumped:
 
-1. `scripts/bump-upstream.sh` reverts the patches, moves the submodule to
-   `origin/main`, re-applies the patches, installs and builds workers-sdk, and
-   syncs the plugin's dependencies.
-2. The bump is committed to the `upstream-sync` branch, with the upstream
-   commits in the message. If a sync pull request is already open, the branch
-   is first rebased onto `main`, so that fixes pushed to it are kept.
-3. `scripts/update-deps.ts` updates the dependencies that don't follow
-   workers-sdk (those with `^` or `~` ranges) within their ranges, refreshes the
-   lockfile, and commits that as "Update dependencies". Newer versions outside
-   the ranges are listed in the pull request, to update by hand.
-4. The branch is pushed to a pull request to `main`.
-5. CI (`ci.yml`) runs against the pushed commit: checks, unit tests, the
-   playground suite (serve and build), the e2e suite and this repository's
-   e2e apps (dev and preview).
-6. Auto-merge rebase-merges the pull request into `main` once CI passes.
-   Otherwise a comment on the pull request links to the failed run, and the
-   pull request stays open for fixes.
+1. Every day at 14:00 UTC, or on **Sync now** (for testing; unlike the old
+   Actions workflow, it takes no workers-sdk ref: a sync always moves to
+   upstream's `main`), it looks for the open pull request from a branch
+   `alcora/<run>/<step>/upstream-sync`.
+2. With none open, a sandbox starts from the project's snapshot, branches from
+   `main` and runs `scripts/bump-upstream.sh origin/main`, which reverts the
+   patches, moves workers-sdk to upstream's `main`, re-applies the patches,
+   installs and builds workers-sdk, and syncs the plugin's dependencies. That's
+   committed as "Bump workers-sdk to …", with the upstream commits in the
+   message. `scripts/update-deps.ts` then updates the dependencies that don't
+   follow workers-sdk within their ranges, as "Update dependencies".
+3. An agent finishes the bump if it failed (e.g. a patch no longer applies),
+   follows the `check-upstream-alignment` skill on upstream's changes and
+   applies its fixes, until `pnpm check`, the build, the unit tests and the
+   affected playground and e2e specs pass. It commits as a person would, with
+   subjects that are release notes, and leaves failures that Rsbuild or Rspack
+   cause failing, saying so.
+4. The branch is pushed to a pull request to `main`, which lists the
+   plugin's changes, upstream's commits, the dependency updates and newer
+   versions outside their ranges, to update by hand. The sandbox is kept.
+5. With a pull request open, the sync continues its sandbox instead: it
+   rebases the branch onto `main`, keeping fixes pushed to it (an agent
+   resolves conflicts), bumps again, and aligns with the new changes.
+6. Ready, the pull request is labelled `sync: merge on green`. Needing a
+   person, it's left open with a comment saying why. Up to date or only
+   rebased, it gets the label back only if it had it. If it merged or closed
+   while the sync waited for its sandbox, the sync does nothing.
+7. When CI (`ci.yml`) fails on the pull request's head, the agent continues
+   the sandbox to fix it, or answers that the failures are flaky, and the
+   workflow re-runs them (twice at most). After 20 rounds, it stops and says
+   so.
+8. `.github/workflows/merge-upstream-sync.yml` rebase-merges the labelled pull
+   request once CI passes on its head, then dispatches `publish.yml`. Alcora
+   doesn't merge pull requests, so that's the one part left in GitHub Actions.
+   The workflow removes the label before each round that may push, so an
+   unfinished head isn't merged.
 
 Each upstream commit that the sync brings in and that changes the Vite plugin
 (other than its tests) becomes a release note in the next release (see
-[.changeset/README.md](.changeset/README.md)).
+[.changeset/README.md](.changeset/README.md)), as do the agent's commits.
 
 Dependabot updates the pinned GitHub Actions weekly (`.github/dependabot.yml`).
 
-The workflow opens the pull request with `GITHUB_TOKEN`, so the repository must
-allow it: enable **Settings → Actions → General → Allow GitHub Actions to create
-and approve pull requests**, and **Settings → General → Allow auto-merge**.
-The `pull_request` runs of pull requests that `GITHUB_TOKEN` creates or updates
-[wait for approval](https://github.blog/changelog/2026-06-11-bot-created-pull-requests-can-run-workflows-if-approved/),
-so the sync workflow approves them. CI then reports the status checks that
-`main`'s ruleset requires. Running CI some other way, such as dispatching it,
-doesn't help: the pull request shows the waiting runs' checks instead.
+### workers-sdk in the sandbox
 
-## Fixing a failed sync
+Alcora's sandboxes clone the repository without its submodules, so
+`scripts/fetch-upstream.sh` lays `workers-sdk/` out from GitHub's archive of
+the pinned commit instead, as a git repository of its own whose commits are
+the archives' trees (`cloudflare/workers-sdk@<sha>`). `bump-upstream.sh` and
+`setup-upstream.sh` use it there, and the submodule elsewhere. The outer
+repository's `workers-sdk` entry is marked `--skip-worktree`, so `git add` and
+`git commit -a` never pin the layout's own commits; `fetch-upstream.sh <ref>`
+sets the pin. The sync refuses to push a commit that pins one anyway.
+
+### Turning it on
+
+In an Alcora project for this repository, as an admin:
+
+1. **Add the registry source:** on the **Workflow registry**, under
+   **Add or import → Registry sources**, add
+   `https://github.com/james-elicx/rsbuild-plugin-cloudflare`, branch `main`,
+   folder `.alcora`.
+2. **Add the setup commands** under **Settings → Environment**:
+
+   ```sh
+   ./scripts/fetch-upstream.sh && pnpm setup:upstream && pnpm install --frozen-lockfile
+   ```
+
+3. **Install the Sandbox snapshot workflow** (`alcora/sandbox-snapshot`) and
+   turn it on, adding `patches/**` and `scripts/*upstream*` to the files it
+   hashes, since workers-sdk's setup takes a while.
+4. **Install Upstream sync** (`rsbuild-plugin-cloudflare/upstream-sync`) from
+   the registry source, which brings its skills. Grant the Alcora GitHub App
+   the Actions permission (read for the CI filter, read and write for
+   re-runs). Installed workflows start off: try it with **Test run**, then
+   turn it on.
+5. On GitHub, close the Actions sync's pull request from `upstream-sync`, if
+   one is open, and delete the branch: the new sync only looks for
+   `alcora/*/upstream-sync`. Create the `sync: merge on green` label, and keep `main`'s
+   ruleset requiring CI's checks, which `merge-upstream-sync.yml` merges
+   after, with `GITHUB_TOKEN`: the ruleset mustn't require a review of these
+   pull requests, or must let GitHub Actions bypass it.
+
+**Model**, **Effort**, **Instance** and the time are settings of the
+workflow. Raising a package's `version` releases it; installed workflows offer
+the update.
+
+## Fixing a sync that needs a person
+
+The comment on the pull request says what the agent couldn't do. Check out
+its branch:
 
 ```sh
 git fetch origin
-git checkout upstream-sync   # The sync pull request's branch
+git checkout alcora/<run>/<step>/upstream-sync   # The sync pull request's branch
+git submodule update --init
 pnpm setup:upstream && pnpm install && pnpm build
 pnpm check && pnpm test && pnpm test:playground && pnpm test:e2e
 ```
@@ -137,23 +200,24 @@ Then, depending on what failed:
   (`src/vite-server.ts`, `src/miniflare-options.ts`) rather than the Rsbuild
   glue where possible.
 - **A playground or e2e test fails:** if it tests Vite-specific behaviour, add
-  it to the skip list with a reason. Otherwise fix the plugin.
+  it to the skip list with a reason. If Rsbuild or Rspack causes it, leave it
+  failing and report it there. Otherwise fix the plugin.
 - **`check:upstream-deps`:** run
   `node --experimental-strip-types scripts/sync-upstream-deps.ts`, then
   `pnpm install`.
 
-Push the fixes to `upstream-sync`. CI runs on them, and if auto-merge is
-enabled on the pull request (it isn't when the bump itself failed), the pull
-request is merged when it passes. Otherwise, the next sync (or a manual run of
-the workflow) rebases them onto `main`, runs CI, and enables auto-merge. If the
-branch no longer rebases cleanly, rebase it onto `main` yourself and force-push
-it.
+Push the fixes to the branch, and add the `sync: merge on green` label once
+CI passes, or leave it for the next sync: it rebases them onto `main` and
+keeps them. To start afresh, close the pull request; the next sync opens
+another. If CI fails on your fixes, the workflow's agent tries to fix them too.
 
 Passing CI doesn't mean the plugin still behaves like the Vite plugin: only
 the copied and mirrored declarations are checked mechanically, and only for
 changes. To review the rest against an upstream change, follow the
 `check-upstream-alignment` skill
-(`.claude/skills/check-upstream-alignment/SKILL.md`).
+(`.alcora/check-upstream-alignment/SKILL.md`, which
+`.claude/skills/check-upstream-alignment/SKILL.md` links to). The daily sync
+does that for each upstream change.
 
 If a fix would make the Rsbuild glue grow substantially, stop and reassess: the
 plugin is meant to stay a thin wrapper over upstream, so the better fix may be

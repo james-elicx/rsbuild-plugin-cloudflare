@@ -1,0 +1,111 @@
+{
+	"schemaVersion": 2,
+	"type": "skill",
+	"name": "rsbuild-plugin-cloudflare/find-upstream-sync-pr",
+	"title": "Find the sync's pull request",
+	"version": "1.0.0",
+	"description": "Finds the open pull request of rsbuild-plugin-cloudflare's sync with workers-sdk: the one a sync step opened from a branch alcora/<run>/<step>/upstream-sync. Clones nothing and runs no agent; it only reads the repository's pull requests.",
+	"readme": "README.md",
+	"license": "MIT",
+	"homepage": "https://github.com/james-elicx/rsbuild-plugin-cloudflare/blob/main/UPSTREAM.md",
+	"skill": {
+		"modelAccess": "isolated",
+		"needsBase": false,
+		"starts": ["empty"],
+		"defaults": {
+			"instance": "basic",
+			"model": "claude-haiku-5-5",
+			"effort": "low",
+			"start": "empty",
+			"prompt": ""
+		},
+		"github": {
+			"uses": ["read"],
+			"help": "Grant Read: it lists the repository's open pull requests."
+		},
+		"inputs": [],
+		"phases": [
+			{
+				"id": "find",
+				"label": "Find",
+				"message": "Listing the open pull requests",
+				"github": true,
+				"run": ["bash", "{{skill}}/find.sh", "--out", "{{out}}"],
+				"log": "find.log",
+				"exit": {
+					"0": "done"
+				},
+				"otherwise": "fail",
+				"failure": "Listing the pull requests failed",
+				"reportLastLine": true
+			}
+		],
+		"artifacts": [
+			{
+				"name": "sync-pr.json",
+				"path": "{{out}}/sync-pr.json",
+				"type": "application/json",
+				"label": "The sync's pull request"
+			}
+		],
+		"outputs": [
+			{
+				"name": "pr",
+				"label": "Its number (empty when none is open)",
+				"type": "text",
+				"default": "",
+				"from": {
+					"artifact": "sync-pr.json",
+					"path": "number"
+				}
+			},
+			{
+				"name": "url",
+				"label": "Its link",
+				"type": "text",
+				"default": "",
+				"from": {
+					"artifact": "sync-pr.json",
+					"path": "url"
+				}
+			},
+			{
+				"name": "head_ref",
+				"label": "Its branch",
+				"type": "text",
+				"default": "",
+				"from": {
+					"artifact": "sync-pr.json",
+					"path": "branch"
+				}
+			},
+			{
+				"name": "labelled",
+				"label": "Labelled to merge on green (true, or empty)",
+				"type": "text",
+				"default": "",
+				"from": {
+					"artifact": "sync-pr.json",
+					"path": "labelled"
+				}
+			}
+		],
+		"branches": [],
+		"verdict": [
+			{
+				"when": {
+					"path": "outputs.pr",
+					"op": "!=",
+					"value": ""
+				},
+				"tone": "info",
+				"summary": "The sync's pull request is #{{outputs.pr}}"
+			},
+			{
+				"tone": "info",
+				"summary": "No sync pull request is open"
+			}
+		],
+		"datasets": {}
+	}
+}

@@ -1,0 +1,91 @@
+name: Merge upstream sync
+
+# Merges the Alcora Upstream sync's pull request (see UPSTREAM.md) once it's
+# labelled "sync: merge on green" and CI passes on its head, then publishes.
+# Alcora doesn't merge pull requests, so this is the only part of the sync
+# left in GitHub Actions. The workflow removes the label before each round
+# that may push to the pull request, and adds it back when the round is ready.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+env:
+  LABEL: "sync: merge on green"
+
+jobs:
+  merge:
+    name: Merge
+    if: >-
+      (github.event_name == 'workflow_run'
+        && github.event.workflow_run.event == 'pull_request'
+        && github.event.workflow_run.conclusion == 'success'
+        && github.event.workflow_run.head_repository.full_name == github.repository
+        && startsWith(github.event.workflow_run.head_branch, 'alcora/')
+        && endsWith(github.event.workflow_run.head_branch, '/upstream-sync'))
+      || (github.event_name == 'pull_request'
+        && github.event.label.name == 'sync: merge on green'
+        && github.event.pull_request.head.repo.full_name == github.repository
+        && startsWith(github.event.pull_request.head.ref, 'alcora/')
+        && endsWith(github.event.pull_request.head.ref, '/upstream-sync'))
+    # On the job, not the workflow: every CI run in the repository starts this
+    # workflow, and a skipped run waiting in the group would cancel a pending
+    # merge.
+    concurrency:
+      group: ${{ github.workflow }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      # To dispatch the publish workflow.
+      actions: write
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BRANCH: ${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref }}
+      SHA: ${{ github.event.workflow_run.head_sha || github.event.pull_request.head.sha }}
+    steps:
+      - name: Merge the pull request
+        id: merge
+        run: |
+          number="$(gh pr list --head "$BRANCH" --base main --state open --json number --jq '.[0].number')"
+          if [[ -z "$number" ]]; then
+            echo "No open pull request from $BRANCH into main."
+            exit 0
+          fi
+          pr="$(gh pr view "$number" --json headRefOid,isCrossRepository,labels)"
+          if [[ "$(jq -r .isCrossRepository <<<"$pr")" != "false" ]]; then
+            echo "#$number is from a fork."
+            exit 0
+          fi
+          if [[ "$(jq -r .headRefOid <<<"$pr")" != "$SHA" ]]; then
+            echo "#$number's head moved on from $SHA."
+            exit 0
+          fi
+          if ! jq -e --arg label "$LABEL" 'any(.labels[]; .name == $label)' <<<"$pr" >/dev/null; then
+            echo "#$number isn't labelled \"$LABEL\"."
+            exit 0
+          fi
+          # Labelled after CI ran: the label's run only merges once CI's
+          # latest run on the head passed, and CI's run merges otherwise.
+          conclusion="$(gh api "repos/$GH_REPO/actions/workflows/ci.yml/runs?head_sha=$SHA&event=pull_request" \
+            --jq '.workflow_runs | sort_by(.run_number) | last | .conclusion // ""')"
+          if [[ "$conclusion" != "success" ]]; then
+            echo "CI hasn't passed on $SHA (${conclusion:-running})."
+            exit 0
+          fi
+          gh pr merge "$number" --rebase --match-head-commit "$SHA"
+          echo "merged=true" >> "$GITHUB_OUTPUT"
+
+      # A merge with `GITHUB_TOKEN` doesn't trigger `push`.
+      - name: Publish
+        if: steps.merge.outputs.merged
+        run: gh workflow run publish.yml --ref main

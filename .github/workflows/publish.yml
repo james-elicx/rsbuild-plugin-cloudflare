@@ -10,11 +10,8 @@ name: Publish
 on:
   push:
     branches: [main]
-  # The daily sync merges with `GITHUB_TOKEN`, which doesn't trigger `push`.
-  workflow_run:
-    workflows: [Sync upstream]
-    types: [completed]
-    branches: [main]
+  # `merge-upstream-sync.yml` merges with `GITHUB_TOKEN`, which doesn't
+  # trigger `push`, so it dispatches this.
   workflow_dispatch:
 
 permissions:
@@ -27,7 +24,6 @@ concurrency:
 jobs:
   release:
     name: Release
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:

@@ -197,23 +197,3 @@ jobs:
           name: ${{ format('tanstack-start-{0}-results', matrix.app) }}
           path: packages/tanstack-start-e2e/test-results
           retention-days: 7
-
-  # Nobody is notified of the failed runs that `sync-upstream.yml` approves, so
-  # they comment on the sync pull request.
-  report-sync-failure:
-    name: Report sync failure
-    needs: [check, playground, e2e, apps, tanstack-start]
-    if: failure() && github.event_name == 'pull_request' && github.head_ref == 'upstream-sync' && github.actor == 'github-actions[bot]'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      pull-requests: write
-    env:
-      GH_TOKEN: ${{ github.token }}
-      GH_REPO: ${{ github.repository }}
-    steps:
-      - name: Comment on the pull request
-        run: |
-          gh pr comment "$GITHUB_HEAD_REF" --body "CI failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-          Push fixes to \`$GITHUB_HEAD_REF\`. Auto-merge rebases the pull request onto \`main\` once CI passes."

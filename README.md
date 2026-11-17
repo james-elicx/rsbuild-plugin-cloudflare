@@ -33,6 +33,7 @@ and the differences from the Vite plugin.
 | `packages/test-harness/`                | Runs the Vite plugin's playground and e2e suites against Rsbuild.      |
 | `packages/e2e/`                         | This repository's e2e tests: Playwright tests of real-world apps.      |
 | `scripts/`                              | Submodule setup, bumping, and the upstream checks.                     |
+| `.alcora/`                              | The Alcora workflow that syncs with workers-sdk, and its skills.       |
 
 ## Getting started
 
@@ -73,10 +74,11 @@ runs in a checkout of TanStack/router, and needs its Chromium too (see
 
 ## Staying in sync with workers-sdk
 
-A daily workflow moves the submodule to workers-sdk's `main` and updates the
-other dependencies in a pull request, runs CI, and rebase-merges the pull
-request when it passes. See [UPSTREAM.md](UPSTREAM.md) for how it works and
-what to do when it fails.
+A daily [Alcora](https://alcora.dev) workflow moves the submodule to
+workers-sdk's `main`, updates the other dependencies, and has an agent align
+the plugin with upstream's changes until the checks and tests pass, in a pull
+request that's rebase-merged once CI passes. See [UPSTREAM.md](UPSTREAM.md)
+for how it works, how to turn it on, and what to do when it needs a person.
 
 ## Releases
 
