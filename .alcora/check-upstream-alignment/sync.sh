@@ -122,12 +122,15 @@ bump_commits() {
 	fi
 
 	status=0
-	pnpm update:deps --report "$out/dependencies.md" >"$out/update-deps.log" 2>&1 || status=$?
+	pnpm update:deps --report "$out/dependencies.md" --outdated "$out/outdated.json" >"$out/update-deps.log" 2>&1 || status=$?
 	cat "$out/update-deps.log"
 	git add -- "${dependency_files[@]}"
 	if ! git diff --cached --quiet; then
 		git commit --quiet --no-verify --message "Update dependencies"
-		note "" "The dependencies that don't follow workers-sdk were updated within their ranges:" "" "$(cat "$out/dependencies.md" 2>/dev/null || true)"
+		note "" "The dependencies that don't follow workers-sdk were updated within their ranges, as \"Update dependencies\"."
+	fi
+	if [[ -s "$out/dependencies.md" ]]; then
+		note "" "## Newer versions outside their ranges" "" "$(cat "$out/dependencies.md")" "" "Update each of them, as \"How to sync\" says, in a commit of its own."
 	fi
 	if ((status != 0)); then
 		state FAILED update-deps

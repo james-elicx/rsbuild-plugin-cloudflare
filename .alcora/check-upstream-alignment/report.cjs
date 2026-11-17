@@ -13,7 +13,9 @@
  *     first, as `git log --oneline` does, from GitHub's API, or a link to
  *     them when the API doesn't answer.
  *   report.cjs body --out <dir> --main-pin <sha> --pin <sha> --changes <subjects> --previous <file>
- *     Prints the sync pull request's description.
+ *     Prints the sync pull request's description, run in the checkout. Its
+ *     dependencies section comes from <out>/outdated.json and the agent's
+ *     answer.
  */
 "use strict";
 const fs = require("node:fs");
@@ -25,8 +27,11 @@ const RESULTS = ["ready", "flaky", "needs_human"];
 // scripts/generate-changesets.ts knows them.
 const SYNC_COMMIT =
 	/^(?:Bump workers-sdk to |Update dependencies$|Sync with workers-sdk )/;
-const DEPENDENCIES =
-	/<!-- dependencies -->\n([\s\S]*?)\n<!-- \/dependencies -->/;
+const NOT_UPDATED = /<!-- not-updated -->\n([\s\S]*?)\n<!-- \/not-updated -->/;
+// The agent's commits that update a dependency outside its range (alcora.md).
+const DEPENDENCY_UPDATE = /^Update (\S+) to v?(\d\S*)$/;
+// The scopes that commit subjects may start with, e.g. `[e2e] `.
+const SCOPE = /^(?:\[[^\]]+\]\s*)+/;
 
 function args() {
 	const out = { command: process.argv[2] };
@@ -123,7 +128,100 @@ function answer(options) {
 			result === "needs_human"
 				? reason || "The agent didn't say why it needs a person."
 				: "",
+		dependencies: reverted(raw.dependencies),
 	});
+}
+
+/** The out-of-range updates that the agent reverted, each `{name, reason}`. */
+function reverted(value) {
+	if (!Array.isArray(value)) return [];
+	return value
+		.filter((item) => item && typeof item === "object" && str(item.name, 214))
+		.slice(0, 50)
+		.map((item) => ({
+			name: str(item.name, 214),
+			reason: str(item.reason, 2000),
+		}));
+}
+
+/**
+ * The part of a version or range that changes when it breaks compatibility,
+ * as `^` ranges see it, as scripts/update-deps.ts compares them.
+ */
+function breakingPart(version) {
+	const [major = "", minor = ""] = version.replace(/^[\^~v]/, "").split(".");
+	return major === "0" ? `0.${minor}` : major;
+}
+
+/**
+ * The newer versions outside their ranges (<out>/outdated.json, from
+ * scripts/update-deps.ts) that the branch's package.json files still don't
+ * allow.
+ */
+function stillOutdated(outdated) {
+	return outdated.filter(({ name, latest, usedBy }) =>
+		usedBy.some((directory) => {
+			let packageJson = {};
+			try {
+				packageJson = JSON.parse(
+					fs.readFileSync(path.join(directory, "package.json"), "utf8")
+				);
+			} catch {}
+			const range =
+				packageJson.dependencies?.[name] ??
+				packageJson.devDependencies?.[name] ??
+				"";
+			return breakingPart(range) !== breakingPart(latest);
+		})
+	);
+}
+
+/**
+ * The description's dependencies section: what was updated, and the newer
+ * versions outside their ranges that weren't, with why. A round that didn't
+ * look for those (one for failed checks) keeps what the last one said.
+ */
+function dependencySection(out, report, subjects, previous) {
+	const lines = [];
+	if (subjects.includes("Update dependencies"))
+		lines.push(
+			"The dependencies that don't follow workers-sdk were updated within their ranges (`pnpm update:deps`).",
+			""
+		);
+	const updates = subjects.flatMap((subject) => {
+		const match = DEPENDENCY_UPDATE.exec(subject.replace(SCOPE, ""));
+		return match ? [`- \`${match[1]}\` to \`${match[2]}\``] : [];
+	});
+	if (updates.length > 0)
+		lines.push(
+			"Updated to newer versions outside their ranges, each in a commit of its own with the changes the plugin needed:",
+			"",
+			...updates,
+			""
+		);
+	const file = path.join(out, "outdated.json");
+	let notUpdated;
+	if (fs.existsSync(file)) {
+		const reasons = new Map(
+			(report.dependencies ?? []).map((d) => [d.name, d.reason])
+		);
+		const left = stillOutdated(JSON.parse(fs.readFileSync(file, "utf8")));
+		notUpdated =
+			left.length === 0
+				? ""
+				: [
+						"Newer versions outside their ranges that the agent didn't update, with why:",
+						"",
+						...left.map(
+							({ name, range, latest, usedBy }) =>
+								`- \`${name}\`: \`${range}\` → \`${latest}\` (${usedBy.join(", ")}). ${(reasons.get(name) || "The agent didn't say why.").replace(/\n+/g, " ")}`
+						),
+					].join("\n");
+	} else notUpdated = (NOT_UPDATED.exec(previous)?.[1] ?? "").trim();
+	if (notUpdated)
+		lines.push("<!-- not-updated -->", notUpdated, "<!-- /not-updated -->", "");
+	if (lines.length === 0) lines.push("None changed.", "");
+	return lines.join("\n").trim();
 }
 
 /** Upstream's commits from `from` to `to`, newest first, or a link to them. */
@@ -173,14 +271,20 @@ async function body(options) {
 	const previous = fs.existsSync(options.previous)
 		? fs.readFileSync(options.previous, "utf8")
 		: "";
-	const dependenciesFile = path.join(options.out, "dependencies.md");
-	// A round that didn't update the dependencies keeps what the last one said.
-	const dependencies = fs.existsSync(dependenciesFile)
-		? fs.readFileSync(dependenciesFile, "utf8").trim()
-		: (DEPENDENCIES.exec(previous)?.[1] ?? "").trim();
-	const changes = options.changes
-		.split("\n")
-		.filter((subject) => subject && !SYNC_COMMIT.test(subject))
+	const subjects = options.changes.split("\n").filter(Boolean);
+	const dependencies = dependencySection(
+		options.out,
+		report,
+		subjects,
+		previous
+	);
+	// Dependency updates are listed with the dependencies.
+	const changes = subjects
+		.filter(
+			(subject) =>
+				!SYNC_COMMIT.test(subject) &&
+				!DEPENDENCY_UPDATE.test(subject.replace(SCOPE, ""))
+		)
 		.map((subject) => `- ${subject}`);
 	const from = options["main-pin"];
 	const to = options.pin;
@@ -188,7 +292,7 @@ async function body(options) {
 	const lines = [];
 	const out = (...text) => lines.push(...text);
 	out(
-		`Moves the workers-sdk submodule from ${UPSTREAM}@${from} to ${UPSTREAM}@${to}, updates the dependencies that don't follow workers-sdk within their ranges, and aligns the plugin with the upstream changes, following the \`check-upstream-alignment\` skill.`,
+		`Moves the workers-sdk submodule from ${UPSTREAM}@${from} to ${UPSTREAM}@${to}, updates the dependencies that don't follow workers-sdk, and aligns the plugin with the upstream changes, following the \`check-upstream-alignment\` skill.`,
 		""
 	);
 	if (report.result === "needs_human")
@@ -220,6 +324,7 @@ async function body(options) {
 			""
 		);
 	}
+	out("### Dependencies", "");
 	out("<!-- dependencies -->", dependencies, "<!-- /dependencies -->", "");
 	out(
 		"<sub>Opened and updated by the Upstream sync Alcora workflow (`.alcora/upstream-sync`). The plugin's changes are an AI agent's, and may be wrong: review them as you would anyone's. Later syncs rebase this branch onto `main` and keep what is pushed to it.</sub>"

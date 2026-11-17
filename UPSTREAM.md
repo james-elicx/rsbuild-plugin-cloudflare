@@ -95,16 +95,24 @@ leaves the repository up to date with upstream, not only bumped:
    installs and builds workers-sdk, and syncs the plugin's dependencies. That's
    committed as "Bump workers-sdk to …", with the upstream commits in the
    message. `scripts/update-deps.ts` then updates the dependencies that don't
-   follow workers-sdk within their ranges, as "Update dependencies".
+   follow workers-sdk within their ranges, as "Update dependencies", and lists
+   their newer versions outside those ranges.
 3. An agent finishes the bump if it failed (e.g. a patch no longer applies),
    follows the `check-upstream-alignment` skill on upstream's changes and
    applies its fixes, until `pnpm check`, the build, the unit tests and the
    affected playground and e2e specs pass. It commits as a person would, with
    subjects that are release notes, and leaves failures that Rsbuild or Rspack
-   cause failing, saying so.
+   cause failing, saying so. Then it updates each dependency to its newer
+   version outside its range, in a commit of its own ("Update <name> to
+   <version>"), adapting the plugin to its breaking changes until the checks
+   and tests pass again. One that fails because of a bug in Rsbuild, Rspack or
+   the dependency, or would make the glue grow substantially, it reverts,
+   keeping the rest of the sync, and the pull request needs a person. It never
+   skips install scripts: when the sandbox can't set up, it says why.
 4. The branch is pushed to a pull request to `main`, which lists the
-   plugin's changes, upstream's commits, the dependency updates and newer
-   versions outside their ranges, to update by hand. The sandbox is kept.
+   plugin's changes, upstream's commits and the dependency updates, and only
+   the newer versions that the agent couldn't update, with why. The sandbox
+   is kept.
 5. With a pull request open, the sync continues its sandbox instead: it
    rebases the branch onto `main`, keeping fixes pushed to it (an agent
    resolves conflicts), bumps again, and aligns with the new changes.
