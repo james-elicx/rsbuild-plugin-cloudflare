@@ -16,7 +16,7 @@ describe("nodejs-imports", () => {
 
 		// As in the Vite plugin, the imports are left for workerd to reject.
 		const bundle = fs.readFileSync(
-			path.join(root, ".cloudflare/output/v0/workers/default/bundle/index.js"),
+			path.join(root, ".cloudflare/output/v1/workers/default/bundle/index.js"),
 			"utf8"
 		);
 		expect(bundle).toContain('from "node:assert/strict"');

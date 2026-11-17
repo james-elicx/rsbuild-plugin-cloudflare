@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import * as fs from "node:fs";
 import * as fsp from "node:fs/promises";
-import { isBuiltin } from "node:module";
+import { createRequire, isBuiltin } from "node:module";
 import * as path from "node:path";
 import {
 	BUILD_OUTPUT_ROOT,
@@ -140,6 +140,16 @@ const CLIENT_ENVIRONMENT_NAME = "web";
 const CLIENT_FALLBACK_ENTRY_NAME = "__cloudflare_fallback_entry__";
 
 type MiniflareManifest = NonNullable<WorkerOptions["config"]["manifest"]>;
+
+/**
+ * This plugin's name and version, which a build records as the Build Output's
+ * producer, as the Vite plugin's `PACKAGE_INFO` does. Both `src/` and `dist/`
+ * are next to `package.json`.
+ */
+const PACKAGE_INFO = createRequire(import.meta.url)("../package.json") as {
+	name: string;
+	version: string;
+};
 
 // As in the Vite plugin, the warnings that are still pending when the process
 // exits (e.g. because the Worker failed to start) are rendered then.
@@ -756,9 +766,15 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 					// Rsbuild may build again in watch mode.
 					logger.warnOnce(CONTAINERS_WARNING);
 				}
-				await writeRootConfig(root, resolvedPluginConfig.settings, {
-					isPreview: isPreviewBuild(),
-					mode: ctx.resolvedViteConfig.mode,
+				await writeRootConfig({
+					root,
+					settings: resolvedPluginConfig.settings,
+					buildContext: {
+						isPreview: isPreviewBuild(),
+						mode: ctx.resolvedViteConfig.mode,
+					},
+					// The Vite plugin records itself, so readers name this plugin.
+					producer: { name: PACKAGE_INFO.name, version: PACKAGE_INFO.version },
 				});
 			});
 

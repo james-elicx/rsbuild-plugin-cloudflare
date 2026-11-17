@@ -29,14 +29,14 @@
 		"previewPlugin": "23fab63353acaaaacf4993a8333e8ca09a147e92e0f6dd21179a7c6eb7c26661"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/build-output.ts": {
-		"buildOutputPlugin": "b99d169583101746297c425f152a2277df9e2618d8b2361b4c8adfcc56a77960"
+		"buildOutputPlugin": "783eab763c8106c27f55eafe8ca0bd8da5bcef84e438c20a62cad287db06c989"
 	},
 	"packages/vite-plugin-cloudflare/src/build.ts": {
 		"getHasPublicAssets": "4dc313e8580d6cc8db2b07a63734107b5a3682df3727f45ac76fd9ed10dc284c",
 		"fallbackBuild": "16489d5e5288d3a66fafca7ddf6025a579633cac0835f7887b7776a9ed49107a"
 	},
 	"packages/vite-plugin-cloudflare/src/miniflare-options.ts": {
-		"getDevMiniflareOptions": "f7ac1394ac04b7122ffc179d5a4d8214917d6e50ff282b82aea1c236e6e64e6e",
-		"getPreviewMiniflareOptions": "73763900f0d41e39db173e249d525c68e039db2955dc3f09a10ff89442faba6f"
+		"getDevMiniflareOptions": "dffb642b9e1d38e0fd78a487c6e1a36656d81a5da2d5cc9ecfe98afa3e541fa7",
+		"getPreviewMiniflareOptions": "f6a3e73847442302b21441df67d6f3083ec68952eba0b9dcbaeb5c000497f9b3"
 	}
 }

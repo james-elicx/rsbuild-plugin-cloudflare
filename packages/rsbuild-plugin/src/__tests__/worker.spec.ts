@@ -260,7 +260,7 @@ describe("worker", () => {
 
 		await build(root);
 
-		const workerDir = path.join(root, ".cloudflare/output/v0/workers/default");
+		const workerDir = path.join(root, ".cloudflare/output/v1/workers/default");
 		expect(fs.existsSync(path.join(workerDir, "assets"))).toBe(false);
 		expect(
 			fs.readFileSync(path.join(workerDir, "bundle", "index.js"), "utf8")
@@ -269,7 +269,7 @@ describe("worker", () => {
 
 	test("writes the Build Output Specification", async ({ expect }) => {
 		const root = copyFixture("worker");
-		const outputDir = path.join(root, ".cloudflare", "output", "v0");
+		const outputDir = path.join(root, ".cloudflare", "output", "v1");
 		const workerDir = path.join(outputDir, "workers", "default");
 		// Rsbuild copies `public/` into the Worker's output directory too.
 		fs.mkdirSync(path.join(root, "public"));
@@ -291,7 +291,13 @@ describe("worker", () => {
 			"script.js",
 		]);
 		const { rootConfig, workers } = await readBuildOutput(root);
-		expect(rootConfig.buildContext).toMatchObject({ mode: "production" });
+		expect(rootConfig).toEqual({
+			producer: {
+				name: "rsbuild-plugin-cloudflare",
+				version: expect.any(String),
+			},
+			buildContext: { isPreview: false, mode: "production" },
+		});
 		expect(Object.keys(workers)).toEqual(["default"]);
 		expect(workers.default?.config).toMatchObject({
 			name: "rsbuild-worker",
@@ -339,7 +345,7 @@ describe("worker", () => {
 
 		expect(
 			fs.existsSync(
-				path.join(root, ".cloudflare/output/v0/workers/default/bundle/index.js")
+				path.join(root, ".cloudflare/output/v1/workers/default/bundle/index.js")
 			)
 		).toBe(true);
 		expect(fs.existsSync(path.join(root, "custom-worker-output"))).toBe(false);
