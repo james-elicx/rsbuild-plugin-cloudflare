@@ -1,5 +1,24 @@
 # rsbuild-plugin-cloudflare
 
+## 0.0.6
+
+### Patch Changes
+
+- Make `WorkerConfig` the parsed Worker configuration that auxiliary and prerender Worker `config` accepts
+- Write Build Output v1 to `.cloudflare/output/v1/` and record the plugin as its producer
+- Track the Vite plugin's dev and preview plugins after Container image preparation moved to `@cloudflare/containers-shared`
+
+### Upstream Changes (`@cloudflare/vite-plugin`)
+
+- Remove `CLOUDFLARE_CF_AUTH` and require explicit auth for remote bindings sessions (cloudflare/workers-sdk#16838)
+- Use the local Artifacts simulator when remote is omitted (cloudflare/workers-sdk#16735)
+- Move `@cloudflare/config` package to 1.0 RC (cloudflare/workers-sdk#16907)
+- `@cloudflare/build-output-utils` v1 RC (cloudflare/workers-sdk#16917)
+- Vite plugin v2 RC (cloudflare/workers-sdk#16921)
+- Remove the cf-vite delegate (cloudflare/workers-sdk#16759)
+- Share getWorkerZone and toApiComplianceRegion with the Vite and Vitest plugins (cloudflare/workers-sdk#16880)
+- Share cf config Container image preparation with the Vite plugin (cloudflare/workers-sdk#16877)
+
 ## 0.0.5
 
 ### Patch Changes
