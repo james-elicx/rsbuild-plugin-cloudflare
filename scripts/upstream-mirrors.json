@@ -26,7 +26,7 @@
 		"nodeJsCompatWarningsPlugin": "3667eb8fb656c7d9045c59630e8de0c407882a90fb0e5edb9f5f7f3a59ee710a"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/preview.ts": {
-		"previewPlugin": "23fab63353acaaaacf4993a8333e8ca09a147e92e0f6dd21179a7c6eb7c26661"
+		"previewPlugin": "4eb7465672c2cda792b12008fa0d5e073c24c6a1a414d93ed1327be7291ea287"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/build-output.ts": {
 		"buildOutputPlugin": "783eab763c8106c27f55eafe8ca0bd8da5bcef84e438c20a62cad287db06c989"
