@@ -139,13 +139,15 @@ bump_commits() {
 	fi
 }
 
-# Fetches the pull requests' base, with the history that rebasing needs.
+# Fetches the pull requests' base, with the history that rebasing needs. Not
+# workers-sdk: when the fetched commits move the pin, git would fetch in its
+# layout too, which has no remote, and fail.
 fetch_base() {
 	local depth=()
 	if [[ "$(git rev-parse --is-shallow-repository)" == "true" ]]; then
 		depth=(--unshallow)
 	fi
-	git fetch --quiet ${depth[@]+"${depth[@]}"} origin "+refs/heads/$base:refs/remotes/origin/$base"
+	git fetch --quiet --no-recurse-submodules ${depth[@]+"${depth[@]}"} origin "+refs/heads/$base:refs/remotes/origin/$base"
 }
 
 case "$command" in
