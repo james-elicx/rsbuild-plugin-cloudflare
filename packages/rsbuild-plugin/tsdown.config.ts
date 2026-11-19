@@ -27,6 +27,10 @@ export default defineConfig({
 			// `createPlugin()`, which only wraps a factory. Marking it pure leaves
 			// them (and their dependencies) out when we import a module's helpers.
 			manualPureFunctions: ["createPlugin"],
+			// The dependencies don't need importing for their side effects. This
+			// leaves out the imports of the packages whose types the declarations
+			// don't use (e.g. `vite`), which aren't the plugin's dependencies.
+			moduleSideEffects: [{ external: true, sideEffects: false }],
 		},
 		onLog(level, log, handler) {
 			// Fail rather than bundle `undefined` when the internals import a value
@@ -40,6 +44,9 @@ export default defineConfig({
 	},
 	// The internals read the Vite plugin's internal Workers relative to the
 	// bundle (e.g. `./workers/router-worker/index.js`), so ship its builds.
-	copy: [{ from: `${upstreamPlugin}/dist/workers`, to: "dist/workers" }],
+	copy: [{ from: `${upstreamPlugin}/dist/workers`, to: "dist" }],
 	dts: true,
+	// Keep the declarations' imports of packages, rather than bundling their
+	// types: `vite`'s can't be.
+	deps: { dts: { neverBundle: true } },
 });
