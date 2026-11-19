@@ -42,24 +42,24 @@
 		"test:watch": "vitest"
 	},
 	"dependencies": {
-		"@cloudflare/build-output-utils": "1.0.0-rc.1",
-		"@cloudflare/config": "1.0.0-rc.1",
-		"@cloudflare/runtime-types": "0.1.30",
+		"@cloudflare/build-output-utils": "1.0.0-rc.2",
+		"@cloudflare/config": "1.0.0-rc.2",
+		"@cloudflare/runtime-types": "0.1.31",
 		"@cloudflare/unenv-preset": "2.16.2",
-		"miniflare": "5.20261117.0-beta",
+		"miniflare": "5.20261118.0-beta",
 		"unenv": "2.0.0-rc.24",
 		"ws": "8.21.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-tsconfig": "link:../../workers-sdk/packages/workers-tsconfig",
-		"@cloudflare/workers-types": "5.20261118.1",
+		"@cloudflare/workers-types": "5.20261119.1",
 		"@cloudflare/workers-utils": "link:../../workers-sdk/packages/workers-utils",
 		"@rsbuild/core": "^2.3.3",
 		"@types/node": "22.15.17",
 		"cf": "1.0.0-beta.17",
 		"get-port": "^7.2.0",
 		"picocolors": "^1.1.1",
-		"tsdown": "0.16.3",
+		"tsdown": "0.22.14",
 		"typescript": "5.8.3",
 		"vitest": "5.0.4"
 	},
