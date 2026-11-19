@@ -3,7 +3,7 @@
 	"type": "skill",
 	"name": "rsbuild-plugin-cloudflare/check-upstream-alignment",
 	"title": "Sync with workers-sdk",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "Bumps rsbuild-plugin-cloudflare's workers-sdk submodule to upstream's main and updates the dependencies that don't follow it, then has an agent finish the bump and align the plugin with the Vite plugin, following the check-upstream-alignment skill, until the checks and tests pass. Pushes the sync to a branch of its own and opens its pull request. A later step continues its sandbox to rebase and sync again, or to fix failed checks.",
 	"readme": "README.md",
 	"license": "MIT",
