@@ -36,6 +36,7 @@ export interface ServerConfig {
 	port: number;
 	https: boolean;
 	headers: Record<string, string | string[]>;
+	allowedHosts: string[] | true;
 }
 
 /**

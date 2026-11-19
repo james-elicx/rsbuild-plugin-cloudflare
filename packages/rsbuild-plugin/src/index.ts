@@ -991,6 +991,8 @@ function getServerConfig(
 		port,
 		https: !!server.https,
 		headers: server.headers ?? {},
+		// Rsbuild's `server.allowedHosts` takes the same values as Vite's.
+		allowedHosts: server.allowedHosts,
 	};
 }
 

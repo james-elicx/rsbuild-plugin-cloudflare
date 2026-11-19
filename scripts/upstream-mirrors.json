@@ -36,7 +36,7 @@
 		"fallbackBuild": "16489d5e5288d3a66fafca7ddf6025a579633cac0835f7887b7776a9ed49107a"
 	},
 	"packages/vite-plugin-cloudflare/src/miniflare-options.ts": {
-		"getDevMiniflareOptions": "dffb642b9e1d38e0fd78a487c6e1a36656d81a5da2d5cc9ecfe98afa3e541fa7",
-		"getPreviewMiniflareOptions": "f6a3e73847442302b21441df67d6f3083ec68952eba0b9dcbaeb5c000497f9b3"
+		"getDevMiniflareOptions": "75ba58fa8e2222024f5c0e27e916ac97c32b87fbf90e35ea859127156f96e0a6",
+		"getPreviewMiniflareOptions": "acf21c675175f7fc26a7e9f4c33d34e1db6c86d84ef2b962edf6b2d52928de8b"
 	}
 }
