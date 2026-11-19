@@ -239,18 +239,20 @@ if (updatedWorkspace !== workspace) {
 	}
 }
 
-// The Node.js version that CI uses: the default of workers-sdk's
-// `install-dependencies` action.
+// The Node.js version that CI uses: the one workers-sdk's
+// `install-dependencies` action installs, its `node-version` input's default
+// or, without one, `volta.node` in workers-sdk's package.json.
+const installDependencies = readFileSync(
+	path.join(upstreamRoot, ".github/actions/install-dependencies/action.yml"),
+	"utf8"
+);
 const upstreamNodeVersion =
 	/^ {2}node-version:\n(?: {4}.*\n)*? {4}default: (\S+)$/m.exec(
-		readFileSync(
-			path.join(
-				upstreamRoot,
-				".github/actions/install-dependencies/action.yml"
-			),
-			"utf8"
-		)
-	)?.[1];
+		installDependencies
+	)?.[1] ??
+	(/^ {8}node-version-file: package\.json$/m.test(installDependencies)
+		? upstreamPackageJson.volta?.node
+		: undefined);
 if (!upstreamNodeVersion) {
 	throw new Error(
 		"Couldn't find the Node.js version in workers-sdk's `install-dependencies` action."
