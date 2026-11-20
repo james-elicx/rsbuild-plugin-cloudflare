@@ -16,27 +16,19 @@ import {
 	getDevVarsCandidatePaths,
 	getEnvPaths,
 } from "@cloudflare/workers-utils/local-env";
-import { CoreHeaders } from "miniflare";
 import { isPreviewBuild } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/build-output-env";
 import {
 	assertIsNotPreview,
 	PluginContext,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/context";
 import { DEBUG_PATH } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/debug";
-import { getPreviewMiniflareOptions } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/miniflare-options";
 import { NodeJsCompatWarnings } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/nodejs-compat";
 import {
 	resolveDevOnly,
 	resolveEnvDir,
 	resolvePluginConfig,
 } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/plugin-config";
-import {
-	createRequestHandler,
-	toMiniflareRequest,
-} from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/utils";
-import { handleWebSocket } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/websockets";
 import { resolveExtensions } from "../../../workers-sdk/packages/vite-plugin-cloudflare/src/worker-environment-options";
-import { getDevMiniflareOptions } from "./miniflare-options";
 import {
 	createDebugMiddleware,
 	createDispatchMiddleware,
@@ -451,7 +443,14 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				};
 			});
 
-			api.onBeforeStartDevServer(({ server, environments }) => {
+			api.onBeforeStartDevServer(async ({ server, environments }) => {
+				// As in the Vite plugin, Miniflare is only loaded to run the Workers,
+				// so that builds don't load it. It's loaded when the dev server
+				// starts, before the Workers build, rather than once they have built.
+				const [{ handleWebSocket }] = await Promise.all([
+					import("../../../workers-sdk/packages/vite-plugin-cloudflare/src/websockets"),
+					import("./miniflare-options"),
+				]);
 				devServer = server;
 				environmentContexts = environments;
 				serverConfig = getServerConfig(api.getNormalizedConfig(), server);
@@ -492,7 +491,7 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 								false
 							);
 					}
-					const userWorkerHandler = createUserWorkerHandler(
+					const userWorkerHandler = await createUserWorkerHandler(
 						getMiniflare,
 						entryWorkerConfig.name
 					);
@@ -507,10 +506,15 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 								: undefined;
 					if (staticRouting) {
 						server.middlewares.use(
-							createStaticRoutingMiddleware(staticRouting, userWorkerHandler)
+							await createStaticRoutingMiddleware(
+								staticRouting,
+								userWorkerHandler
+							)
 						);
 					}
 				}
+				/** Forwards a request to the router Worker, or to the asset Worker for asset requests. */
+				const dispatchMiddleware = await createDispatchMiddleware(getMiniflare);
 				// Rsbuild would serve its HTML pages itself, so send page requests to
 				// the router Worker first.
 				server.middlewares.use((req, res, next) =>
@@ -592,6 +596,8 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				}
 				manifestsChanged = false;
 				try {
+					const { getDevMiniflareOptions } =
+						await import("./miniflare-options");
 					const { miniflareOptions, containerOptions } =
 						await getDevMiniflareOptions(
 							ctx as AssetsOnlyPluginContext | WorkersPluginContext,
@@ -624,6 +630,15 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 			async function setUpPreviewServer(
 				server: RsbuildPreviewServer
 			): Promise<void> {
+				const [
+					{ getPreviewMiniflareOptions },
+					{ createRequestHandler },
+					{ handleWebSocket },
+				] = await Promise.all([
+					import("../../../workers-sdk/packages/vite-plugin-cloudflare/src/miniflare-options"),
+					import("../../../workers-sdk/packages/vite-plugin-cloudflare/src/request-handler"),
+					import("../../../workers-sdk/packages/vite-plugin-cloudflare/src/websockets"),
+				]);
 				const config = getServerConfig(api.getNormalizedConfig(), server);
 				const { miniflareOptions, containerOptions } =
 					await getPreviewMiniflareOptions(
@@ -818,6 +833,10 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				request: Request,
 				workerName: string
 			): Promise<Response> {
+				const [{ CoreHeaders }, { toMiniflareRequest }] = await Promise.all([
+					import("miniflare"),
+					import("../../../workers-sdk/packages/vite-plugin-cloudflare/src/request-handler"),
+				]);
 				const miniflareRequest = toMiniflareRequest(request);
 				miniflareRequest.headers.set(CoreHeaders.ROUTE_OVERRIDE, workerName);
 				const response = await (
@@ -825,9 +844,6 @@ export function cloudflare(options: PluginConfig = {}): RsbuildPlugin {
 				).dispatchFetch(miniflareRequest, { redirect: "manual" });
 				return response as unknown as Response;
 			}
-
-			/** Forwards a request to the router Worker, or to the asset Worker for asset requests. */
-			const dispatchMiddleware = createDispatchMiddleware(getMiniflare);
 
 			/** Reads HTML pages from Rsbuild for the asset Worker. */
 			const htmlHandlers: DevHtmlHandlers = {

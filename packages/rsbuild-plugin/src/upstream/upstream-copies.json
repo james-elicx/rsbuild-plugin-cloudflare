@@ -3,10 +3,10 @@
 		"wasmHelperPlugin": "a8a22c4fd5447347df1ecb65a8c67e4abfcf0d336bf0c994963595b644d5dea7"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/dev.ts": {
-		"devPlugin": "acde5b9457a4c0636037b41d9fde9ed9a5f3101f498f8f111667890f53c5a87e"
+		"configureDevServer": "41638c72b528301729f561c9daef2ae59fedcab5994466cfb2ad5f6dec6dd71b"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/trigger-handlers.ts": {
-		"triggerHandlersPlugin": "e5f0acff76127e99745608bdbf4a69a4fa1e44096edc866d5115da6348b36b8b"
+		"triggerHandlersPlugin": "07b32e60385f25441a3b88e520b15bb1ef31ad9eaa2d4510efd3a2da36d53a3a"
 	},
 	"packages/vite-plugin-cloudflare/src/plugins/debug.ts": {
 		"debugPlugin": "cddb5119f3496780d704c43fd8ce3b5396770706721f5f7e884f16c91940c67e"
