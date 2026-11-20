@@ -1,5 +1,22 @@
 # rsbuild-plugin-cloudflare
 
+## 0.0.7
+
+### Patch Changes
+
+- Build with tsdown 0.22, as the Vite plugin does, still shipping its internal Workers and declarations that only import the plugin's dependencies
+- Trust Rsbuild's `server.allowedHosts` for the `/cdn-cgi/` endpoints with `X_LOCAL_EXPLORER_USE_VITE_ALLOWED_HOSTS=true`, as the Vite plugin trusts Vite's
+- Avoid loading Miniflare during builds, as the Vite plugin does
+
+### Upstream Changes (`@cloudflare/vite-plugin`)
+
+- Migrate all remaining tsup builds to tsdown (cloudflare/workers-sdk#14578)
+- Support localhost subdomains and opt-in Local Explorer hosts (cloudflare/workers-sdk#17034)
+- Remove wrangler dependency (cloudflare/workers-sdk#16174)
+- Keep deferred imports alive after request completion (cloudflare/workers-sdk#16385)
+- Skip the Docker image lookup when a project has no Containers (cloudflare/workers-sdk#17030)
+- Lazy-load Miniflare for bundle-only builds (cloudflare/workers-sdk#17076)
+
 ## 0.0.6
 
 ### Patch Changes
