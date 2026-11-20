@@ -20,7 +20,7 @@
 		"@types/node": "22.15.17",
 		"cross-env": "7.0.3",
 		"rsbuild-plugin-cloudflare": "workspace:*",
-		"typescript": "5.8.3",
+		"typescript": "6.0.3",
 		"vite": "link:../../workers-sdk/packages/vite-plugin-cloudflare/node_modules/vite",
 		"vitest": "link:../../workers-sdk/node_modules/vitest"
 	}
