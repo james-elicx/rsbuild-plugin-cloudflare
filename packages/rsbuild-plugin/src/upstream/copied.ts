@@ -7,7 +7,6 @@
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { CoreHeaders } from "miniflare";
 import colors from "picocolors";
 import {
 	ASSET_WORKER_NAME,
@@ -16,10 +15,6 @@ import {
 } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/constants";
 import { getDebugPathHtml } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/debug";
 import { UNKNOWN_HOST } from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/shared";
-import {
-	createRequestHandler,
-	resolveRequestTarget,
-} from "../../../../workers-sdk/packages/vite-plugin-cloudflare/src/utils";
 import { generateStaticRoutingRuleMatcher } from "../../../../workers-sdk/packages/workers-shared/asset-worker/src/utils/rules-engine";
 import type {
 	AssetsOnlyResolvedConfig,
@@ -53,7 +48,9 @@ export function getWasmInitModule(wasmPath: string): string {
 				`;
 }
 
-// From `plugins/dev.ts` and `plugins/trigger-handlers.ts`.
+// From `configureDevServer` (`plugins/dev.ts`) and `plugins/trigger-handlers.ts`.
+// As in the Vite plugin, Miniflare is only loaded once the dev server starts,
+// so that builds don't load it.
 
 /**
  * Creates the middleware that sends requests to the entry Worker, bypassing the
@@ -63,10 +60,14 @@ export function getWasmInitModule(wasmPath: string): string {
  * @param entryWorkerName The entry Worker's name.
  * @returns The middleware.
  */
-export function createUserWorkerHandler(
+export async function createUserWorkerHandler(
 	getMiniflare: () => Promise<Miniflare>,
 	entryWorkerName: string
-): Middleware {
+): Promise<Middleware> {
+	const [{ CoreHeaders }, { createRequestHandler }] = await Promise.all([
+		import("miniflare"),
+		import("../../../../workers-sdk/packages/vite-plugin-cloudflare/src/request-handler"),
+	]);
 	const requestHandler = createRequestHandler(async (request) => {
 		request.headers.set(CoreHeaders.ROUTE_OVERRIDE, entryWorkerName);
 
@@ -85,10 +86,12 @@ export function createUserWorkerHandler(
  * @param userWorkerHandler Sends requests to the entry Worker.
  * @returns The middleware.
  */
-export function createStaticRoutingMiddleware(
+export async function createStaticRoutingMiddleware(
 	staticRouting: StaticRouting,
 	userWorkerHandler: Middleware
-): Middleware {
+): Promise<Middleware> {
+	const { resolveRequestTarget } =
+		await import("../../../../workers-sdk/packages/vite-plugin-cloudflare/src/request-handler");
 	const excludeRulesMatcher = generateStaticRoutingRuleMatcher(
 		staticRouting.asset_worker ?? []
 	);
@@ -123,9 +126,13 @@ export function createStaticRoutingMiddleware(
  * @param getMiniflare Gets the Miniflare instance once it has started.
  * @returns The middleware.
  */
-export function createDispatchMiddleware(
+export async function createDispatchMiddleware(
 	getMiniflare: () => Promise<Miniflare>
-): Middleware {
+): Promise<Middleware> {
+	const [{ CoreHeaders }, { createRequestHandler }] = await Promise.all([
+		import("miniflare"),
+		import("../../../../workers-sdk/packages/vite-plugin-cloudflare/src/request-handler"),
+	]);
 	const requestHandler = createRequestHandler(async (request, req) => {
 		request.headers.set(
 			CoreHeaders.ROUTE_OVERRIDE,
