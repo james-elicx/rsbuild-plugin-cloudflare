@@ -90,7 +90,7 @@ unless the task and environment support them.
 
 ## Implementation conventions
 
-These are workers-sdk's. The checked-in configuration (`.oxlintrc.jsonc`,
+These are workers-sdk's. The checked-in configuration (`oxlint.config.mts`,
 `.oxfmtrc.jsonc`) is authoritative; run `pnpm check` rather than relying on
 this list.
 

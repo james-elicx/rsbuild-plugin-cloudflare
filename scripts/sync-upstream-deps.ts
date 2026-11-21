@@ -31,6 +31,7 @@ interface PackageJson {
 /** The tooling that is pinned to the versions installed in the submodule. */
 const TOOLING = [
 	"@changesets/cli",
+	"@cloudflare/oxlint-config",
 	"@cloudflare/workers-types",
 	"@types/node",
 	"cf",
@@ -38,8 +39,8 @@ const TOOLING = [
 	"eslint-plugin-turbo",
 	"oxfmt",
 	"oxlint",
-	"oxlint-tsgolint",
 	"tsdown",
+	"tsrs",
 	"turbo",
 	"typescript",
 	"vitest",
