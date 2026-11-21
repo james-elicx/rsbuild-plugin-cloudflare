@@ -177,7 +177,7 @@ export function getWorkerEnvironmentConfig(
 				},
 			],
 		},
-		performance: { chunkSplit: { strategy: "all-in-one" } },
+		splitChunks: false,
 		dev: { hmr: false, liveReload: false },
 		tools: {
 			// workerd runs the latest syntax, so don't lower it for the browser
