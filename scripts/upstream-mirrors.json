@@ -37,6 +37,6 @@
 	},
 	"packages/vite-plugin-cloudflare/src/miniflare-options.ts": {
 		"getDevMiniflareOptions": "75ba58fa8e2222024f5c0e27e916ac97c32b87fbf90e35ea859127156f96e0a6",
-		"getPreviewMiniflareOptions": "acf21c675175f7fc26a7e9f4c33d34e1db6c86d84ef2b962edf6b2d52928de8b"
+		"getPreviewMiniflareOptions": "2d7a4fa3e9264bca01cdd6b4b8f41e87800d44a02f1a6aac90c373ae93142084"
 	}
 }
