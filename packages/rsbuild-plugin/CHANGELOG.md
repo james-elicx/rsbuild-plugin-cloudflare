@@ -1,5 +1,12 @@
 # rsbuild-plugin-cloudflare
 
+## 0.0.8
+
+### Upstream Changes (`@cloudflare/vite-plugin`)
+
+- Use Build Output's mode, or none, for preview's local env (cloudflare/workers-sdk#17166)
+- Prefer `CLOUDFLARE_ACCOUNT_ID` to the configured `accountId` (cloudflare/workers-sdk#17205)
+
 ## 0.0.7
 
 ### Patch Changes
