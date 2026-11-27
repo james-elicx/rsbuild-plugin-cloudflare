@@ -19,11 +19,11 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@rsbuild/core": "^2.3.4",
+    "@rsbuild/core": "^2.3.5",
     "@rsbuild/plugin-react": "^2.1.1",
     "@rsbuild/plugin-tailwindcss": "^2.0.3",
     "@types/node": "22.15.17",
-    "@types/react": "^19.3.2",
+    "@types/react": "^19.3.3",
     "@types/react-dom": "^19.3.0",
     "cf": "1.0.0-beta.17",
     "rsbuild-plugin-cloudflare": "workspace:*",
