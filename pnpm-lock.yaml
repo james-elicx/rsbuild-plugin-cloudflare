@@ -202,8 +202,8 @@ importers:
         specifier: link:../../workers-sdk/packages/workers-tsconfig
         version: link:../../workers-sdk/packages/workers-tsconfig
       '@cloudflare/workers-types':
-        specifier: 5.20261125.1
-        version: 5.20261125.1
+        specifier: 5.20261127.1
+        version: 5.20261127.1
       '@cloudflare/workers-utils':
         specifier: link:../../workers-sdk/packages/workers-utils
         version: link:../../workers-sdk/packages/workers-utils
@@ -439,8 +439,8 @@ packages:
       vite-plus:
         optional: true
 
-  '@cloudflare/workers-types@5.20261125.1':
-    resolution: {integrity: sha512-FBFIY/srJZZtZjxyH56AerZ0ZDbhr6Ifa5O707q0f7YzHmzqd+2zD3vG6d8cAcSDL/heJvsP7eEAsYRLFd7jpw==}
+  '@cloudflare/workers-types@5.20261127.1':
+    resolution: {integrity: sha512-G0vZByiP+V6JvPdyf1d7kPYow3yOk4vZV0PRiFhBeRjVjCT1uVJurKTpJca2WVTnb2TsicHdpC3KeHhwSciIlg==}
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -3383,7 +3383,7 @@ snapshots:
       - eslint
       - eslint-plugin-perfectionist
 
-  '@cloudflare/workers-types@5.20261125.1': {}
+  '@cloudflare/workers-types@5.20261127.1': {}
 
   '@emnapi/core@1.10.0':
     dependencies:
