@@ -42,11 +42,11 @@
 		"test:watch": "vitest"
 	},
 	"dependencies": {
-		"@cloudflare/build-output-utils": "1.0.0-rc.4",
-		"@cloudflare/config": "1.0.0-rc.4",
-		"@cloudflare/runtime-types": "0.1.34",
+		"@cloudflare/build-output-utils": "1.0.0-rc.5",
+		"@cloudflare/config": "1.0.0-rc.5",
+		"@cloudflare/runtime-types": "0.1.35",
 		"@cloudflare/unenv-preset": "2.16.2",
-		"miniflare": "5.20261123.1-beta",
+		"miniflare": "5.20261127.0-beta",
 		"unenv": "2.0.0-rc.24",
 		"ws": "8.21.0"
 	},
